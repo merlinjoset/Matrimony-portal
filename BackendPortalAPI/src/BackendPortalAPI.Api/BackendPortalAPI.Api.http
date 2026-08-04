@@ -1,0 +1,13 @@
+@BackendPortalAPI.Api_HostAddress = http://localhost:5117
+
+### Health
+GET {{BackendPortalAPI.Api_HostAddress}}/health
+Accept: application/json
+
+### Browse profiles
+GET {{BackendPortalAPI.Api_HostAddress}}/api/profiles
+Accept: application/json
+
+### Validate a membership card
+GET {{BackendPortalAPI.Api_HostAddress}}/api/members/validate?membershipNo=CSI-DXB-1001
+Accept: application/json

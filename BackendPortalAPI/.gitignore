@@ -1,0 +1,30 @@
+# ---- .NET build output ----
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ---- IDE ----
+.vs/
+.idea/
+.vscode/
+
+# ---- Uploaded photos (keep the folder, ignore the files) ----
+**/wwwroot/uploads/*
+!**/wwwroot/uploads/.gitkeep
+
+# ---- Local secrets / overrides ----
+appsettings.Development.local.json
+appsettings.*.local.json
+secrets.json
+
+# ---- Member roster (real PII - never commit to a public repo; lives in the DB) ----
+**/Data/members.json
+**/Data/members.csv
+
+# ---- Misc ----
+*.log
+.DS_Store

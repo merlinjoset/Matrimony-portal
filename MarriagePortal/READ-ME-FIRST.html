@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CSI Holy Matrimony - Prototype Guide</title>
+<link rel="icon" type="image/png" href="assets/img/favicon.png" />
+<style>
+  :root{--maroon:#6b1f2a;--gold:#c9a24b;--cream:#faf6ef;--ink:#2c2522;--muted:#7a7068;--line:#e8ddcd;--green:#3f6b54}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Roboto,system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6}
+  .wrap{max-width:760px;margin:0 auto;padding:40px 22px 70px}
+  .head{display:flex;align-items:center;gap:16px;border-bottom:3px solid var(--gold);padding-bottom:20px;margin-bottom:6px}
+  .head img{width:64px;height:64px;border-radius:50%;background:#fff;padding:3px;object-fit:contain;box-shadow:0 3px 10px rgba(0,0,0,.15)}
+  h1{font-size:26px;margin:0;color:var(--maroon)}
+  .sub{color:var(--muted);font-size:14px;margin-top:2px}
+  h2{color:var(--maroon);font-size:19px;margin:30px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 4px 14px rgba(60,30,20,.06)}
+  .card h3{margin:0 0 6px;font-size:17px}
+  .card p{margin:0 0 14px;color:var(--muted);font-size:13.5px}
+  .btn{display:inline-block;background:var(--gold);color:var(--maroon);font-weight:700;text-decoration:none;
+    padding:11px 18px;border-radius:10px;font-size:14px}
+  .btn.alt{background:var(--maroon);color:#fff}
+  ul{padding-left:20px} li{margin-bottom:7px}
+  .pill{display:inline-block;background:rgba(63,107,84,.12);color:var(--green);font-weight:700;font-size:12px;
+    padding:3px 10px;border-radius:999px;margin-left:8px}
+  .note{background:rgba(201,162,75,.12);border:1px solid var(--gold);border-radius:10px;padding:14px 16px;font-size:13.5px;margin-top:14px}
+  code{background:#efe7d8;padding:1px 6px;border-radius:5px;font-size:13px}
+  .foot{margin-top:36px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+  @media(max-width:560px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <img src="assets/img/emblem.jpg" alt="CSI" />
+    <div>
+      <h1>CSI Holy Matrimony</h1>
+      <div class="sub">Matrimony Portal - Prototype for review · CSI Tamil Parish, Dubai</div>
+    </div>
+  </div>
+
+  <p>Thank you for reviewing this prototype. It is a working demonstration that runs entirely in your
+  web browser - <b>no installation, internet or login required</b>. Nothing you type is saved or sent anywhere.</p>
+
+  <div class="cards">
+    <div class="card">
+      <h3>👰 Public Site</h3>
+      <p>What members and families see: browse profiles, view details, upload photos, and register.</p>
+      <a class="btn" href="index.html">Open Public Site →</a>
+    </div>
+    <div class="card">
+      <h3>🛡️ Admin Portal</h3>
+      <p>What the parish office uses: verify profiles, manage members, users, parishes and reports.</p>
+      <a class="btn alt" href="admin.html">Open Admin Portal →</a>
+    </div>
+  </div>
+
+  <h2>What to try</h2>
+  <ul>
+    <li><b>Switch language</b> - use the <code>EN / தமிழ்</code> toggle (top-right). The whole site changes instantly.</li>
+    <li><b>Browse &amp; filter</b> profiles by congregation, denomination and bride/groom.</li>
+    <li><b>Register a profile</b> - add one or more photos, fill the form, and submit. Your new profile
+        appears in <i>Browse</i> with its photo.</li>
+    <li><b>Approve it</b> - open the <i>Admin Portal</i> → <i>Verification Queue</i>; the profile you just
+        submitted appears there with its photo. Click <b>Approve</b>. <span class="pill">end-to-end demo</span></li>
+    <li>Explore the admin <b>Dashboard, Members, Interests, Parishes, Users &amp; Roles</b>.</li>
+  </ul>
+
+  <h2>What's included in this prototype</h2>
+  <ul>
+    <li>Faith-centred matrimony service for the CSI Tamil parish community</li>
+    <li>Full <b>English &amp; Tamil</b> bilingual interface</li>
+    <li>Profile photo upload (up to 5 photos, with a main photo)</li>
+    <li>Parish verification workflow (profiles approved before going live)</li>
+    <li>Privacy: contact details shared only after mutual interest</li>
+    <li>Admin: members, interests, congregations, reports, and staff users &amp; roles</li>
+    <li>Real parish identity - CSI emblem, Dubai contact details, the 3 UAE congregations</li>
+  </ul>
+
+  <div class="note">
+    <b>Please note:</b> This is a visual &amp; functional prototype for approval. Sample profiles are
+    illustrative. Actions such as <i>Add user</i>, <i>Export</i> and <i>Send interest</i> show confirmation
+    messages but are not yet connected to a live database - that comes in the build phase once the design is approved.
+  </div>
+
+  <h2>How to open</h2>
+  <p>Double-click <code>READ-ME-FIRST.html</code> (this page) and use the buttons above, or open
+  <code>index.html</code> directly. Works best in Chrome, Edge or Firefox. For the full end-to-end demo,
+  keep both the public site and admin portal open in the same browser.</p>
+
+  <div class="foot">
+    Prepared for the approval of CSI Tamil Parish, Dubai · © 2026 CSI Tamil Parish Matrimony Ministry
+  </div>
+</div>
+</body>
+</html>

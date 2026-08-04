@@ -1,0 +1,195 @@
+import type {
+  AdminUser,
+  ContactRequest,
+  ContactRequestStatus,
+  ContactReveal,
+  CreateInterestInput,
+  CreateProfileInput,
+  CreateUserInput,
+  Interest,
+  InterestStatus,
+  MemberValidation,
+  PagedResult,
+  ProfileDetail,
+  ProfileListItem,
+  ProfileStats,
+  ProfileStatus,
+} from "./types";
+
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5117/api";
+
+class ApiError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function http<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  // Only safe (idempotent) reads are retried, so we never double-submit a write.
+  const maxAttempts = method === "GET" ? 4 : 1;
+
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(`${BASE}${path}`, {
+        ...init,
+        headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+        cache: "no-store",
+      });
+
+      // A sleeping (cold-starting) host returns a gateway error; wait and retry.
+      if ((res.status === 502 || res.status === 503 || res.status === 504) && attempt < maxAttempts) {
+        await sleep(attempt * 4000);
+        continue;
+      }
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new ApiError(res.status, body || res.statusText);
+      }
+      if (res.status === 204) return undefined as T;
+      return (await res.json()) as T;
+    } catch (e) {
+      // A real API error (4xx/5xx we surfaced) should not be retried.
+      if (e instanceof ApiError) throw e;
+      // Network failure (e.g. connection refused while the host wakes) — retry.
+      lastError = e;
+      if (attempt < maxAttempts) {
+        await sleep(attempt * 4000);
+        continue;
+      }
+    }
+  }
+  throw lastError;
+}
+
+export interface BrowseParams {
+  gender?: string;
+  denomination?: string;
+  congregation?: string;
+  status?: string;
+  live?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
+export const api = {
+  browseProfiles(params: BrowseParams = {}): Promise<PagedResult<ProfileListItem>> {
+    const q = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") q.set(k, String(v));
+    });
+    const qs = q.toString();
+    return http<PagedResult<ProfileListItem>>(`/profiles${qs ? `?${qs}` : ""}`);
+  },
+
+  getProfile(id: string): Promise<ProfileDetail> {
+    return http<ProfileDetail>(`/profiles/${id}`);
+  },
+
+  createProfile(input: CreateProfileInput): Promise<ProfileDetail> {
+    return http<ProfileDetail>(`/profiles`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  validateMembership(membershipNo: string): Promise<MemberValidation> {
+    return http<MemberValidation>(`/members/validate?membershipNo=${encodeURIComponent(membershipNo)}`);
+  },
+
+  getShortlist(memberId: string): Promise<ProfileListItem[]> {
+    return http<ProfileListItem[]>(`/members/${memberId}/shortlist`);
+  },
+
+  addShortlist(memberId: string, profileId: string): Promise<void> {
+    return http<void>(`/members/${memberId}/shortlist`, {
+      method: "POST",
+      body: JSON.stringify({ profileId }),
+    });
+  },
+
+  removeShortlist(memberId: string, profileId: string): Promise<void> {
+    return http<void>(`/members/${memberId}/shortlist/${profileId}`, { method: "DELETE" });
+  },
+
+  getStats(): Promise<ProfileStats> {
+    return http<ProfileStats>(`/profiles/stats`);
+  },
+
+  setStatus(id: string, status: ProfileStatus, note?: string): Promise<void> {
+    return http<void>(`/profiles/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status, note }),
+    });
+  },
+
+  getUsers(): Promise<AdminUser[]> {
+    return http<AdminUser[]>(`/admin/users`);
+  },
+
+  createUser(input: CreateUserInput): Promise<AdminUser> {
+    return http<AdminUser>(`/admin/users`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  createInterest(input: CreateInterestInput): Promise<Interest> {
+    return http<Interest>(`/interests`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  getInterests(): Promise<Interest[]> {
+    return http<Interest[]>(`/interests`);
+  },
+
+  setInterestStatus(id: string, status: InterestStatus): Promise<void> {
+    return http<void>(`/interests/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  // ---- Contact-reveal requests ----
+  getContact(profileId: string, viewerMemberId: string): Promise<ContactReveal> {
+    return http<ContactReveal>(`/profiles/${profileId}/contact?viewerMemberId=${encodeURIComponent(viewerMemberId)}`);
+  },
+
+  requestContact(profileId: string, requesterMemberId: string): Promise<ContactRequest> {
+    return http<ContactRequest>(`/profiles/${profileId}/contact-requests`, {
+      method: "POST",
+      body: JSON.stringify({ requesterMemberId }),
+    });
+  },
+
+  getIncomingContactRequests(memberId: string): Promise<ContactRequest[]> {
+    return http<ContactRequest[]>(`/members/${memberId}/contact-requests/incoming`);
+  },
+
+  getOutgoingContactRequests(memberId: string): Promise<ContactRequest[]> {
+    return http<ContactRequest[]>(`/members/${memberId}/contact-requests/outgoing`);
+  },
+
+  setContactRequestStatus(id: string, memberId: string, status: ContactRequestStatus): Promise<void> {
+    return http<void>(`/contact-requests/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ memberId, status }),
+    });
+  },
+
+  async uploadPhoto(file: File): Promise<{ url: string }> {
+    const fd = new FormData();
+    fd.append("file", file);
+    // No Content-Type header - the browser sets the multipart boundary itself.
+    const res = await fetch(`${BASE}/uploads/photo`, { method: "POST", body: fd });
+    if (!res.ok) throw new ApiError(res.status, (await res.text().catch(() => "")) || res.statusText);
+    return (await res.json()) as { url: string };
+  },
+};
+
+export { ApiError };

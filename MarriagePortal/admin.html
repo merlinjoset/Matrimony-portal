@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin · CSI Holy Matrimony · Dubai</title>
+<link rel="icon" type="image/png" href="assets/img/favicon.png" />
+<style>
+  :root{
+    --maroon:#6b1f2a; --maroon-2:#8a2a38; --gold:#c9a24b; --cream:#faf6ef;
+    --ink:#2c2522; --muted:#7a7068; --line:#e8ddcd; --green:#3f6b54; --red:#a83232;
+    --amber:#b07d1a; --white:#fff; --shadow:0 10px 30px rgba(60,30,20,.10); --radius:14px;
+    --sidebar:248px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Segoe UI",Roboto,"Noto Sans Tamil",system-ui,sans-serif;
+    color:var(--ink);background:var(--cream);line-height:1.5}
+  body.lang-ta{font-family:"Noto Sans Tamil","Latha","Segoe UI",sans-serif}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit}
+
+  .layout{display:grid;grid-template-columns:var(--sidebar) 1fr;min-height:100vh}
+
+  /* sidebar */
+  aside{background:linear-gradient(180deg,var(--maroon),var(--maroon-2));color:#fff;
+    position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+  .logo{display:flex;align-items:center;gap:11px;padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .logo .cross{width:36px;height:36px;border-radius:50%;background:var(--gold);color:var(--maroon);
+    display:grid;place-items:center;font-size:21px;font-weight:700}
+  .logo .emblem{width:42px;height:42px;border-radius:50%;background:#fff;padding:3px;
+    object-fit:contain;flex-shrink:0}
+  .logo b{font-size:15px;line-height:1.1}
+  .logo small{display:block;font-size:10.5px;opacity:.8}
+  .navlist{flex:1;padding:14px 10px;overflow:auto}
+  .navlist a{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:10px;
+    font-size:14px;font-weight:600;opacity:.85;cursor:pointer;margin-bottom:3px;transition:.15s}
+  .navlist a .ic{width:20px;text-align:center;font-size:16px}
+  .navlist a:hover{background:rgba(255,255,255,.10);opacity:1}
+  .navlist a.active{background:rgba(255,255,255,.18);opacity:1}
+  .navlist a .badge{margin-left:auto;background:var(--gold);color:var(--maroon);font-size:11px;
+    font-weight:800;padding:1px 8px;border-radius:999px}
+  .side-foot{padding:14px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;opacity:.85}
+  .side-foot .who{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+  .side-foot .av{width:30px;height:30px;border-radius:50%;background:var(--gold);color:var(--maroon);
+    display:grid;place-items:center;font-weight:800;font-size:13px}
+
+  /* main */
+  main{padding:0 0 40px}
+  .topbar{display:flex;align-items:center;gap:14px;padding:16px 26px;background:#fff;
+    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .topbar h1{font-size:20px;margin:0}
+  .topbar .right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .lang-toggle{display:flex;background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+  .lang-toggle button{border:none;background:transparent;color:var(--muted);cursor:pointer;
+    font-weight:700;font-size:13px;padding:6px 12px;border-radius:999px}
+  .lang-toggle button.active{background:var(--maroon);color:#fff}
+  .search{padding:9px 13px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;width:230px;font-family:inherit}
+
+  .wrap{padding:24px 26px}
+  .view{display:none;animation:fade .2s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+  /* stat cards */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px;
+    box-shadow:0 4px 14px rgba(60,30,20,.05)}
+  .stat .ic{font-size:22px;margin-bottom:8px}
+  .stat .n{font-size:28px;font-weight:800;color:var(--maroon);line-height:1}
+  .stat .l{font-size:12.5px;color:var(--muted);margin-top:5px}
+  .stat .d{font-size:11.5px;font-weight:700;margin-top:7px}
+  .stat .d.up{color:var(--green)} .stat .d.warn{color:var(--amber)}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:0 4px 14px rgba(60,30,20,.05);margin-bottom:22px;overflow:hidden}
+  .panel-head{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line)}
+  .panel-head h3{margin:0;font-size:16px}
+  .panel-head .sub{font-size:12.5px;color:var(--muted)}
+  .panel-head .right{margin-left:auto}
+  .panel-body{padding:6px 0}
+
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:11.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);
+    font-weight:700;padding:11px 18px;border-bottom:1px solid var(--line)}
+  td{padding:13px 18px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fcfaf6}
+  .who-cell{display:flex;align-items:center;gap:11px}
+  .av-sm{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0}
+  .who-cell .nm{font-weight:700;font-size:14px}
+  .who-cell .mt{font-size:12px;color:var(--muted)}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;
+    padding:4px 10px;border-radius:999px}
+  .pill.green{background:rgba(63,107,84,.12);color:var(--green)}
+  .pill.amber{background:rgba(176,125,26,.14);color:var(--amber)}
+  .pill.red{background:rgba(168,50,50,.12);color:var(--red)}
+  .pill.grey{background:#eee;color:#777}
+
+  .btn{cursor:pointer;border:none;border-radius:9px;font-weight:700;padding:8px 14px;font-size:13px;
+    transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  .btn-sm{padding:6px 11px;font-size:12.5px}
+  .btn-green{background:var(--green);color:#fff} .btn-green:hover{filter:brightness(1.08)}
+  .btn-red{background:#fff;color:var(--red);border:1px solid rgba(168,50,50,.4)} .btn-red:hover{background:rgba(168,50,50,.06)}
+  .btn-gold{background:var(--gold);color:var(--maroon)} .btn-gold:hover{filter:brightness(1.06)}
+  .btn-ghost{background:var(--cream);color:var(--ink);border:1px solid var(--line)} .btn-ghost:hover{border-color:var(--maroon)}
+  .actions-cell{display:flex;gap:7px;flex-wrap:wrap}
+
+  /* two-col content */
+  .cols{display:grid;grid-template-columns:1.4fr 1fr;gap:22px}
+  .list-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line)}
+  .list-row:last-child{border-bottom:none}
+  .list-row .txt{font-size:13.5px}
+  .list-row .txt b{display:block}
+  .list-row .time{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+
+  .note{background:rgba(63,107,84,.08);border:1px solid rgba(63,107,84,.2);border-radius:10px;
+    padding:11px 14px;font-size:12.5px;color:var(--green);margin:0 18px 14px}
+
+  /* settings */
+  .setting-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .setting-row:last-child{border-bottom:none}
+  .setting-row .txt{font-size:13.5px}
+  .setting-row .txt b{display:block;font-size:14px}
+  .setting-row .txt span{color:var(--muted);font-size:12.5px}
+  .setting-row .ctrl{margin-left:auto}
+  .switch{width:46px;height:26px;border-radius:999px;background:#d8cdbb;position:relative;cursor:pointer;transition:.15s;border:none}
+  .switch.on{background:var(--green)}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
+  .switch.on::after{left:23px}
+  .locked{opacity:.6;cursor:not-allowed}
+
+  @media(max-width:900px){
+    .layout{grid-template-columns:1fr}
+    aside{position:fixed;left:-260px;z-index:60;transition:.2s} aside.open{left:0}
+    .stats{grid-template-columns:1fr 1fr} .cols{grid-template-columns:1fr}
+    .menu-btn{display:inline-flex!important}
+  }
+  .menu-btn{display:none;background:var(--cream);border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer}
+</style>
+</head>
+<body class="lang-en">
+<div class="layout">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside id="sidebar">
+    <div class="logo">
+      <img class="emblem" src="assets/img/emblem.jpg" alt="Church of South India" />
+      <div>
+        <b data-i18n="brand">CSI Holy Matrimony</b>
+        <small data-i18n="brand_sub">Admin Portal</small>
+      </div>
+    </div>
+    <nav class="navlist" id="nav">
+      <a data-nav="dashboard" class="active" onclick="go('dashboard')"><span class="ic">📊</span><span data-i18n="nav_dash">Dashboard</span></a>
+      <a data-nav="verify" onclick="go('verify')"><span class="ic">🛡️</span><span data-i18n="nav_verify">Verification Queue</span><span class="badge">4</span></a>
+      <a data-nav="members" onclick="go('members')"><span class="ic">👥</span><span data-i18n="nav_members">Members</span></a>
+      <a data-nav="interests" onclick="go('interests')"><span class="ic">💌</span><span data-i18n="nav_interests">Interests</span></a>
+      <a data-nav="parishes" onclick="go('parishes')"><span class="ic">⛪</span><span data-i18n="nav_parishes">Parishes</span></a>
+      <a data-nav="reports" onclick="go('reports')"><span class="ic">🚩</span><span data-i18n="nav_reports">Reports</span><span class="badge">2</span></a>
+      <a data-nav="users" onclick="go('users')"><span class="ic">👤</span><span data-i18n="nav_users">Users &amp; Roles</span></a>
+      <a data-nav="settings" onclick="go('settings')"><span class="ic">⚙️</span><span data-i18n="nav_settings">Settings</span></a>
+    </nav>
+    <div class="side-foot">
+      <div class="who">
+        <div class="av">RB</div>
+        <div><b style="color:#fff">Rev. Benjamin</b><div data-i18n="role_admin">Diocese Admin</div></div>
+      </div>
+      <a style="cursor:pointer;color:#f1e7d8" data-i18n="logout">↩ Sign out</a>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+    <div class="topbar">
+      <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <h1 id="pageTitle" data-i18n="nav_dash">Dashboard</h1>
+      <div class="right">
+        <input class="search" data-ph="search" placeholder="Search members…" />
+        <div class="lang-toggle">
+          <button id="lng-en" class="active" onclick="setLang('en')">EN</button>
+          <button id="lng-ta" onclick="setLang('ta')">தமிழ்</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+
+      <!-- ===== DASHBOARD ===== -->
+      <section id="view-dashboard" class="view active">
+        <div class="stats">
+          <div class="stat"><div class="ic">👥</div><div class="n">1,248</div><div class="l" data-i18n="st_members">Total members</div><div class="d up" data-i18n="st_members_d">▲ 36 this month</div></div>
+          <div class="stat"><div class="ic">⏳</div><div class="n" id="statPending">4</div><div class="l" data-i18n="st_pending">Pending verification</div><div class="d warn" data-i18n="st_pending_d">Needs review</div></div>
+          <div class="stat"><div class="ic">💌</div><div class="n">87</div><div class="l" data-i18n="st_interests">Active interests</div><div class="d up" data-i18n="st_interests_d">▲ 12 this week</div></div>
+          <div class="stat"><div class="ic">💍</div><div class="n">320</div><div class="l" data-i18n="st_marriages">Holy matrimonies</div><div class="d up" data-i18n="st_marriages_d">Since 2019</div></div>
+        </div>
+
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-head"><h3 data-i18n="dash_recent">Latest registrations</h3>
+              <div class="right"><button class="btn btn-ghost btn-sm" onclick="go('members')" data-i18n="view_all">View all</button></div></div>
+            <div class="panel-body" id="dashRecent"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3 data-i18n="dash_activity">Recent activity</h3></div>
+            <div class="panel-body" id="dashActivity"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VERIFICATION QUEUE ===== -->
+      <section id="view-verify" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3 data-i18n="verify_h">Profiles awaiting parish verification</h3>
+            <span class="sub" data-i18n="verify_sub">Confirm the member belongs to a partner parish before approving.</span></div>
+          <div class="note" data-i18n-html="verify_note">🕊️ <b>Reminder:</b> Confirm faith & parish membership before approving a profile.</div>
+          <div class="panel-body"><table>
+            <thead><tr>
+              <th data-i18n="th_member">Member</th><th data-i18n="th_parish">Home parish</th>
+              <th data-i18n="th_denom">Denomination</th><th data-i18n="th_submitted">Submitted</th>
+              <th data-i18n="th_status">Status</th><th data-i18n="th_action">Action</th>
+            </tr></thead>
+            <tbody id="verifyRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- ===== MEMBERS ===== -->
+      <section id="view-members" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3 data-i18n="members_h">All members</h3>
+            <span class="sub" id="memberCount"></span>
+            <div class="right"><button class="btn btn-gold btn-sm" onclick="alert(t('proto'))" data-i18n="export">⬇ Export CSV</button></div></div>
+          <div class="panel-body"><table>
+            <thead><tr>
+              <th data-i18n="th_member">Member</th><th data-i18n="th_for">For</th>
+              <th data-i18n="th_parish">Home parish</th><th data-i18n="th_diocese">Diocese</th>
+              <th data-i18n="th_status">Status</th><th data-i18n="th_action">Action</th>
+            </tr></thead>
+            <tbody id="memberRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- ===== INTERESTS ===== -->
+      <section id="view-interests" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3 data-i18n="interests_h">Interest requests</h3>
+            <span class="sub" data-i18n="interests_sub">Contact details are released only when both sides accept.</span></div>
+          <div class="panel-body"><table>
+            <thead><tr>
+              <th data-i18n="th_from">From</th><th data-i18n="th_to">To</th>
+              <th data-i18n="th_sent">Sent</th><th data-i18n="th_status">Status</th>
+            </tr></thead>
+            <tbody id="interestRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- ===== PARISHES ===== -->
+      <section id="view-parishes" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3 data-i18n="parishes_h">Partner parishes</h3>
+            <div class="right"><button class="btn btn-gold btn-sm" onclick="alert(t('proto'))" data-i18n="add_parish">+ Add parish</button></div></div>
+          <div class="panel-body"><table>
+            <thead><tr>
+              <th data-i18n="th_pname">Parish</th><th data-i18n="th_diocese">Diocese</th>
+              <th data-i18n="th_presbyter">Presbyter</th><th data-i18n="th_pmembers">Members</th>
+              <th data-i18n="th_status">Status</th>
+            </tr></thead>
+            <tbody id="parishRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- ===== REPORTS ===== -->
+      <section id="view-reports" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3 data-i18n="reports_h">Reported / flagged profiles</h3>
+            <span class="sub" data-i18n="reports_sub">Review concerns raised by members.</span></div>
+          <div class="panel-body"><table>
+            <thead><tr>
+              <th data-i18n="th_member">Member</th><th data-i18n="th_reason">Reason</th>
+              <th data-i18n="th_by">Reported by</th><th data-i18n="th_action">Action</th>
+            </tr></thead>
+            <tbody id="reportRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- ===== USERS & ROLES ===== -->
+      <section id="view-users" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3 data-i18n="users_h">Admin users &amp; roles</h3>
+            <span class="sub" id="userCount"></span>
+            <div class="right"><button class="btn btn-gold btn-sm" onclick="alert(t('proto'))" data-i18n="add_user">+ Add user</button></div></div>
+          <div class="note" data-i18n="users_note">🔐 These are staff accounts that can sign in to this admin portal - presbyters, moderators and office staff. They are not matrimony members.</div>
+          <div class="panel-body"><table>
+            <thead><tr>
+              <th data-i18n="th_uname">Name</th><th data-i18n="th_email">Email</th>
+              <th data-i18n="th_role">Role</th><th data-i18n="th_ucong">Congregation</th>
+              <th data-i18n="th_lastlogin">Last sign-in</th><th data-i18n="th_status">Status</th>
+              <th data-i18n="th_action">Action</th>
+            </tr></thead>
+            <tbody id="userRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- ===== SETTINGS ===== -->
+      <section id="view-settings" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3 data-i18n="settings_h">Portal settings</h3></div>
+          <div class="panel-body">
+            <div class="setting-row">
+              <div class="txt"><b data-i18n="set1t">Require parish verification</b><span data-i18n="set1d">New profiles stay hidden until a presbyter approves.</span></div>
+              <div class="ctrl"><button class="switch on" onclick="this.classList.toggle('on')"></button></div>
+            </div>
+            <div class="setting-row">
+              <div class="txt"><b data-i18n="set2t">Hide contact until mutual interest</b><span data-i18n="set2d">Phone & email released only after both accept.</span></div>
+              <div class="ctrl"><button class="switch on" onclick="this.classList.toggle('on')"></button></div>
+            </div>
+            <div class="setting-row">
+              <div class="txt"><b data-i18n="set3t">Free for partner-parish members</b><span data-i18n="set3d">Waive fees for verified members.</span></div>
+              <div class="ctrl"><button class="switch on" onclick="this.classList.toggle('on')"></button></div>
+            </div>
+            <div class="setting-row">
+              <div class="txt"><b data-i18n="set5t">Default language</b><span data-i18n="set5d">Language shown to new visitors.</span></div>
+              <div class="ctrl"><select class="search" style="width:auto"><option>English</option><option>தமிழ் (Tamil)</option></select></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+/* ================= i18n ================= */
+const I18N={
+  en:{
+    brand:"CSI Holy Matrimony", brand_sub:"Admin Portal", role_admin:"Diocese Admin", logout:"↩ Sign out", search:"Search members…",
+    nav_dash:"Dashboard", nav_verify:"Verification Queue", nav_members:"Members", nav_interests:"Interests",
+    nav_parishes:"Parishes", nav_reports:"Reports", nav_settings:"Settings",
+    st_members:"Total members", st_members_d:"▲ 36 this month",
+    st_pending:"Pending verification", st_pending_d:"Needs review",
+    st_interests:"Active interests", st_interests_d:"▲ 12 this week",
+    st_marriages:"Holy matrimonies", st_marriages_d:"Since 2019",
+    dash_recent:"Latest registrations", view_all:"View all", dash_activity:"Recent activity",
+    verify_h:"Profiles awaiting parish verification",
+    verify_sub:"Confirm the member belongs to a partner parish before approving.",
+    verify_note:"🕊️ <b>Reminder:</b> Confirm faith & parish membership before approving a profile.",
+    members_h:"All members", export:"⬇ Export CSV",
+    interests_h:"Interest requests", interests_sub:"Contact details are released only when both sides accept.",
+    parishes_h:"Partner parishes", add_parish:"+ Add parish",
+    reports_h:"Reported / flagged profiles", reports_sub:"Review concerns raised by members.",
+    settings_h:"Portal settings",
+    set1t:"Require parish verification", set1d:"New profiles stay hidden until a presbyter approves.",
+    set2t:"Hide contact until mutual interest", set2d:"Phone & email released only after both accept.",
+    set3t:"Free for partner-parish members", set3d:"Waive fees for verified members.",
+    set5t:"Default language", set5d:"Language shown to new visitors.", locked_off:"🔒 Disabled",
+    th_member:"Member", th_parish:"Home parish", th_denom:"Denomination", th_submitted:"Submitted",
+    th_status:"Status", th_action:"Action", th_for:"For", th_diocese:"Congregation", th_from:"From",
+    th_to:"To", th_sent:"Sent", th_pname:"Parish", th_presbyter:"Presbyter", th_pmembers:"Members",
+    th_reason:"Reason", th_by:"Reported by",
+    approve:"✓ Approve", reject:"✕ Reject", viewp:"View", suspend:"Suspend",
+    dismiss:"Dismiss", review:"Review",
+    s_pending:"Pending", s_verified:"Verified", s_active:"Active", s_suspended:"Suspended",
+    s_accepted:"Accepted", s_awaiting:"Awaiting", s_declined:"Declined",
+    for_self:"Self", for_son:"Son", for_daughter:"Daughter",
+    bride:"Bride", groom:"Groom", proto:"Prototype action - not wired up.",
+    approved_msg:"Profile approved & marked Verified.", rejected_msg:"Profile sent back to the member.",
+    ago_min:"min ago", ago_hr:"hr ago", ago_day:"days ago",
+    act_reg:"registered a new profile", act_ver:"was verified by", act_int:"expressed interest in",
+    act_rep:"reported a profile", members_count:"members",
+    r_fake:"Suspected fake photo", r_spam:"Spam messages", queue_empty:"No profiles waiting - all caught up. 🕊️",
+    nav_users:"Users & Roles",
+    users_h:"Admin users & roles", add_user:"+ Add user",
+    users_note:"🔐 These are staff accounts that can sign in to this admin portal - presbyters, moderators and office staff. They are not matrimony members.",
+    th_uname:"Name", th_email:"Email", th_role:"Role", th_ucong:"Congregation", th_lastlogin:"Last sign-in",
+    users_count:"users", edit:"Edit", deactivate:"Deactivate", activate:"Activate",
+    role_super:"Super Admin", role_diocese:"Diocese Admin", role_presbyter:"Parish Presbyter",
+    role_moderator:"Moderator", role_office:"Office Staff",
+    u_active:"Active", u_invited:"Invited", u_disabled:"Disabled", never:"Never",
+  },
+  ta:{
+    brand:"CSI புனித திருமணம்", brand_sub:"நிர்வாக போர்டல்", role_admin:"மறைமாவட்ட நிர்வாகி", logout:"↩ வெளியேறு", search:"உறுப்பினர்களைத் தேடு…",
+    nav_dash:"டாஷ்போர்டு", nav_verify:"சரிபார்ப்பு வரிசை", nav_members:"உறுப்பினர்கள்", nav_interests:"விருப்பங்கள்",
+    nav_parishes:"திருச்சபைகள்", nav_reports:"புகார்கள்", nav_settings:"அமைப்புகள்",
+    st_members:"மொத்த உறுப்பினர்கள்", st_members_d:"▲ இம்மாதம் 36",
+    st_pending:"சரிபார்ப்பு நிலுவையில்", st_pending_d:"மறுஆய்வு தேவை",
+    st_interests:"செயலில் உள்ள விருப்பங்கள்", st_interests_d:"▲ இவ்வாரம் 12",
+    st_marriages:"புனித திருமணங்கள்", st_marriages_d:"2019 முதல்",
+    dash_recent:"சமீபத்திய பதிவுகள்", view_all:"அனைத்தையும் பார்", dash_activity:"சமீபத்திய செயல்பாடு",
+    verify_h:"திருச்சபை சரிபார்ப்புக்காக காத்திருக்கும் சுயவிவரங்கள்",
+    verify_sub:"அங்கீகரிக்கும் முன் உறுப்பினர் கூட்டு திருச்சபையைச் சேர்ந்தவர் என உறுதிசெய்யவும்.",
+    verify_note:"🕊️ <b>நினைவூட்டல்:</b> ஒரு சுயவிவரத்தை அங்கீகரிக்கும் முன் விசுவாசம் & திருச்சபை உறுப்பினர் நிலையை உறுதிசெய்யவும்.",
+    members_h:"அனைத்து உறுப்பினர்கள்", export:"⬇ CSV பதிவிறக்கு",
+    interests_h:"விருப்ப கோரிக்கைகள்", interests_sub:"இருதரப்பும் ஏற்கும்போது மட்டுமே தொடர்பு விவரங்கள் வழங்கப்படும்.",
+    parishes_h:"கூட்டு திருச்சபைகள்", add_parish:"+ திருச்சபை சேர்",
+    reports_h:"புகார் / குறியிடப்பட்ட சுயவிவரங்கள்", reports_sub:"உறுப்பினர்கள் எழுப்பிய கவலைகளை மறுஆய்வு செய்யவும்.",
+    settings_h:"போர்டல் அமைப்புகள்",
+    set1t:"திருச்சபை சரிபார்ப்பு கட்டாயம்", set1d:"போதகர் அங்கீகரிக்கும் வரை புதிய சுயவிவரங்கள் மறைந்திருக்கும்.",
+    set2t:"இருதரப்பு விருப்பம் வரை தொடர்பை மறை", set2d:"இருவரும் ஏற்ற பின்னரே தொலைபேசி & மின்னஞ்சல் வழங்கப்படும்.",
+    set3t:"கூட்டு திருச்சபை உறுப்பினர்களுக்கு இலவசம்", set3d:"சரிபார்க்கப்பட்ட உறுப்பினர்களுக்கு கட்டணம் தள்ளுபடி.",
+    set5t:"இயல்புநிலை மொழி", set5d:"புதிய பார்வையாளர்களுக்கு காட்டப்படும் மொழி.", locked_off:"🔒 முடக்கப்பட்டது",
+    th_member:"உறுப்பினர்", th_parish:"சொந்த திருச்சபை", th_denom:"சபைப் பிரிவு", th_submitted:"சமர்ப்பித்தது",
+    th_status:"நிலை", th_action:"செயல்", th_for:"யாருக்காக", th_diocese:"சபை", th_from:"அனுப்புநர்",
+    th_to:"பெறுநர்", th_sent:"அனுப்பப்பட்டது", th_pname:"திருச்சபை", th_presbyter:"போதகர்", th_pmembers:"உறுப்பினர்கள்",
+    th_reason:"காரணம்", th_by:"புகாரளித்தவர்",
+    approve:"✓ அங்கீகரி", reject:"✕ நிராகரி", viewp:"பார்", suspend:"இடைநிறுத்து",
+    dismiss:"நிராகரி", review:"மறுஆய்வு",
+    s_pending:"நிலுவையில்", s_verified:"சரிபார்க்கப்பட்டது", s_active:"செயலில்", s_suspended:"இடைநிறுத்தப்பட்டது",
+    s_accepted:"ஏற்கப்பட்டது", s_awaiting:"காத்திருக்கிறது", s_declined:"நிராகரிக்கப்பட்டது",
+    for_self:"தனக்காக", for_son:"மகன்", for_daughter:"மகள்",
+    bride:"மணமகள்", groom:"மணமகன்", proto:"மாதிரி செயல் - இணைக்கப்படவில்லை.",
+    approved_msg:"சுயவிவரம் அங்கீகரிக்கப்பட்டு சரிபார்க்கப்பட்டதாக குறிக்கப்பட்டது.", rejected_msg:"சுயவிவரம் உறுப்பினருக்கு திருப்பி அனுப்பப்பட்டது.",
+    ago_min:"நிமிடங்களுக்கு முன்", ago_hr:"மணி நேரத்திற்கு முன்", ago_day:"நாட்களுக்கு முன்",
+    act_reg:"புதிய சுயவிவரம் பதிவு செய்தார்", act_ver:"சரிபார்த்தது", act_int:"விருப்பம் தெரிவித்தது",
+    act_rep:"ஒரு சுயவிவரத்தைப் புகாரளித்தார்", members_count:"உறுப்பினர்கள்",
+    r_fake:"போலி புகைப்படம் சந்தேகம்", r_spam:"ஸ்பேம் செய்திகள்", queue_empty:"காத்திருக்கும் சுயவிவரங்கள் இல்லை - அனைத்தும் முடிந்தது. 🕊️",
+    nav_users:"பயனர்கள் & பங்குகள்",
+    users_h:"நிர்வாக பயனர்கள் & பங்குகள்", add_user:"+ பயனர் சேர்",
+    users_note:"🔐 இவை இந்த நிர்வாக போர்டலில் உள்நுழையக்கூடிய ஊழியர் கணக்குகள் - போதகர்கள், மதிப்பாய்வாளர்கள் மற்றும் அலுவலக ஊழியர்கள். இவர்கள் திருமண உறுப்பினர்கள் அல்ல.",
+    th_uname:"பெயர்", th_email:"மின்னஞ்சல்", th_role:"பங்கு", th_ucong:"சபை", th_lastlogin:"கடைசி உள்நுழைவு",
+    users_count:"பயனர்கள்", edit:"திருத்து", deactivate:"முடக்கு", activate:"செயல்படுத்து",
+    role_super:"முதன்மை நிர்வாகி", role_diocese:"மறைமாவட்ட நிர்வாகி", role_presbyter:"திருச்சபை போதகர்",
+    role_moderator:"மதிப்பாய்வாளர்", role_office:"அலுவலக ஊழியர்",
+    u_active:"செயலில்", u_invited:"அழைக்கப்பட்டது", u_disabled:"முடக்கப்பட்டது", never:"இல்லை",
+  }
+};
+let LANG='en';
+function t(k){return (I18N[LANG]&&I18N[LANG][k])||(I18N.en[k]??k);}
+
+/* ================= data ================= */
+const C=['#6b1f2a','#8a2a38','#3f6b54','#9c6b1f','#4a5d7a','#7a3f6b'];
+function av(n,i,photo){
+  if(photo)return `<div class="av-sm" style="overflow:hidden"><img src="${photo}" alt="" style="width:100%;height:100%;object-fit:cover"></div>`;
+  return `<div class="av-sm" style="background:linear-gradient(135deg,${C[i%C.length]},${C[(i+2)%C.length]})">${n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}</div>`;
+}
+
+/* ---- shared store (profiles submitted on the public site) ---- */
+const STORE_KEY='csi_pending_profiles';
+function loadStore(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'[]');}catch(_){return[];}}
+function saveStore(a){try{localStorage.setItem(STORE_KEY,JSON.stringify(a));}catch(_){}}
+function storePending(){return loadStore().filter(p=>p.status==='pending');}
+
+const MEMBERS=[
+  {id:'CSI1102',name:'Esther M.',for:'for_daughter',gender:'F',parish:'CSI Tamil Parish, Dubai',dioc:'Dubai',denom:'CSI',status:'pending',sub:2},
+  {id:'CSI1101',name:'Prince D.',for:'for_son',gender:'M',parish:'CSI Tamil Congregation, Fujairah',dioc:'Fujairah',denom:'CSI',status:'pending',sub:6},
+  {id:'CSI1099',name:'Grace S.',for:'for_self',gender:'F',parish:'CSI Tamil Congregation, Ras Al Khaimah',dioc:'Ras Al Khaimah',denom:'CSI',status:'pending',sub:20},
+  {id:'CSI1097',name:'Aaron K.',for:'for_self',gender:'M',parish:'Bethel AG Church, Dubai',dioc:'Dubai',denom:'Pentecostal',status:'pending',sub:28},
+  {id:'CSI1042',name:'Abinaya R.',for:'for_self',gender:'F',parish:'CSI Tamil Parish, Dubai',dioc:'Dubai',denom:'CSI',status:'verified',sub:0},
+  {id:'CSI1043',name:'Daniel J.',for:'for_self',gender:'M',parish:'CSI Tamil Congregation, Fujairah',dioc:'Fujairah',denom:'CSI',status:'verified',sub:0},
+  {id:'CSI1070',name:'Rebecca A.',for:'for_self',gender:'F',parish:'CSI Tamil Fellowship, London',dioc:'Other',denom:'CSI',status:'active',sub:0},
+  {id:'CSI1031',name:'Vimal T.',for:'for_son',gender:'M',parish:'TELC Church, Chennai',dioc:'India',denom:'Lutheran',status:'suspended',sub:0},
+];
+const INTERESTS=[
+  {from:'Daniel J.',to:'Abinaya R.',sent:5,unit:'ago_hr',status:'awaiting'},
+  {from:'Rebecca A.',to:'Immanuel S.',sent:1,unit:'ago_day',status:'accepted'},
+  {from:'Joel V.',to:'Sharon P.',sent:2,unit:'ago_day',status:'declined'},
+  {from:'Prince D.',to:'Grace S.',sent:3,unit:'ago_hr',status:'awaiting'},
+];
+const PARISHES=[
+  {name:'CSI Tamil Parish, Dubai (Main)',dioc:'Oud Metha, Dubai',pres:'Parish Presbyter',mem:480,active:true},
+  {name:'CSI Tamil Congregation, Fujairah',dioc:'Fujairah',pres:'Lay Pastor',mem:120,active:true},
+  {name:'CSI Tamil Congregation, Ras Al Khaimah',dioc:'Ras Al Khaimah',pres:'Lay Pastor',mem:95,active:true},
+];
+const REPORTS=[
+  {name:'Vimal T.',reason:'r_spam',by:'Rebecca A.'},
+  {name:'(unverified) Anon',reason:'r_fake',by:'Sharon P.'},
+];
+const ACTIVITY=[
+  {who:'Esther M.',act:'act_reg',t:'12 '+ 'ago_min',i:0},
+  {who:'Daniel J.',act:'act_int',obj:'Abinaya R.',t:'1 '+'ago_hr',i:1},
+  {who:'Rev. S. Daniel',act:'act_ver',obj:'Abinaya R.',t:'3 '+'ago_hr',i:2},
+  {who:'Rebecca A.',act:'act_rep',t:'1 '+'ago_day',i:3},
+];
+const USERS=[
+  {name:'Rev. Benjamin',email:'benjamin@csitamilparishdubai.com',role:'role_diocese',cong:'Dubai (Main)',last:'2 '+'ago_hr',status:'active'},
+  {name:'Rev. S. Daniel',email:'presbyter@csitamilparishdubai.com',role:'role_presbyter',cong:'Dubai (Main)',last:'1 '+'ago_day',status:'active'},
+  {name:'Bro. Christopher',email:'rak@csitamilparishdubai.com',role:'role_presbyter',cong:'Ras Al Khaimah',last:'4 '+'ago_day',status:'active'},
+  {name:'Sis. Mary J.',email:'moderator@csitamilparishdubai.com',role:'role_moderator',cong:'Fujairah',last:'30 '+'ago_min',status:'active'},
+  {name:'Office Desk',email:'office@csitamilparishdubai.com',role:'role_office',cong:'Dubai (Main)',last:'never',status:'invited'},
+  {name:'Bro. Samuel',email:'samuel@csitamilparishdubai.com',role:'role_moderator',cong:'Dubai (Main)',last:'21 '+'ago_day',status:'disabled'},
+];
+
+function pill(s){const m={pending:'amber',verified:'green',active:'green',suspended:'red',
+  accepted:'green',awaiting:'amber',declined:'grey'};
+  return `<span class="pill ${m[s]||'grey'}">${t('s_'+s)}</span>`;}
+function timeAgo(n,u){return `${n} ${t(u)}`;}
+
+/* ================= renderers ================= */
+function renderDash(){
+  const sp=document.getElementById('statPending');if(sp)sp.textContent=pendingCount();
+  const store=storePending().map((p,i)=>({name:p.name,parish:p.parish,status:'pending',photo:p.photo,i}));
+  const sample=MEMBERS.filter(m=>m.status==='pending').concat(MEMBERS.filter(m=>m.status!=='pending')).map((m,i)=>({name:m.name,parish:m.parish,status:m.status,photo:'',i:i+3}));
+  document.getElementById('dashRecent').innerHTML=store.concat(sample).slice(0,6).map(m=>`
+    <div class="list-row">${av(m.name,m.i,m.photo)}
+      <div class="txt"><b>${m.name} ${m.photo?'📷':''}</b><span class="mt" style="color:var(--muted);font-size:12px">${m.parish}</span></div>
+      <div class="time">${pill(m.status)}</div></div>`).join('');
+  document.getElementById('dashActivity').innerHTML=ACTIVITY.map(a=>`
+    <div class="list-row">${av(a.who,a.i)}
+      <div class="txt"><b>${a.who}</b><span style="color:var(--muted);font-size:12.5px">${t(a.act)}${a.obj?' '+a.obj:''}</span></div>
+      <div class="time">${a.t.replace(/(ago_\w+)/,m=>t(m))}</div></div>`).join('');
+}
+function minsAgo(ts){const m=Math.max(1,Math.round((Date.now()-ts)/60000));
+  if(m<60)return m+' '+t('ago_min');const h=Math.round(m/60);if(h<24)return h+' '+t('ago_hr');return Math.round(h/24)+' '+t('ago_day');}
+function verifyRowHTML(o){
+  return `<tr id="row-${o.id}"><td><div class="who-cell">${av(o.name,o.i,o.photo)}
+      <div><div class="nm">${o.name} ${o.photo?'<span title="Has photo">📷</span>':''}</div>
+      <div class="mt">${o.id} · ${t(o.gender==='F'?'bride':'groom')}</div></div></div></td>
+    <td>${o.parish}</td><td>${o.denom}</td><td>${o.when}</td><td>${pill('pending')}</td>
+    <td><div class="actions-cell">
+      <button class="btn btn-green btn-sm" onclick="approve('${o.id}')">${t('approve')}</button>
+      <button class="btn btn-red btn-sm" onclick="reject('${o.id}')">${t('reject')}</button>
+    </div></td></tr>`;
+}
+function renderVerify(){
+  const fromStore=storePending().map((p,i)=>({id:p.id,name:p.name,gender:p.gender,parish:p.parish,
+    denom:p.denom,photo:p.photo,when:minsAgo(p.submitted),i}));
+  const fromSample=MEMBERS.filter(m=>m.status==='pending').map((m,i)=>({id:m.id,name:m.name,gender:m.gender,
+    parish:m.parish,denom:m.denom,photo:'',when:timeAgo(m.sub,'ago_hr'),i:i+3}));
+  const all=fromStore.concat(fromSample);
+  document.getElementById('verifyRows').innerHTML=all.length?all.map(verifyRowHTML).join('')
+    :`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:26px">${t('queue_empty')}</td></tr>`;
+}
+function renderMembers(){
+  document.getElementById('memberRows').innerHTML=MEMBERS.map((m,i)=>`
+    <tr><td><div class="who-cell">${av(m.name,i)}<div><div class="nm">${m.name}</div><div class="mt">${m.id}</div></div></div></td>
+      <td>${t(m.for)}</td><td>${m.parish}</td><td>${m.dioc}</td><td>${pill(m.status)}</td>
+      <td><div class="actions-cell"><button class="btn btn-ghost btn-sm" onclick="alert(t('proto'))">${t('viewp')}</button>
+        ${m.status!=='suspended'?`<button class="btn btn-red btn-sm" onclick="alert(t('proto'))">${t('suspend')}</button>`:''}</div></td></tr>`).join('');
+  document.getElementById('memberCount').textContent=`${MEMBERS.length} ${t('members_count')}`;
+}
+function renderInterests(){
+  document.getElementById('interestRows').innerHTML=INTERESTS.map((x,i)=>`
+    <tr><td><div class="who-cell">${av(x.from,i)}<span class="nm">${x.from}</span></div></td>
+      <td><div class="who-cell">${av(x.to,i+1)}<span class="nm">${x.to}</span></div></td>
+      <td>${timeAgo(x.sent,x.unit)}</td><td>${pill(x.status)}</td></tr>`).join('');
+}
+function renderParishes(){
+  document.getElementById('parishRows').innerHTML=PARISHES.map(p=>`
+    <tr><td><b>⛪ ${p.name}</b></td><td>${p.dioc}</td><td>${p.pres}</td><td>${p.mem}</td>
+      <td>${p.active?'<span class="pill green">●</span>':'<span class="pill grey">○</span>'} ${t(p.active?'s_active':'s_pending')}</td></tr>`).join('');
+}
+function renderReports(){
+  document.getElementById('reportRows').innerHTML=REPORTS.map((r,i)=>`
+    <tr><td><div class="who-cell">${av(r.name,i+3)}<span class="nm">${r.name}</span></div></td>
+      <td>${t(r.reason)}</td><td>${r.by}</td>
+      <td><div class="actions-cell"><button class="btn btn-red btn-sm" onclick="alert(t('proto'))">${t('suspend')}</button>
+        <button class="btn btn-ghost btn-sm" onclick="alert(t('proto'))">${t('dismiss')}</button></div></td></tr>`).join('');
+}
+const ROLECOLORS={role_super:'#6b1f2a',role_diocese:'#8a2a38',role_presbyter:'#3f6b54',role_moderator:'#9c6b1f',role_office:'#4a5d7a'};
+function rolePill(r){return `<span class="pill" style="background:${ROLECOLORS[r]}1a;color:${ROLECOLORS[r]}">${t(r)}</span>`;}
+function userStatusPill(s){const m={active:'green',invited:'amber',disabled:'red'};return `<span class="pill ${m[s]||'grey'}">${t('u_'+s)}</span>`;}
+function renderUsers(){
+  document.getElementById('userRows').innerHTML=USERS.map((u,i)=>`
+    <tr><td><div class="who-cell">${av(u.name,i)}<span class="nm">${u.name}</span></div></td>
+      <td style="color:var(--muted)">${u.email}</td>
+      <td>${rolePill(u.role)}</td>
+      <td>${u.cong}</td>
+      <td style="color:var(--muted)">${u.last==='never'?t('never'):u.last.replace(/(ago_\w+)/,m=>t(m))}</td>
+      <td>${userStatusPill(u.status)}</td>
+      <td><div class="actions-cell">
+        <button class="btn btn-ghost btn-sm" onclick="alert(t('proto'))">${t('edit')}</button>
+        <button class="btn btn-red btn-sm" onclick="alert(t('proto'))">${t(u.status==='disabled'?'activate':'deactivate')}</button>
+      </div></td></tr>`).join('');
+  document.getElementById('userCount').textContent=`${USERS.length} ${t('users_count')}`;
+}
+function renderAll(){renderDash();renderVerify();renderMembers();renderInterests();renderParishes();renderReports();renderUsers();}
+
+/* actions */
+function setStoreStatus(id,status){const s=loadStore();const p=s.find(x=>x.id===id);if(p){p.status=status;saveStore(s);return true;}return false;}
+function decide(id,storeStatus,sampleStatus,msg){
+  if(!setStoreStatus(id,storeStatus)){const m=MEMBERS.find(x=>x.id===id);if(m)m.status=sampleStatus;}
+  const r=document.getElementById('row-'+id);
+  if(r){r.style.transition='.3s';r.style.opacity='0';setTimeout(()=>{renderVerify();renderDash();updateBadge();},300);}
+  alert(t(msg));
+}
+function approve(id){decide(id,'verified','verified','approved_msg');}
+function reject(id){decide(id,'declined','active','rejected_msg');}
+function pendingCount(){return MEMBERS.filter(m=>m.status==='pending').length+storePending().length;}
+function updateBadge(){const n=pendingCount();
+  const b=document.querySelector('[data-nav="verify"] .badge');if(b){b.textContent=n;b.style.display=n?'':'none';}}
+
+/* nav + lang */
+function go(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.nav===view));
+  const titles={dashboard:'nav_dash',verify:'nav_verify',members:'nav_members',interests:'nav_interests',parishes:'nav_parishes',reports:'nav_reports',users:'nav_users',settings:'nav_settings'};
+  document.getElementById('pageTitle').textContent=t(titles[view]);
+  document.getElementById('sidebar').classList.remove('open');
+}
+function setLang(l){
+  LANG=l;document.documentElement.lang=l;
+  document.body.classList.toggle('lang-ta',l==='ta');document.body.classList.toggle('lang-en',l==='en');
+  document.getElementById('lng-en').classList.toggle('active',l==='en');
+  document.getElementById('lng-ta').classList.toggle('active',l==='ta');
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>el.innerHTML=t(el.dataset['i18nHtml']));
+  document.querySelectorAll('[data-ph]').forEach(el=>el.placeholder=t(el.dataset.ph));
+  renderAll();updateBadge();
+  const active=document.querySelector('#nav a.active');if(active)document.getElementById('pageTitle').textContent=t(active.dataset.nav==='dashboard'?'nav_dash':'nav_'+active.dataset.nav);
+}
+
+// refresh when returning to this tab / when the public site writes a new profile
+window.addEventListener('focus',()=>{renderVerify();renderDash();updateBadge();});
+window.addEventListener('storage',e=>{if(e.key===STORE_KEY){renderVerify();renderDash();updateBadge();}});
+
+setLang('en');
+</script>
+</body>
+</html>

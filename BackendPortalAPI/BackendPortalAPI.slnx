@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/BackendPortalAPI/">
+    <Project Path="src/BackendPortalAPI.Api/BackendPortalAPI.Api.csproj" />
+    <Project Path="src/BackendPortalAPI.Application/BackendPortalAPI.Application.csproj" />
+    <Project Path="src/BackendPortalAPI.Domain/BackendPortalAPI.Domain.csproj" />
+    <Project Path="src/BackendPortalAPI.Infrastructure/BackendPortalAPI.Infrastructure.csproj" />
+  </Folder>
+</Solution>

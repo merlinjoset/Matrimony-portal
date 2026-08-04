@@ -1,0 +1,13 @@
+# Render Blueprint - CSI Holy Matrimony web (Next.js 16, Docker).
+services:
+  - type: web
+    name: csi-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      # Build-time API base URL - the API service URL, e.g. https://csi-api.onrender.com/api
+      # NEXT_PUBLIC_* is inlined at build time, so changing it later needs a rebuild.
+      - key: NEXT_PUBLIC_API_URL
+        sync: false

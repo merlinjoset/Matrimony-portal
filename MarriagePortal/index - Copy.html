@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CSI Holy Matrimony · CSI Tamil Parish, Dubai</title>
+<link rel="icon" type="image/png" href="assets/img/favicon.png" />
+<style>
+  :root{
+    --maroon:#6b1f2a; --maroon-2:#8a2a38; --gold:#c9a24b; --cream:#faf6ef;
+    --ink:#2c2522; --muted:#7a7068; --line:#e8ddcd; --green:#3f6b54; --white:#fff;
+    --shadow:0 10px 30px rgba(60,30,20,.10); --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Segoe UI",Roboto,"Noto Sans Tamil",system-ui,sans-serif;
+    color:var(--ink);background:var(--cream);line-height:1.55}
+  a{color:inherit;text-decoration:none}
+  /* When Tamil is active, prefer a Tamil-capable font everywhere */
+  body.lang-ta{font-family:"Noto Sans Tamil","Latha","Segoe UI",sans-serif}
+  .tamil{font-family:"Noto Sans Tamil","Latha","Segoe UI",sans-serif}
+  .container{max-width:1120px;margin:0 auto;padding:0 20px}
+
+  header.nav{position:sticky;top:0;z-index:50;
+    background:linear-gradient(180deg,var(--maroon),var(--maroon-2));
+    color:#fff;box-shadow:var(--shadow)}
+  .nav-inner{display:flex;align-items:center;gap:14px;height:68px}
+  .brand{display:flex;align-items:center;gap:12px;cursor:pointer}
+  .brand .cross{width:38px;height:38px;border-radius:50%;background:var(--gold);
+    color:var(--maroon);display:grid;place-items:center;font-size:22px;font-weight:700;
+    box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .brand .emblem{width:46px;height:46px;border-radius:50%;background:#fff;padding:3px;
+    object-fit:contain;box-shadow:0 3px 8px rgba(0,0,0,.25);flex-shrink:0}
+  .brand b{font-size:19px;letter-spacing:.3px;line-height:1.1}
+  .brand small{display:block;font-size:11px;opacity:.85;font-weight:400}
+  nav.menu{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  nav.menu a{padding:9px 13px;border-radius:10px;font-size:14px;font-weight:600;
+    opacity:.9;transition:.15s;cursor:pointer}
+  nav.menu a:hover{background:rgba(255,255,255,.12);opacity:1}
+  nav.menu a.active{background:rgba(255,255,255,.18);opacity:1}
+
+  /* language toggle */
+  .lang-toggle{display:flex;background:rgba(0,0,0,.18);border-radius:999px;padding:3px;gap:2px}
+  .lang-toggle button{border:none;background:transparent;color:#fff;opacity:.7;cursor:pointer;
+    font-weight:700;font-size:13px;padding:6px 12px;border-radius:999px;transition:.15s}
+  .lang-toggle button.active{background:var(--gold);color:var(--maroon);opacity:1}
+
+  .btn{cursor:pointer;border:none;border-radius:10px;font-weight:700;padding:11px 18px;
+    font-size:14px;transition:.15s;display:inline-flex;align-items:center;gap:8px;font-family:inherit}
+  .btn-gold{background:var(--gold);color:var(--maroon)}
+  .btn-gold:hover{filter:brightness(1.06)}
+  .btn-outline{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+  .btn-outline:hover{border-color:var(--maroon);color:var(--maroon)}
+
+  .view{display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .hero{background:radial-gradient(1200px 400px at 80% -10%,rgba(201,162,75,.20),transparent),
+    linear-gradient(180deg,#fff,var(--cream));border-bottom:1px solid var(--line);padding:60px 0 50px}
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+  .verse{display:inline-block;background:rgba(63,107,84,.10);color:var(--green);
+    border:1px solid rgba(63,107,84,.25);padding:6px 14px;border-radius:999px;
+    font-size:12.5px;font-weight:600;margin-bottom:18px}
+  .hero h1{font-size:42px;line-height:1.15;margin:0 0 14px}
+  .hero h1 span{color:var(--maroon)}
+  .hero p.lead{font-size:17px;color:var(--muted);max-width:520px;margin:0 0 26px}
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+  .trust{display:flex;gap:26px;margin-top:30px;flex-wrap:wrap}
+  .trust div b{display:block;font-size:24px;color:var(--maroon)}
+  .trust div small{color:var(--muted);font-size:12.5px}
+
+  .hero-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:22px}
+  .hero-card h3{margin:0 0 4px;font-size:16px}
+  .hero-card .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:#4a423d}
+  .field select,.field input,.field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);
+    border-radius:10px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
+  .field select:focus,.field input:focus,.field textarea:focus{outline:none;border-color:var(--maroon);
+    box-shadow:0 0 0 3px rgba(107,31,42,.10)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  .section{padding:54px 0}
+  .section h2{font-size:30px;margin:0 0 6px;text-align:center}
+  .section .sub{text-align:center;color:var(--muted);margin:0 auto 36px;max-width:560px}
+  .gold-rule{width:60px;height:3px;background:var(--gold);border-radius:2px;margin:0 auto 14px}
+
+  /* scripture band */
+  .scripture{background:linear-gradient(180deg,var(--maroon),var(--maroon-2));color:#fff;
+    text-align:center;padding:46px 0}
+  .scripture-mark{font-size:46px;color:var(--gold);line-height:.6;margin-bottom:6px;font-family:Georgia,serif}
+  .scripture-text{font-size:24px;font-style:italic;max-width:760px;margin:0 auto 12px;line-height:1.5}
+  .scripture-ref{font-size:14px;font-weight:700;color:var(--gold);letter-spacing:.5px}
+  @media(max-width:560px){.scripture-text{font-size:19px}}
+
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .feature{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;text-align:center}
+  .feature .ic{font-size:30px;margin-bottom:10px}
+  .feature h4{margin:0 0 6px;font-size:17px}
+  .feature p{color:var(--muted);font-size:14px;margin:0}
+
+  .browse-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+  .browse-head h2{font-size:26px;margin:0}
+  .browse-head .count{color:var(--muted);font-size:14px}
+  .filters{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+  .filters select{padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;background:#fff;font-family:inherit}
+  .grid-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .pcard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    box-shadow:0 4px 14px rgba(60,30,20,.06);transition:.18s;cursor:pointer}
+  .pcard:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--gold)}
+  .pcard .photo{height:180px;display:grid;place-items:center;font-size:54px;color:#fff;font-weight:700;position:relative}
+  .pcard .photo .vbadge{position:absolute;top:10px;right:10px;background:rgba(63,107,84,.95);color:#fff;
+    font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px}
+  .pcard .body{padding:16px}
+  .pcard .body h4{margin:0 0 2px;font-size:17px}
+  .pcard .body .meta{color:var(--muted);font-size:13px;margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:4px 10px;
+    font-size:11.5px;color:#5a514b;font-weight:600}
+  .chip.parish{background:rgba(107,31,42,.07);border-color:rgba(107,31,42,.15);color:var(--maroon)}
+
+  .detail-wrap{display:grid;grid-template-columns:320px 1fr;gap:30px;margin-top:26px}
+  .detail-side .photo-lg{height:300px;border-radius:var(--radius);display:grid;place-items:center;
+    font-size:96px;color:#fff;font-weight:700;box-shadow:var(--shadow)}
+  .detail-side .actions{display:grid;gap:10px;margin-top:16px}
+  .card-block{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px}
+  .card-block h3{margin:0 0 14px;font-size:18px;color:var(--maroon);border-bottom:2px solid var(--line);padding-bottom:8px}
+  .dl{display:grid;grid-template-columns:170px 1fr;gap:10px 16px}
+  .dl dt{color:var(--muted);font-size:13.5px;font-weight:600}
+  .dl dd{margin:0;font-size:14.5px}
+  .back-link{color:var(--maroon);font-weight:700;font-size:14px;cursor:pointer;display:inline-block;margin-bottom:6px}
+
+  .form-shell{max-width:760px;margin:0 auto;background:#fff;border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:34px}
+  .form-shell h2{margin:0 0 4px;font-size:26px;text-align:left}
+  .form-shell .sub{color:var(--muted);margin:0 0 24px;text-align:left}
+  .fieldset{border:none;padding:0;margin:0 0 26px}
+  .fieldset legend{font-size:15px;font-weight:800;color:var(--maroon);margin-bottom:14px;
+    padding-bottom:6px;border-bottom:2px solid var(--line);width:100%}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .note{background:rgba(63,107,84,.08);border:1px solid rgba(63,107,84,.2);border-radius:10px;
+    padding:12px 14px;font-size:13px;color:var(--green);margin-bottom:22px}
+  .ok-banner{background:rgba(63,107,84,.12);border:1px solid var(--green);color:var(--green);
+    border-radius:12px;padding:16px;font-weight:600;margin-bottom:20px;display:none}
+
+  /* photo gallery upload */
+  .ph-title{font-weight:700;font-size:14px;margin-bottom:3px}
+  .ph-hint{color:var(--muted);font-size:12.5px;max-width:520px;margin-bottom:14px}
+  .photo-gallery{display:flex;gap:12px;flex-wrap:wrap}
+  .photo-thumb,.photo-add{width:110px;height:110px;border-radius:14px;flex-shrink:0;position:relative;overflow:hidden}
+  .photo-thumb{border:1px solid var(--line);box-shadow:0 3px 10px rgba(60,30,20,.08)}
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .photo-thumb .rm{position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;
+    background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:14px;line-height:1;display:grid;place-items:center}
+  .photo-thumb .rm:hover{background:var(--maroon)}
+  .photo-thumb .primary{position:absolute;bottom:0;left:0;right:0;background:rgba(107,31,42,.9);color:#fff;
+    font-size:10.5px;font-weight:700;text-align:center;padding:3px 0}
+  .photo-thumb .mkprimary{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;
+    font-size:10.5px;font-weight:700;text-align:center;padding:3px 0;cursor:pointer;opacity:0;transition:.15s}
+  .photo-thumb:hover .mkprimary{opacity:1}
+  .photo-add{border:2px dashed var(--gold);background:rgba(201,162,75,.08);display:grid;place-items:center;
+    cursor:pointer;transition:.15s;color:var(--gold);text-align:center}
+  .photo-add:hover{background:rgba(201,162,75,.16);border-color:var(--maroon);color:var(--maroon)}
+  .photo-add .pa-ic{font-size:30px;line-height:1}
+  .photo-add .pa-tx{font-size:11px;font-weight:700;margin-top:4px}
+
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .step{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;text-align:center}
+  .step .n{width:42px;height:42px;border-radius:50%;background:var(--maroon);color:#fff;
+    display:grid;place-items:center;font-weight:800;margin:0 auto 12px;font-size:18px}
+  .step h4{margin:0 0 6px}
+  .step p{color:var(--muted);font-size:13.5px;margin:0}
+
+  footer{background:var(--ink);color:#e9e1d6;padding:40px 0 26px;margin-top:50px}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:30px}
+  footer h5{color:#fff;margin:0 0 12px;font-size:15px}
+  footer a,footer p{color:#c9beb2;font-size:13.5px;display:block;margin-bottom:7px}
+  footer a{cursor:pointer}
+  .foot-bottom{border-top:1px solid #463d37;margin-top:26px;padding-top:16px;text-align:center;font-size:12.5px;color:#9a8f84}
+
+  @media(max-width:860px){
+    .hero-grid,.detail-wrap,.foot-grid{grid-template-columns:1fr}
+    .features,.grid-cards,.steps{grid-template-columns:1fr 1fr}
+    .row3{grid-template-columns:1fr}
+    nav.menu{display:none}
+    .hero h1{font-size:32px}
+  }
+  @media(max-width:560px){.features,.grid-cards,.steps,.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="lang-en">
+
+<!-- ===== HEADER ===== -->
+<header class="nav">
+  <div class="container nav-inner">
+    <div class="brand" onclick="go('home')">
+      <img class="emblem" src="assets/img/emblem.jpg" alt="Church of South India" />
+      <div>
+        <b data-i18n="brand_name">CSI Holy Matrimony</b>
+        <small data-i18n="brand_sub">CSI Tamil Parish, Dubai</small>
+      </div>
+    </div>
+    <nav class="menu" id="menu">
+      <a data-nav="home" onclick="go('home')" data-i18n="nav_home">Home</a>
+      <a data-nav="browse" onclick="go('browse')" data-i18n="nav_browse">Browse Profiles</a>
+      <a data-nav="how" onclick="go('how')" data-i18n="nav_how">How It Works</a>
+      <a data-nav="register" onclick="go('register')" data-i18n="nav_register">Register</a>
+    </nav>
+    <div class="lang-toggle" title="Language / மொழி">
+      <button id="lng-en" class="active" onclick="setLang('en')">EN</button>
+      <button id="lng-ta" onclick="setLang('ta')">தமிழ்</button>
+    </div>
+    <button class="btn btn-gold" onclick="go('register')" data-i18n="btn_create">Create Profile</button>
+  </div>
+</header>
+
+<!-- ===== HOME ===== -->
+<section id="view-home" class="view active">
+  <div class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="verse" data-i18n="hero_verse">“What God has joined together…” - Mark 10:9</span>
+        <h1 data-i18n-html="hero_title">A trusted matrimony service for our <span>CSI Tamil parish</span> family</h1>
+        <p class="lead" data-i18n="hero_lead">A faith-centred space to find a life partner within the Christian community.</p>
+        <div class="hero-cta">
+          <button class="btn btn-gold" onclick="go('register')" data-i18n="hero_register_free">Register Free</button>
+          <button class="btn btn-outline" onclick="go('browse')" data-i18n="hero_browse">Browse Profiles</button>
+        </div>
+        <div class="trust">
+          <div><b>1,200+</b><small data-i18n="trust1">Verified faithful profiles</small></div>
+          <div><b>3</b><small data-i18n="trust2">UAE congregations</small></div>
+          <div><b>320+</b><small data-i18n="trust3">Holy matrimonies</small></div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <h3 data-i18n="find_match">Find your match</h3>
+        <div class="sub" data-i18n="find_sub">Quick search across partner parishes</div>
+        <div class="field">
+          <label data-i18n="looking_for">I'm looking for</label>
+          <select><option data-i18n="opt_bride">Bride (Female)</option><option data-i18n="opt_groom">Groom (Male)</option></select>
+        </div>
+        <div class="row2">
+          <div class="field"><label data-i18n="age_from">Age from</label>
+            <select><option>21</option><option>24</option><option>27</option><option>30</option></select></div>
+          <div class="field"><label data-i18n="age_to">Age to</label>
+            <select><option>30</option><option>34</option><option>38</option><option>42</option></select></div>
+        </div>
+        <div class="field">
+          <label data-i18n="denomination">Denomination</label>
+          <select><option data-i18n="any_christian">Any Christian</option><option>CSI</option>
+            <option data-i18n="d_pent">Pentecostal</option><option data-i18n="d_luth">Lutheran</option><option>RC</option></select>
+        </div>
+        <div class="field">
+          <label data-i18n="parish_diocese">Home parish / Diocese</label>
+          <select><option data-i18n="any">Any</option><option data-i18n="dio_madras">Madras Diocese</option>
+            <option data-i18n="dio_cbe">Coimbatore</option><option data-i18n="dio_tnl">Tirunelveli</option>
+            <option data-i18n="dio_mdu">Madurai–Ramnad</option><option data-i18n="dio_kk">Kanyakumari</option></select>
+        </div>
+        <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="go('browse')" data-i18n="search_matches">Search Matches</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <div class="gold-rule"></div>
+      <h2 data-i18n="feat_h2">Rooted in faith, built on trust</h2>
+      <p class="sub" data-i18n="feat_sub">A matrimony platform designed for the values of our Christian community.</p>
+      <div class="features">
+        <div class="feature"><div class="ic">✝</div><h4 data-i18n="f1t">Faith first</h4><p data-i18n="f1d">Profiles centred on denomination, home church and your walk of faith.</p></div>
+        <div class="feature"><div class="ic">🛡️</div><h4 data-i18n="f2t">Parish verified</h4><p data-i18n="f2d">Profiles endorsed by the member's own parish presbyter or church office.</p></div>
+        <div class="feature"><div class="ic">🔒</div><h4 data-i18n="f3t">Privacy protected</h4><p data-i18n="f3d">Contact details shared only after a mutual expression of interest.</p></div>
+        <div class="feature"><div class="ic">🤝</div><h4 data-i18n="f4t">Family friendly</h4><p data-i18n="f4d">Parents and elders can manage profiles on behalf of their sons and daughters.</p></div>
+        <div class="feature"><div class="ic">🌍</div><h4 data-i18n="f5t">Tamil worldwide</h4><p data-i18n="f5d">Connect with CSI Tamil families across India and the diaspora.</p></div>
+        <div class="feature"><div class="ic">⛪</div><h4 data-i18n="f6t">Free for members</h4><p data-i18n="f6d">No charge for registered members of partner CSI parishes.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- scripture band -->
+  <div class="scripture">
+    <div class="container">
+      <div class="scripture-mark">❝</div>
+      <p class="scripture-text" data-i18n="psalm_verse">For you have been my hope, Sovereign Lord, my confidence since my youth.</p>
+      <div class="scripture-ref" data-i18n="psalm_ref">- Psalm 71:5</div>
+    </div>
+  </div>
+
+  <div class="section" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+    <div class="container">
+      <div class="gold-rule"></div>
+      <h2 data-i18n="recent_h2">Recently joined</h2>
+      <p class="sub" data-i18n="recent_sub">A few of our newest profiles. Sign in to view full details.</p>
+      <div class="grid-cards" id="featuredCards"></div>
+      <div style="text-align:center;margin-top:30px">
+        <button class="btn btn-outline" onclick="go('browse')" data-i18n="view_all">View all profiles →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BROWSE ===== -->
+<section id="view-browse" class="view">
+  <div class="section">
+    <div class="container">
+      <div class="browse-head">
+        <div>
+          <h2 data-i18n="nav_browse">Browse Profiles</h2>
+          <span class="count" id="resultCount"></span>
+        </div>
+        <div class="filters">
+          <select id="fGender" onchange="renderBrowse()">
+            <option value="" data-i18n="f_all">All</option>
+            <option value="F" data-i18n="f_brides">Brides</option>
+            <option value="M" data-i18n="f_grooms">Grooms</option>
+          </select>
+          <select id="fDenom" onchange="renderBrowse()">
+            <option value="" data-i18n="any_denom">Any denomination</option>
+            <option>CSI</option><option data-i18n="d_pent">Pentecostal</option>
+            <option data-i18n="d_luth">Lutheran</option><option>RC</option>
+          </select>
+          <select id="fDiocese" onchange="renderBrowse()">
+            <option value="" data-i18n="any_diocese">Any congregation</option>
+            <option value="Dubai" data-i18n="dio_madras2">Dubai</option>
+            <option value="Fujairah" data-i18n="dio_cbe">Fujairah</option>
+            <option value="Ras Al Khaimah" data-i18n="dio_tnl">Ras Al Khaimah</option>
+            <option value="India" data-i18n="dio_mdu">India</option>
+            <option value="Other" data-i18n="dio_kk">Other (Overseas)</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-cards" id="browseCards"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROFILE DETAIL ===== -->
+<section id="view-profile" class="view">
+  <div class="section">
+    <div class="container">
+      <span class="back-link" onclick="go('browse')" data-i18n="back_profiles">← Back to profiles</span>
+      <div class="detail-wrap" id="detailWrap"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section id="view-how" class="view">
+  <div class="section">
+    <div class="container">
+      <div class="gold-rule"></div>
+      <h2 data-i18n="how_h2">How it works</h2>
+      <p class="sub" data-i18n="how_sub">Four simple, dignified steps - guided by your parish.</p>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><h4 data-i18n="s1t">Register</h4><p data-i18n="s1d">Create a profile with your faith, family and education details.</p></div>
+        <div class="step"><div class="n">2</div><h4 data-i18n="s2t">Parish verifies</h4><p data-i18n="s2d">Your home parish office confirms your membership for the Verified badge.</p></div>
+        <div class="step"><div class="n">3</div><h4 data-i18n="s3t">Discover & connect</h4><p data-i18n="s3d">Search matches and express interest. Contact stays private until both agree.</p></div>
+        <div class="step"><div class="n">4</div><h4 data-i18n="s4t">Meet with blessing</h4><p data-i18n="s4d">Families meet with the guidance of your presbyter - towards holy matrimony.</p></div>
+      </div>
+      <div style="max-width:720px;margin:40px auto 0;text-align:center">
+        <div class="note" style="display:inline-block;text-align:left" data-i18n-html="promise">
+          <b>Our promise:</b> A respectful, faith-centred space where every member is honoured equally. We are one body in Christ (1 Corinthians 12:12).
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== REGISTER ===== -->
+<section id="view-register" class="view">
+  <div class="section">
+    <div class="container">
+      <div class="form-shell">
+        <h2 data-i18n="reg_h2">Create your profile</h2>
+        <p class="sub" data-i18n="reg_sub">Free for members of partner CSI Tamil parishes. Fields marked * are required.</p>
+        <div class="ok-banner" id="okBanner" data-i18n="ok_banner">✓ Thank you! Your profile has been submitted for parish verification. (Prototype - no data is saved.)</div>
+        <div class="note" data-i18n-html="unity_note">🕊️ We celebrate unity in Christ - every member of our parish family is honoured equally.</div>
+
+        <form id="regForm" onsubmit="submitForm(event)">
+          <fieldset class="fieldset">
+            <legend data-i18n="lg_photo">Profile photos</legend>
+            <div class="ph-title" data-i18n="ph_upload_title">Add clear, recent photos</div>
+            <div class="ph-hint" data-i18n="ph_upload_hint">JPG or PNG, up to 5 MB each. Add up to 5; the first is your main photo. Modest, well-lit photos help families connect. Optional - you can add them later.</div>
+            <div class="photo-gallery" id="photoGallery"></div>
+            <input type="file" id="photoInput" accept="image/*" multiple hidden onchange="handlePhoto(event)" />
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend data-i18n="lg_createdby">Profile created by</legend>
+            <div class="row3">
+              <div class="field"><label data-i18n="l_createdfor">Created for *</label>
+                <select required><option value="" data-i18n="select">Select</option>
+                  <option data-i18n="o_myself">Myself</option><option data-i18n="o_son">My son</option>
+                  <option data-i18n="o_daughter">My daughter</option><option data-i18n="o_ward">Relative / ward</option></select></div>
+              <div class="field"><label data-i18n="l_lookingfor">Looking for *</label>
+                <select required id="regLooking"><option value="" data-i18n="select">Select</option>
+                  <option data-i18n="o_bride">Bride</option><option data-i18n="o_groom">Groom</option></select></div>
+              <div class="field"><label data-i18n="l_mobile">Mobile *</label><input required placeholder="+91 …" /></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend data-i18n="lg_personal">Personal details</legend>
+            <div class="row3">
+              <div class="field"><label data-i18n="l_fullname">Full name *</label><input required id="regName" data-ph="ph_name" placeholder="Name" /></div>
+              <div class="field"><label data-i18n="l_dob">Date of birth *</label><input type="date" required id="regDob" /></div>
+              <div class="field"><label data-i18n="l_gender">Gender *</label>
+                <select required id="regGender"><option value="" data-i18n="select">Select</option>
+                  <option value="F" data-i18n="g_female">Female</option><option value="M" data-i18n="g_male">Male</option></select></div>
+            </div>
+            <div class="row3">
+              <div class="field"><label data-i18n="l_height">Height</label>
+                <select><option>4'10"</option><option>5'0"</option><option>5'2"</option><option>5'4"</option>
+                  <option>5'6"</option><option>5'8"</option><option>5'10"</option><option>6'0"</option></select></div>
+              <div class="field"><label data-i18n="l_marital">Marital status *</label>
+                <select required><option value="" data-i18n="select">Select</option>
+                  <option data-i18n="m_never">Never married</option><option data-i18n="m_div">Divorced</option>
+                  <option data-i18n="m_wid">Widowed</option></select></div>
+              <div class="field"><label data-i18n="l_mtongue">Mother tongue</label>
+                <select><option data-i18n="mt_tamil">Tamil</option><option data-i18n="mt_both">Tamil & English</option>
+                  <option data-i18n="mt_other">Other</option></select></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend data-i18n="lg_faith">Faith & church</legend>
+            <div class="row3">
+              <div class="field"><label data-i18n="l_denom">Denomination *</label>
+                <select required id="regDenom"><option value="" data-i18n="select">Select</option><option>CSI</option>
+                  <option data-i18n="d_pent">Pentecostal</option><option data-i18n="d_luth">Lutheran</option>
+                  <option data-i18n="d_rc">Roman Catholic</option><option data-i18n="d_other">Other Christian</option></select></div>
+              <div class="field"><label data-i18n="l_parish">Home parish / church *</label><input required id="regParish" data-ph="ph_parish" placeholder="e.g. St. Andrew's CSI" /></div>
+              <div class="field"><label data-i18n="l_diocese">Diocese</label>
+                <select id="regDiocese"><option data-i18n="dio_madras2">Madras</option><option data-i18n="dio_cbe">Coimbatore</option>
+                  <option data-i18n="dio_tnl">Tirunelveli</option><option data-i18n="dio_mdu">Madurai–Ramnad</option>
+                  <option data-i18n="dio_kk">Kanyakumari</option><option data-i18n="dio_other">Other</option></select></div>
+            </div>
+            <div class="field"><label data-i18n="l_walk">A few words about your walk of faith</label>
+              <textarea rows="2" data-ph="ph_walk" placeholder="Church involvement, ministry, choir, fellowship…"></textarea></div>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend data-i18n="lg_edu">Education & profession</legend>
+            <div class="row3">
+              <div class="field"><label data-i18n="l_edu">Highest education</label>
+                <select><option data-i18n="e_school">School</option><option data-i18n="e_dip">Diploma</option>
+                  <option data-i18n="e_bach">Bachelor's</option><option data-i18n="e_mast">Master's</option>
+                  <option data-i18n="e_doc">Doctorate / Professional</option></select></div>
+              <div class="field"><label data-i18n="l_prof">Profession</label><input data-ph="ph_prof" placeholder="e.g. Nurse, Engineer, Teacher" /></div>
+              <div class="field"><label data-i18n="l_city">City / Country</label><input data-ph="ph_city" placeholder="e.g. Chennai, India" /></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend data-i18n="lg_family">Family (optional)</legend>
+            <div class="row2">
+              <div class="field"><label data-i18n="l_fatherocc">Father's occupation</label><input data-ph="ph_opt" placeholder="Optional" /></div>
+              <div class="field"><label data-i18n="l_motherocc">Mother's occupation</label><input data-ph="ph_opt" placeholder="Optional" /></div>
+            </div>
+          </fieldset>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button type="submit" class="btn btn-gold" data-i18n="submit_btn">Submit for verification</button>
+            <button type="button" class="btn btn-outline" onclick="go('home')" data-i18n="cancel_btn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="container foot-grid">
+    <div>
+      <h5 data-i18n="foot_brand">✝ Thirumana Thedal</h5>
+      <p class="tamil">CSI தமிழ் திருச்சபை மணமக்கள் சேவை</p>
+      <p data-i18n="foot_about">A faith-centred matrimony ministry serving the CSI Tamil parish community. One body in Christ.</p>
+      <p data-i18n="foot_heritage" style="margin-top:8px;color:#d8cabb">⛪ The mother church of the CSI Tamil congregations in the UAE - based in Dubai, with branches in Fujairah and Ras Al Khaimah.</p>
+    </div>
+    <div>
+      <h5 data-i18n="foot_explore">Explore</h5>
+      <a onclick="go('browse')" data-i18n="nav_browse">Browse Profiles</a>
+      <a onclick="go('register')" data-i18n="nav_register">Register</a>
+      <a onclick="go('how')" data-i18n="nav_how">How It Works</a>
+    </div>
+    <div>
+      <h5 data-i18n="foot_office">Parish office</h5>
+      <p data-i18n="foot_addr">St Paul's Hall, Holy Trinity Church Compound, Oud Metha, Dubai, UAE</p>
+      <p>office@csitamilparishdubai.com</p>
+      <p>+971 50 138 6756</p>
+      <a href="https://whatsapp.com/channel/0029VbAvMM69RZAWuUmChl03" target="_blank" rel="noopener" data-i18n="foot_whatsapp">💬 WhatsApp Channel</a>
+    </div>
+  </div>
+  <div class="container foot-bottom" data-i18n="foot_bottom">© 2026 CSI Tamil Parish Matrimony Ministry</div>
+</footer>
+
+<script>
+/* ================= i18n dictionary ================= */
+const I18N = {
+  en:{
+    brand_name:"CSI Holy Matrimony", brand_sub:"CSI Tamil Parish, Dubai",
+    nav_home:"Home", nav_browse:"Browse Profiles", nav_how:"How It Works", nav_register:"Register",
+    btn_create:"Create Profile",
+    hero_verse:"“What God has joined together…” - Mark 10:9",
+    hero_title:"A trusted matrimony service for our <span>CSI Tamil parish</span> family",
+    hero_lead:"A faith-centred space to find a life partner within the Christian community - built on shared faith, family values, and parish fellowship. With Christ at the centre.",
+    hero_register_free:"Register Free", hero_browse:"Browse Profiles",
+    trust1:"Verified faithful profiles", trust2:"UAE congregations", trust3:"Holy matrimonies",
+    find_match:"Find your match", find_sub:"Quick search across partner parishes",
+    looking_for:"I'm looking for", opt_bride:"Bride (Female)", opt_groom:"Groom (Male)",
+    age_from:"Age from", age_to:"Age to", denomination:"Denomination",
+    any_christian:"Any Christian", d_pent:"Pentecostal", d_luth:"Lutheran",
+    parish_diocese:"Parish / Congregation", any:"Any",
+    dio_madras:"Dubai (Main)", dio_madras2:"Dubai", dio_cbe:"Fujairah", dio_tnl:"Ras Al Khaimah",
+    dio_mdu:"India", dio_kk:"Other (Overseas)", dio_other:"Other",
+    search_matches:"Search Matches",
+    feat_h2:"Rooted in faith, built on trust",
+    feat_sub:"A matrimony platform designed for the values of our Christian community.",
+    f1t:"Faith first", f1d:"Profiles centred on denomination, home church and your walk of faith.",
+    f2t:"Parish verified", f2d:"Profiles endorsed by the member's own parish presbyter or church office.",
+    f3t:"Privacy protected", f3d:"Contact details shared only after a mutual expression of interest.",
+    f4t:"Family friendly", f4d:"Parents and elders can manage profiles on behalf of their sons and daughters.",
+    f5t:"Tamil worldwide", f5d:"Connect with CSI Tamil families across India and the diaspora.",
+    f6t:"Free for members", f6d:"No charge for registered members of partner CSI parishes.",
+    psalm_verse:"For you have been my hope, Sovereign Lord, my confidence since my youth.", psalm_ref:"- Psalm 71:5",
+    recent_h2:"Recently joined", recent_sub:"A few of our newest profiles. Sign in to view full details.",
+    view_all:"View all profiles →",
+    f_all:"All", f_brides:"Brides", f_grooms:"Grooms",
+    any_denom:"Any denomination", any_diocese:"Any congregation",
+    back_profiles:"← Back to profiles",
+    how_h2:"How it works", how_sub:"Four simple, dignified steps - guided by your parish.",
+    s1t:"Register", s1d:"Create a profile with your faith, family and education details. Parents may register on behalf.",
+    s2t:"Parish verifies", s2d:"Your home parish office confirms your membership for the Verified badge.",
+    s3t:"Discover & connect", s3d:"Search matches and express interest. Contact stays private until both agree.",
+    s4t:"Meet with blessing", s4d:"Families meet with the guidance of your presbyter - towards holy matrimony.",
+    promise:"<b>Our promise:</b> A respectful, faith-centred space where every member is honoured equally. We are one body in Christ (1 Corinthians 12:12).",
+    reg_h2:"Create your profile",
+    reg_sub:"Free for members of partner CSI Tamil parishes. Fields marked * are required.",
+    ok_banner:"✓ Thank you! Your profile has been submitted for parish verification. (Prototype - no data is saved.)",
+    unity_note:"🕊️ We celebrate unity in Christ - every member of our parish family is honoured equally.",
+    lg_photo:"Profile photo", ph_upload_title:"Add a clear, recent photo",
+    ph_upload_hint:"JPG or PNG, up to 5 MB. A modest, well-lit face photo helps families connect. Optional - you can add it later.",
+    ph_choose:"Choose photo", ph_remove:"Remove", ph_add:"Add photo", ph_primary:"★ Main photo", ph_makeprimary:"Set as main",
+    ph_err_type:"Please choose an image file (JPG or PNG).", ph_err_size:"Image is too large. Please choose a file under 5 MB.",
+    ph_err_max:"You can add up to 5 photos.",
+    lg_createdby:"Profile created by", l_createdfor:"Created for *", select:"Select",
+    o_myself:"Myself", o_son:"My son", o_daughter:"My daughter", o_ward:"Relative / ward",
+    l_lookingfor:"Looking for *", o_bride:"Bride", o_groom:"Groom", l_mobile:"Mobile *",
+    lg_personal:"Personal details", l_fullname:"Full name *", ph_name:"Name",
+    l_dob:"Date of birth *", l_gender:"Gender *", g_female:"Female", g_male:"Male",
+    l_height:"Height", l_marital:"Marital status *",
+    m_never:"Never married", m_div:"Divorced", m_wid:"Widowed",
+    l_mtongue:"Mother tongue", mt_tamil:"Tamil", mt_both:"Tamil & English", mt_other:"Other",
+    lg_faith:"Faith & church", l_denom:"Denomination *", d_rc:"Roman Catholic", d_other:"Other Christian",
+    l_parish:"Home parish / church *", ph_parish:"e.g. CSI Tamil Parish, Dubai", l_diocese:"Congregation",
+    l_walk:"A few words about your walk of faith", ph_walk:"Church involvement, ministry, choir, fellowship…",
+    lg_edu:"Education & profession", l_edu:"Highest education",
+    e_school:"School", e_dip:"Diploma", e_bach:"Bachelor's", e_mast:"Master's", e_doc:"Doctorate / Professional",
+    l_prof:"Profession", ph_prof:"e.g. Nurse, Engineer, Teacher", l_city:"City / Country", ph_city:"e.g. Chennai, India",
+    lg_family:"Family (optional)", l_fatherocc:"Father's occupation", l_motherocc:"Mother's occupation", ph_opt:"Optional",
+    submit_btn:"Submit for verification", cancel_btn:"Cancel",
+    foot_brand:"✝ CSI Holy Matrimony",
+    foot_about:"A faith-centred matrimony ministry serving the CSI Tamil parish community in India and abroad. One body in Christ.",
+    foot_heritage:"⛪ The mother church of the CSI Tamil congregations in the UAE - based in Dubai, with branches in Fujairah and Ras Al Khaimah.",
+    foot_explore:"Explore", foot_office:"Parish office",
+    foot_addr:"St Paul's Hall, Holy Trinity Church Compound, Oud Metha, Dubai, UAE", foot_whatsapp:"💬 WhatsApp Channel",
+    foot_bottom:"© 2026 CSI Tamil Parish Matrimony Ministry",
+    /* dynamic */
+    yrs:"yrs", bride:"Bride", groom:"Groom", verified:"✓ Verified", parish_verified:"✓ Parish Verified",
+    express:"💌 Express Interest", shortlist:"☆ Shortlist",
+    d_basic:"Basic details", d_age_height:"Age / Height", d_marital:"Marital status",
+    d_location:"Location", d_mtongue:"Mother tongue",
+    d_faith:"Faith & church", d_denom:"Denomination", d_parish:"Home parish", d_diocese:"Congregation", d_walk:"Walk of faith",
+    d_edu:"Education & profession", d_education:"Education", d_profession:"Profession",
+    d_family:"Family", d_father:"Father", d_mother:"Mother",
+    profile_id:"Profile ID", years:"years",
+    no_match:"No profiles match these filters.",
+    count_one:"profile found", count_many:"profiles found",
+    alert_interest:"Your interest in {n} has been sent. Contact details will be shared once they accept.",
+    alert_short:"Profile shortlisted."
+  },
+  ta:{
+    brand_name:"CSI புனித திருமணம்", brand_sub:"CSI தமிழ் திருச்சபை, துபாய்",
+    nav_home:"முகப்பு", nav_browse:"சுயவிவரங்கள்", nav_how:"எப்படி செயல்படுகிறது", nav_register:"பதிவு செய்க",
+    btn_create:"சுயவிவரம் உருவாக்கு",
+    hero_verse:"“கடவுள் இணைத்ததை மனிதன் பிரிக்காதிருப்பானாக” - மாற்கு 10:9",
+    hero_title:"நமது <span>CSI தமிழ் திருச்சபை</span> குடும்பத்திற்கான நம்பகமான திருமணச் சேவை",
+    hero_lead:"கிறிஸ்தவ சமூகத்திற்குள் வாழ்க்கைத் துணையைக் கண்டடைய ஒரு விசுவாச மையமான இடம் - பகிர்ந்த விசுவாசம், குடும்ப விழுமியங்கள், திருச்சபை ஐக்கியத்தின் அடிப்படையில். கிறிஸ்துவே மையம்.",
+    hero_register_free:"இலவசமாக பதிவு செய்க", hero_browse:"சுயவிவரங்களைப் பார்க்க",
+    trust1:"சரிபார்க்கப்பட்ட சுயவிவரங்கள்", trust2:"ஐ.அ.எ. சபைகள்", trust3:"புனித திருமணங்கள்",
+    find_match:"உங்கள் துணையைக் கண்டறியுங்கள்", find_sub:"கூட்டு திருச்சபைகளில் விரைவுத் தேடல்",
+    looking_for:"நான் தேடுவது", opt_bride:"மணமகள் (பெண்)", opt_groom:"மணமகன் (ஆண்)",
+    age_from:"வயது முதல்", age_to:"வயது வரை", denomination:"சபைப் பிரிவு",
+    any_christian:"எந்த கிறிஸ்தவ சபையும்", d_pent:"பெந்தகோஸ்தே", d_luth:"லூத்தரன்",
+    parish_diocese:"திருச்சபை / சபை", any:"அனைத்தும்",
+    dio_madras:"துபாய் (முதன்மை)", dio_madras2:"துபாய்", dio_cbe:"புஜைரா", dio_tnl:"ராஸ் அல் கைமா",
+    dio_mdu:"இந்தியா", dio_kk:"மற்றவை (வெளிநாடு)", dio_other:"மற்றவை",
+    search_matches:"பொருத்தங்களைத் தேடு",
+    feat_h2:"விசுவாசத்தில் வேரூன்றி, நம்பிக்கையில் கட்டப்பட்டது",
+    feat_sub:"நமது கிறிஸ்தவ சமூகத்தின் விழுமியங்களுக்காக வடிவமைக்கப்பட்ட திருமண தளம்.",
+    f1t:"முதலில் விசுவாசம்", f1d:"சபைப் பிரிவு, சொந்த திருச்சபை, உங்கள் விசுவாச வாழ்வை மையமாகக் கொண்ட சுயவிவரங்கள்.",
+    f2t:"திருச்சபை சரிபார்ப்பு", f2d:"உறுப்பினரின் சொந்த திருச்சபை போதகர் அல்லது சபை அலுவலகத்தால் உறுதிசெய்யப்பட்ட சுயவிவரங்கள்.",
+    f3t:"தனியுரிமை பாதுகாப்பு", f3d:"இருதரப்பு விருப்பம் தெரிவித்த பிறகே தொடர்பு விவரங்கள் பகிரப்படும்.",
+    f4t:"குடும்ப நட்பு", f4d:"பெற்றோர்களும் பெரியோர்களும் தங்கள் மகன்/மகளுக்காக சுயவிவரங்களை நிர்வகிக்கலாம்.",
+    f5t:"உலகெங்கும் தமிழ்", f5d:"இந்தியா மற்றும் வெளிநாடுகளில் உள்ள CSI தமிழ் குடும்பங்களுடன் இணையுங்கள்.",
+    f6t:"உறுப்பினர்களுக்கு இலவசம்", f6d:"கூட்டு CSI திருச்சபை உறுப்பினர்களுக்கு கட்டணமில்லை.",
+    psalm_verse:"ஆண்டவராகிய கர்த்தாவே, நீரே என் நம்பிக்கை; என் இளமைமுதல் நீரே என் பற்றுக்கோடு.", psalm_ref:"- சங்கீதம் 71:5",
+    recent_h2:"சமீபத்தில் இணைந்தவர்கள்", recent_sub:"எங்கள் புதிய சுயவிவரங்களில் சில. முழு விவரங்களைக் காண உள்நுழையவும்.",
+    view_all:"அனைத்து சுயவிவரங்களையும் பார்க்க →",
+    f_all:"அனைத்தும்", f_brides:"மணமகள்கள்", f_grooms:"மணமகன்கள்",
+    any_denom:"எந்த சபைப் பிரிவும்", any_diocese:"எந்த சபையும்",
+    back_profiles:"← சுயவிவரங்களுக்கு திரும்பு",
+    how_h2:"எப்படி செயல்படுகிறது", how_sub:"எளிய, கண்ணியமான நான்கு படிகள் - உங்கள் திருச்சபையின் வழிகாட்டுதலுடன்.",
+    s1t:"பதிவு செய்க", s1d:"உங்கள் விசுவாசம், குடும்பம், கல்வி விவரங்களுடன் சுயவிவரம் உருவாக்குங்கள். பெற்றோர் சார்பாகவும் பதிவு செய்யலாம்.",
+    s2t:"திருச்சபை சரிபார்க்கிறது", s2d:"உங்கள் சொந்த திருச்சபை அலுவலகம் உறுப்பினர் நிலையை உறுதிசெய்து சரிபார்ப்பு குறியீட்டை வழங்கும்.",
+    s3t:"கண்டறிந்து இணையுங்கள்", s3d:"பொருத்தங்களைத் தேடி விருப்பம் தெரிவியுங்கள். இருவரும் சம்மதிக்கும் வரை தொடர்பு ரகசியமாக இருக்கும்.",
+    s4t:"ஆசீர்வாதத்துடன் சந்திப்பு", s4d:"உங்கள் போதகரின் வழிகாட்டுதலுடன் குடும்பங்கள் சந்திக்கும் - புனித திருமணத்தை நோக்கி.",
+    promise:"<b>எங்கள் உறுதிமொழி:</b> ஒவ்வொரு உறுப்பினரும் சமமாக மதிக்கப்படும் மரியாதையான, விசுவாச மையமான இடம். நாம் கிறிஸ்துவில் ஒரே சரீரம் (1 கொரிந்தியர் 12:12).",
+    reg_h2:"உங்கள் சுயவிவரத்தை உருவாக்குங்கள்",
+    reg_sub:"கூட்டு CSI தமிழ் திருச்சபை உறுப்பினர்களுக்கு இலவசம். * குறியிட்ட புலங்கள் அவசியம்.",
+    ok_banner:"✓ நன்றி! உங்கள் சுயவிவரம் திருச்சபை சரிபார்ப்புக்கு சமர்ப்பிக்கப்பட்டது. (மாதிரி - எந்தத் தரவும் சேமிக்கப்படவில்லை.)",
+    unity_note:"🕊️ கிறிஸ்துவில் ஒற்றுமையைக் கொண்டாடுகிறோம் - நமது திருச்சபை குடும்பத்தின் ஒவ்வொரு உறுப்பினரும் சமமாக மதிக்கப்படுகிறார்.",
+    lg_photo:"சுயவிவர புகைப்படம்", ph_upload_title:"தெளிவான, சமீபத்திய புகைப்படத்தைச் சேர்க்கவும்",
+    ph_upload_hint:"JPG அல்லது PNG, அதிகபட்சம் 5 MB. கண்ணியமான, நல்ல வெளிச்சத்தில் எடுத்த முகப் படம் குடும்பங்கள் இணைய உதவுகிறது. விருப்பத்திற்கு - பின்னர் சேர்க்கலாம்.",
+    ph_choose:"புகைப்படம் தேர்வு", ph_remove:"நீக்கு", ph_add:"படம் சேர்", ph_primary:"★ முதன்மை படம்", ph_makeprimary:"முதன்மையாக்கு",
+    ph_err_type:"படக் கோப்பைத் தேர்ந்தெடுக்கவும் (JPG அல்லது PNG).", ph_err_size:"படம் மிகப் பெரியது. 5 MB-க்கு கீழ் உள்ள கோப்பைத் தேர்ந்தெடுக்கவும்.",
+    ph_err_max:"அதிகபட்சம் 5 படங்கள் சேர்க்கலாம்.",
+    lg_createdby:"சுயவிவரம் உருவாக்கியவர்", l_createdfor:"யாருக்காக *", select:"தேர்ந்தெடுக்க",
+    o_myself:"எனக்காக", o_son:"என் மகனுக்காக", o_daughter:"என் மகளுக்காக", o_ward:"உறவினர் / பராமரிப்பு",
+    l_lookingfor:"தேடுவது *", o_bride:"மணமகள்", o_groom:"மணமகன்", l_mobile:"கைபேசி *",
+    lg_personal:"தனிப்பட்ட விவரங்கள்", l_fullname:"முழுப் பெயர் *", ph_name:"பெயர்",
+    l_dob:"பிறந்த தேதி *", l_gender:"பாலினம் *", g_female:"பெண்", g_male:"ஆண்",
+    l_height:"உயரம்", l_marital:"திருமண நிலை *",
+    m_never:"திருமணமாகாதவர்", m_div:"விவாகரத்து", m_wid:"விதவை / துணை இழந்தவர்",
+    l_mtongue:"தாய்மொழி", mt_tamil:"தமிழ்", mt_both:"தமிழ் & ஆங்கிலம்", mt_other:"மற்றவை",
+    lg_faith:"விசுவாசம் & திருச்சபை", l_denom:"சபைப் பிரிவு *", d_rc:"ரோமன் கத்தோலிக்க", d_other:"மற்ற கிறிஸ்தவ",
+    l_parish:"சொந்த திருச்சபை *", ph_parish:"எ.கா. CSI தமிழ் திருச்சபை, துபாய்", l_diocese:"சபை",
+    l_walk:"உங்கள் விசுவாச வாழ்வைப் பற்றி சில வார்த்தைகள்", ph_walk:"திருச்சபை ஈடுபாடு, ஊழியம், பாடகர் குழு, ஐக்கியம்…",
+    lg_edu:"கல்வி & தொழில்", l_edu:"உயர் கல்வி",
+    e_school:"பள்ளி", e_dip:"டிப்ளமா", e_bach:"இளங்கலை", e_mast:"முதுகலை", e_doc:"முனைவர் / தொழில்முறை",
+    l_prof:"தொழில்", ph_prof:"எ.கா. செவிலியர், பொறியாளர், ஆசிரியர்", l_city:"நகரம் / நாடு", ph_city:"எ.கா. சென்னை, இந்தியா",
+    lg_family:"குடும்பம் (விருப்பத்திற்கு)", l_fatherocc:"தந்தையின் தொழில்", l_motherocc:"தாயின் தொழில்", ph_opt:"விருப்பத்திற்கு",
+    submit_btn:"சரிபார்ப்புக்கு சமர்ப்பி", cancel_btn:"ரத்து",
+    foot_brand:"✝ CSI புனித திருமணம்",
+    foot_about:"இந்தியாவிலும் வெளிநாட்டிலும் உள்ள CSI தமிழ் திருச்சபை சமூகத்திற்கு சேவை செய்யும் விசுவாச மைய திருமண ஊழியம். கிறிஸ்துவில் ஒரே சரீரம்.",
+    foot_heritage:"⛪ ஐக்கிய அரபு அமீரகத்தில் உள்ள CSI தமிழ் சபைகளின் தாய் திருச்சபை - துபாயில் அமைந்துள்ளது, புஜைரா மற்றும் ராஸ் அல் கைமாவில் கிளைகளுடன்.",
+    foot_explore:"ஆராயுங்கள்", foot_office:"திருச்சபை அலுவலகம்",
+    foot_addr:"செயிண்ட் பால்ஸ் ஹால், ஹோலி டிரினிட்டி சர்ச் வளாகம், ஊட் மேதா, துபாய், ஐ.அ.எ.", foot_whatsapp:"💬 வாட்ஸ்அப் சேனல்",
+    foot_bottom:"© 2026 CSI தமிழ் திருச்சபை திருமண ஊழியம்",
+    /* dynamic */
+    yrs:"வயது", bride:"மணமகள்", groom:"மணமகன்", verified:"✓ சரிபார்க்கப்பட்டது", parish_verified:"✓ திருச்சபை சரிபார்ப்பு",
+    express:"💌 விருப்பம் தெரிவி", shortlist:"☆ பட்டியலில் சேர்",
+    d_basic:"அடிப்படை விவரங்கள்", d_age_height:"வயது / உயரம்", d_marital:"திருமண நிலை",
+    d_location:"இடம்", d_mtongue:"தாய்மொழி",
+    d_faith:"விசுவாசம் & திருச்சபை", d_denom:"சபைப் பிரிவு", d_parish:"சொந்த திருச்சபை", d_diocese:"சபை", d_walk:"விசுவாச வாழ்வு",
+    d_edu:"கல்வி & தொழில்", d_education:"கல்வி", d_profession:"தொழில்",
+    d_family:"குடும்பம்", d_father:"தந்தை", d_mother:"தாய்",
+    profile_id:"சுயவிவர எண்", years:"வயது",
+    no_match:"இந்த வடிப்பான்களுக்கு பொருந்தும் சுயவிவரம் இல்லை.",
+    count_one:"சுயவிவரம் கிடைத்தது", count_many:"சுயவிவரங்கள் கிடைத்தன",
+    alert_interest:"{n} மீதான உங்கள் விருப்பம் அனுப்பப்பட்டது. அவர்கள் ஏற்றவுடன் தொடர்பு விவரங்கள் பகிரப்படும்.",
+    alert_short:"சுயவிவரம் பட்டியலில் சேர்க்கப்பட்டது."
+  }
+};
+
+let LANG = 'en';
+function t(k){return (I18N[LANG] && I18N[LANG][k]) || (I18N.en[k] ?? k);}
+
+function setLang(l){
+  LANG = l;
+  document.documentElement.lang = l;
+  document.body.classList.toggle('lang-ta', l==='ta');
+  document.body.classList.toggle('lang-en', l==='en');
+  document.getElementById('lng-en').classList.toggle('active', l==='en');
+  document.getElementById('lng-ta').classList.toggle('active', l==='ta');
+  // text nodes
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  // html nodes
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{el.innerHTML=t(el.dataset['i18nHtml']);});
+  // placeholders
+  document.querySelectorAll('[data-ph]').forEach(el=>{el.placeholder=t(el.dataset.ph);});
+  // re-render dynamic content in the active language
+  renderFeatured(); renderBrowse(); renderGallery();
+  const dv=document.getElementById('view-profile');
+  if(dv.classList.contains('active') && currentProfile) openProfile(currentProfile,true);
+}
+
+/* ================= Sample data ================= */
+const COLORS=['#6b1f2a','#8a2a38','#3f6b54','#9c6b1f','#4a5d7a','#7a3f6b'];
+const PROFILES=[
+  {id:'CSI1042',name:'Abinaya R.',gender:'F',age:26,height:'5\'4"',denom:'CSI',diocese:'Dubai',
+   parish:'CSI Tamil Parish, Dubai',edu:"Master's (M.Sc Nursing)",job:'Staff Nurse',city:'Dubai, UAE',
+   marital:'m_never',verified:true,faith:'Active in church choir & Junior Church ministry.',father:'Retired Teacher',mother:'Homemaker'},
+  {id:'CSI1043',name:'Daniel J.',gender:'M',age:29,height:'5\'10"',denom:'CSI',diocese:'Fujairah',
+   parish:'CSI Tamil Congregation, Fujairah',edu:"Bachelor's (B.E)",job:'Software Engineer',city:'Fujairah, UAE',
+   marital:'m_never',verified:true,faith:'Youth Fellowship leader.',father:'Bank Officer',mother:'Nurse'},
+  {id:'CSI1051',name:'Sharon P.',gender:'F',age:24,height:'5\'2"',denom:'Pentecostal',diocese:'Dubai',
+   parish:'Bethel AG Church, Dubai',edu:"Bachelor's (B.Com)",job:'Accountant',city:'Dubai, UAE',
+   marital:'m_never',verified:false,faith:'Worship team volunteer.',father:'Businessman',mother:'Teacher'},
+  {id:'CSI1063',name:'Immanuel S.',gender:'M',age:31,height:'6\'0"',denom:'CSI',diocese:'Ras Al Khaimah',
+   parish:'CSI Tamil Congregation, Ras Al Khaimah',edu:'Doctorate (PhD)',job:'College Lecturer',city:'Ras Al Khaimah, UAE',
+   marital:'m_never',verified:true,faith:'Bible study coordinator.',father:'Presbyter',mother:'Homemaker'},
+  {id:'CSI1070',name:'Rebecca A.',gender:'F',age:28,height:'5\'5"',denom:'CSI',diocese:'Other',
+   parish:'CSI Tamil Fellowship, London',edu:"Master's (M.A)",job:'School Teacher',city:'London, UK',
+   marital:'m_never',verified:true,faith:'Diaspora Tamil fellowship member.',father:'Engineer',mother:'Doctor'},
+  {id:'CSI1082',name:'Joel V.',gender:'M',age:27,height:'5\'8"',denom:'Lutheran',diocese:'India',
+   parish:'TELC Church, Chennai',edu:"Bachelor's (B.Sc)",job:'Lab Technician',city:'Chennai, India',
+   marital:'m_never',verified:false,faith:'Sunday school teacher.',father:'Government Officer',mother:'Homemaker'},
+];
+let currentProfile=null;
+
+function initials(n){return n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();}
+function color(i){return COLORS[i%COLORS.length];}
+function genderWord(g){return g==='F'?t('bride'):t('groom');}
+
+function hasPhoto(p){return p.photos&&p.photos.length&&p.photos[0];}
+function cardHTML(p,i){
+  const bg=hasPhoto(p)
+    ? `<img src="${p.photos[0]}" alt="" style="width:100%;height:100%;object-fit:cover">`
+    : initials(p.name);
+  return `<div class="pcard" onclick="openProfile('${p.id}')">
+    <div class="photo" style="background:linear-gradient(135deg,${color(i)},${color(i+2)})">
+      ${bg}${p.verified?`<span class="vbadge">${t('verified')}</span>`:''}
+    </div>
+    <div class="body">
+      <h4>${p.name} <span style="color:var(--muted);font-weight:500;font-size:13px">· ${p.id}</span></h4>
+      <div class="meta">${p.age} ${t('yrs')} · ${p.height} · ${genderWord(p.gender)} · ${p.city}</div>
+      <div class="chips">
+        <span class="chip parish">⛪ ${p.denom}</span>
+        <span class="chip">${p.edu.split('(')[0].trim()}</span>
+        <span class="chip">${p.job}</span>
+      </div>
+    </div></div>`;
+}
+
+function renderFeatured(){
+  document.getElementById('featuredCards').innerHTML=PROFILES.slice(0,3).map((p,i)=>cardHTML(p,i)).join('');
+}
+function renderBrowse(){
+  const g=document.getElementById('fGender').value;
+  const d=document.getElementById('fDenom').value;
+  const dio=document.getElementById('fDiocese').value;
+  const list=PROFILES.filter(p=>(!g||p.gender===g)&&(!d||p.denom===d)&&(!dio||p.diocese.includes(dio)));
+  document.getElementById('browseCards').innerHTML=list.length
+    ?list.map((p,i)=>cardHTML(p,i)).join('')
+    :`<p style="color:var(--muted)">${t('no_match')}</p>`;
+  document.getElementById('resultCount').textContent=
+    `${list.length} ${list.length===1?t('count_one'):t('count_many')}`;
+}
+
+function openProfile(id,keep){
+  const p=PROFILES.find(x=>x.id===id);const i=PROFILES.indexOf(p);currentProfile=id;
+  document.getElementById('detailWrap').innerHTML=`
+    <div class="detail-side">
+      <div class="photo-lg" style="background:linear-gradient(135deg,${color(i)},${color(i+2)})">
+        ${hasPhoto(p)?`<img src="${p.photos[0]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)">`:initials(p.name)}
+      </div>
+      ${hasPhoto(p)&&p.photos.length>1?`<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        ${p.photos.map(src=>`<img src="${src}" alt="" style="width:60px;height:60px;border-radius:10px;object-fit:cover;border:1px solid var(--line)">`).join('')}
+      </div>`:''}
+      <div class="actions">
+        <button class="btn btn-gold" style="justify-content:center" onclick="interest('${p.name}')">${t('express')}</button>
+        <button class="btn btn-outline" style="justify-content:center" onclick="alert(t('alert_short'))">${t('shortlist')}</button>
+      </div>
+    </div>
+    <div>
+      <h2 style="margin:0">${p.name} ${p.verified?`<span class="chip parish" style="vertical-align:middle">${t('parish_verified')}</span>`:''}</h2>
+      <p style="color:var(--muted);margin:4px 0 20px">${t('profile_id')} ${p.id} · ${genderWord(p.gender)} · ${p.age} ${t('years')}</p>
+      <div class="card-block"><h3>${t('d_basic')}</h3>
+        <dl class="dl">
+          <dt>${t('d_age_height')}</dt><dd>${p.age} ${t('yrs')} · ${p.height}</dd>
+          <dt>${t('d_marital')}</dt><dd>${t(p.marital)}</dd>
+          <dt>${t('d_location')}</dt><dd>${p.city}</dd>
+          <dt>${t('d_mtongue')}</dt><dd>${t('mt_tamil')}</dd>
+        </dl></div>
+      <div class="card-block"><h3>${t('d_faith')}</h3>
+        <dl class="dl">
+          <dt>${t('d_denom')}</dt><dd>${p.denom}</dd>
+          <dt>${t('d_parish')}</dt><dd>${p.parish}</dd>
+          <dt>${t('d_diocese')}</dt><dd>${p.diocese}</dd>
+          <dt>${t('d_walk')}</dt><dd>${p.faith}</dd>
+        </dl></div>
+      <div class="card-block"><h3>${t('d_edu')}</h3>
+        <dl class="dl">
+          <dt>${t('d_education')}</dt><dd>${p.edu}</dd>
+          <dt>${t('d_profession')}</dt><dd>${p.job}</dd>
+        </dl></div>
+      <div class="card-block"><h3>${t('d_family')}</h3>
+        <dl class="dl">
+          <dt>${t('d_father')}</dt><dd>${p.father}</dd>
+          <dt>${t('d_mother')}</dt><dd>${p.mother}</dd>
+        </dl></div>
+    </div>`;
+  if(!keep)go('profile');
+}
+
+function interest(name){alert(t('alert_interest').replace('{n}',name));}
+
+function go(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('#menu a').forEach(a=>a.classList.toggle('active',a.dataset.nav===view));
+  if(view==='browse')renderBrowse();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+/* ---- photo gallery ---- */
+let regPhotos=[];           // array of data URLs (first = primary)
+const MAX_PHOTOS=5;
+function renderGallery(){
+  const g=document.getElementById('photoGallery');
+  let html=regPhotos.map((src,i)=>`
+    <div class="photo-thumb">
+      <img src="${src}" alt="">
+      <button type="button" class="rm" title="${t('ph_remove')}" onclick="removePhotoAt(${i})">×</button>
+      ${i===0?`<div class="primary">${t('ph_primary')}</div>`
+             :`<div class="mkprimary" onclick="setPrimary(${i})">${t('ph_makeprimary')}</div>`}
+    </div>`).join('');
+  if(regPhotos.length<MAX_PHOTOS){
+    html+=`<div class="photo-add" onclick="document.getElementById('photoInput').click()">
+      <div><div class="pa-ic">＋</div><div class="pa-tx">${t('ph_add')}</div></div></div>`;
+  }
+  g.innerHTML=html;
+}
+function handlePhoto(e){
+  const files=Array.from(e.target.files||[]);
+  files.forEach(f=>{
+    if(regPhotos.length>=MAX_PHOTOS){alert(t('ph_err_max'));return;}
+    if(!f.type.startsWith('image/')){alert(t('ph_err_type'));return;}
+    if(f.size>5*1024*1024){alert(t('ph_err_size'));return;}
+    const r=new FileReader();
+    r.onload=ev=>{regPhotos.push(ev.target.result);renderGallery();};
+    r.readAsDataURL(f);
+  });
+  e.target.value='';
+}
+function removePhotoAt(i){regPhotos.splice(i,1);renderGallery();}
+function setPrimary(i){const[p]=regPhotos.splice(i,1);regPhotos.unshift(p);renderGallery();}
+
+/* ---- shared store (talks to admin.html) ---- */
+const STORE_KEY='csi_pending_profiles';
+function loadStore(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'[]');}catch(_){return[];}}
+function saveStore(a){try{localStorage.setItem(STORE_KEY,JSON.stringify(a));}catch(_){/* quota */}}
+function nextId(){return 'CSI'+(1200+loadStore().length+1);}
+function ageFromDob(d){if(!d)return null;const y=new Date(d);const n=new Date();let a=n.getFullYear()-y.getFullYear();
+  if(n.getMonth()<y.getMonth()||(n.getMonth()===y.getMonth()&&n.getDate()<y.getDate()))a--;return a>0&&a<120?a:null;}
+
+function submitForm(e){
+  e.preventDefault();
+  const v=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+  const looking=document.getElementById('regLooking').value;
+  const prof={
+    id:nextId(),
+    name:v('regName')||'New Member',
+    gender:v('regGender')|| (looking===t('o_groom')||looking==='Groom'?'M':'F'),
+    age:ageFromDob(v('regDob')),
+    denom:v('regDenom')||'CSI',
+    parish:v('regParish')||'-',
+    diocese:v('regDiocese')||'-',
+    photos:regPhotos.slice(),         // full gallery for the live session
+    status:'pending',
+    submitted:Date.now()
+  };
+  // show immediately in Browse this session
+  PROFILES.unshift({...prof,height:'',edu:'',job:'',city:prof.diocese,marital:'m_never',verified:false,faith:'',father:'',mother:''});
+  // persist to shared store for the admin portal (primary photo only - keeps localStorage small)
+  const store=loadStore();
+  store.unshift({id:prof.id,name:prof.name,gender:prof.gender,parish:prof.parish,
+    denom:prof.denom,diocese:prof.diocese,photo:regPhotos[0]||'',status:'pending',submitted:prof.submitted});
+  saveStore(store);
+
+  document.getElementById('okBanner').style.display='block';
+  e.target.reset();
+  regPhotos=[];renderGallery();
+  renderFeatured();renderBrowse();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+setLang('en'); /* initial render */
+</script>
+</body>
+</html>

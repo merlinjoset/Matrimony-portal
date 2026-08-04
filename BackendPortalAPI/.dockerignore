@@ -1,0 +1,16 @@
+# Build output
+**/bin/
+**/obj/
+.vs/
+
+# Secrets — NEVER bake these into the image (Neon connection string lives here).
+**/appsettings.Development.local.json
+**/appsettings.*.local.json
+
+# Local uploads
+**/wwwroot/uploads/*
+
+# Misc
+**/*.user
+*.log
+.git/

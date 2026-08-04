@@ -1,0 +1,19 @@
+# Render Blueprint - CSI Holy Matrimony API (.NET 10, Docker).
+# Database is external (Neon); set the two `sync: false` values in the dashboard.
+services:
+  - type: web
+    name: csi-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # Neon connection string - paste in the dashboard (kept out of git).
+      - key: ConnectionStrings__Default
+        sync: false
+      # Allowed CORS origin - the web service URL, e.g. https://csi-web.onrender.com
+      - key: Cors__Origins__0
+        sync: false
