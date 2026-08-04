@@ -1,4 +1,5 @@
-# Render Blueprint - CSI Holy Matrimony web (Next.js 16, Docker).
+# Render Blueprint - CSI Holy Matrimony (single Next.js 16 app: web UI + API routes).
+# The API lives inside this app under /api and talks to Neon directly.
 services:
   - type: web
     name: csi-web
@@ -6,8 +7,9 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: free
+    healthCheckPath: /api/health
     envVars:
-      # Build-time API base URL - the API service URL, e.g. https://csi-api.onrender.com/api
-      # NEXT_PUBLIC_* is inlined at build time, so changing it later needs a rebuild.
-      - key: NEXT_PUBLIC_API_URL
+      # Neon connection string - paste in the dashboard (kept out of git).
+      # Used server-side by the /api route handlers.
+      - key: DATABASE_URL
         sync: false

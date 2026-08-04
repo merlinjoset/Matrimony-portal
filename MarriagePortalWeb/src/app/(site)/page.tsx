@@ -7,20 +7,17 @@ import {
   FeaturesSection,
   FeaturedSection,
 } from "@/components/home/home-sections";
-import { api } from "@/lib/api";
+import { browseProfiles } from "@/lib/server/queries";
 
 export const dynamic = "force-dynamic";
 
 async function FeaturedProfiles() {
   let items;
   try {
-    items = (await api.browseProfiles({ pageSize: 3, live: true })).items;
+    items = (await browseProfiles({ pageSize: 3, live: true })).items;
   } catch {
     return (
-      <p className="text-center text-muted-foreground">
-        Could not reach the API. Make sure the backend is running at{" "}
-        <code className="rounded bg-muted px-1.5 py-0.5">http://localhost:5117</code>.
-      </p>
+      <p className="text-center text-muted-foreground">Could not load profiles right now. Please refresh.</p>
     );
   }
   if (items.length === 0) return <p className="text-center text-muted-foreground">No profiles yet.</p>;

@@ -11,10 +11,8 @@ FROM node:22-slim AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# NEXT_PUBLIC_* values are inlined at build time, so the API URL must be known here.
-# Defaults to the live API; override with a Render build arg / env var if it changes.
-ARG NEXT_PUBLIC_API_URL=https://backendportalapi.onrender.com/api
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# The API is now inside this app (same-origin /api), so no external API URL is needed.
+ENV NEXT_PUBLIC_API_URL=/api
 RUN npm run build
 
 # ---- Runtime (Next.js standalone) ----

@@ -16,7 +16,8 @@ import type {
   ProfileStatus,
 } from "./types";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5117/api";
+// The API now lives inside this same Next.js app under /api (same origin).
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
