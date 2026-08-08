@@ -90,6 +90,8 @@ export interface MemberAccount {
   email: string | null;
   status: string; // Pending | Active | Disabled
   createdAt: string;
+  lastLoginIp: string | null;
+  lastLoginAt: string | null;
 }
 
 export interface CreateProfileInput {

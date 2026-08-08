@@ -118,6 +118,7 @@ export default function MemberAccountsPage() {
                   <th className="px-5 py-3 font-bold">Username</th>
                   <th className="px-5 py-3 font-bold">Email</th>
                   <th className="px-5 py-3 font-bold">Card #</th>
+                  <th className="px-5 py-3 font-bold">Last IP</th>
                   <th className="px-5 py-3 font-bold">Status</th>
                   <th className="px-5 py-3 font-bold">Action</th>
                 </tr>
@@ -129,6 +130,7 @@ export default function MemberAccountsPage() {
                     <td className="px-5 py-3 text-sm">{a.username}</td>
                     <td className="px-5 py-3 text-sm text-muted-foreground">{a.email || "-"}</td>
                     <td className="px-5 py-3 text-sm">{a.membershipNo}</td>
+                    <td className="px-5 py-3 text-sm text-muted-foreground" title={a.lastLoginAt ? new Date(a.lastLoginAt).toLocaleString() : ""}>{a.lastLoginIp || "-"}</td>
                     <td className="px-5 py-3"><Pill tone={tone(a.status)}>{a.status}</Pill></td>
                     <td className="px-5 py-3">
                       <div className="flex gap-2">

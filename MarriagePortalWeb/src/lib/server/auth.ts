@@ -56,10 +56,16 @@ export async function signup(membershipNo: string, username: string, password: s
   };
 }
 
-/** Sign in with username + password. Only 'Active' (admin-approved) accounts may sign in. */
-export async function login(username: string, password: string): Promise<AuthResult> {
+// Credential-sharing guard: if an account signs in from this many distinct IPs within the
+// window, we treat the login as shared and lock the account until an admin re-activates it.
+const SHARE_WINDOW_MINUTES = 60;
+const MAX_DISTINCT_IPS = 4;
+
+/** Sign in with username + password. Only 'Active' (admin-approved) accounts may sign in.
+ *  The client IP is logged, and accounts used from too many locations at once are locked. */
+export async function login(username: string, password: string, ip?: string | null, userAgent?: string | null): Promise<AuthResult> {
   const rows = await sql`
-    SELECT "MemberId","MembershipNo","Name","Username","PasswordHash","Status"
+    SELECT "Id","MemberId","MembershipNo","Name","Username","PasswordHash","Status"
     FROM "TblMemberAccounts"
     WHERE lower("Username") = lower(${(username ?? "").trim()}) AND "IsDeleted" = false
     LIMIT 1`;
@@ -69,6 +75,25 @@ export async function login(username: string, password: string): Promise<AuthRes
   }
   if (account.Status === "Pending") return { ok: false, status: 403, message: "Your account is awaiting admin activation. Please try again later." };
   if (account.Status !== "Active") return { ok: false, status: 403, message: "This account is disabled. Please contact the parish office." };
+
+  const cleanIp = (ip ?? "").trim() || null;
+
+  // Record this successful sign-in with its IP.
+  await sql`
+    INSERT INTO "TblLoginLog" ("Id","MemberAccountId","Username","IpAddress","UserAgent","Success","CreatedAt")
+    VALUES (${crypto.randomUUID()}, ${account.Id as string}, ${account.Username as string}, ${cleanIp}, ${(userAgent ?? "").slice(0, 400) || null}, true, now())`;
+
+  // Detect credential sharing: too many distinct IPs in a short window.
+  const distinct = await sql`
+    SELECT count(DISTINCT "IpAddress")::int AS c
+    FROM "TblLoginLog"
+    WHERE "MemberAccountId" = ${account.Id as string}
+      AND "Success" = true AND "IpAddress" IS NOT NULL
+      AND "CreatedAt" > now() - (${SHARE_WINDOW_MINUTES} * interval '1 minute')`;
+  if (Number(distinct[0]?.c ?? 0) >= MAX_DISTINCT_IPS) {
+    await sql`UPDATE "TblMemberAccounts" SET "Status" = 'Disabled', "UpdatedAt" = now() WHERE "Id" = ${account.Id as string}`;
+    return { ok: false, status: 403, message: "This account was signed in from too many different locations and has been locked for security. Please contact the parish office to restore access." };
+  }
 
   return {
     ok: true,
@@ -128,12 +153,21 @@ export interface MemberAccountRow {
   email: string | null;
   status: string;
   createdAt: string;
+  lastLoginIp: string | null;
+  lastLoginAt: string | null;
 }
 
 export async function listMemberAccounts(): Promise<MemberAccountRow[]> {
   const rows = await sql`
-    SELECT "Id","MemberId","MembershipNo","Name","Username","Email","Status","CreatedAt"
-    FROM "TblMemberAccounts" WHERE "IsDeleted" = false ORDER BY "CreatedAt" DESC`;
+    SELECT a."Id", a."MemberId", a."MembershipNo", a."Name", a."Username", a."Email", a."Status", a."CreatedAt",
+           ll."IpAddress" AS "LastIp", ll."CreatedAt" AS "LastLoginAt"
+    FROM "TblMemberAccounts" a
+    LEFT JOIN LATERAL (
+      SELECT "IpAddress", "CreatedAt" FROM "TblLoginLog" l
+      WHERE l."MemberAccountId" = a."Id" AND l."Success" = true
+      ORDER BY l."CreatedAt" DESC LIMIT 1
+    ) ll ON true
+    WHERE a."IsDeleted" = false ORDER BY a."CreatedAt" DESC`;
   return rows.map((r) => ({
     id: r.Id as string,
     memberId: r.MemberId as string,
@@ -143,6 +177,8 @@ export async function listMemberAccounts(): Promise<MemberAccountRow[]> {
     email: (r.Email as string) ?? null,
     status: r.Status as string,
     createdAt: new Date(r.CreatedAt as string).toISOString(),
+    lastLoginIp: (r.LastIp as string) ?? null,
+    lastLoginAt: r.LastLoginAt ? new Date(r.LastLoginAt as string).toISOString() : null,
   }));
 }
 
