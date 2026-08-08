@@ -35,6 +35,8 @@ const empty: CreateProfileInput = {
   denomination: "CSI",
   homeParish: "",
   congregation: "Dubai",
+  presbyterName: "",
+  presbyterContact: "",
   aboutFaith: "",
   education: "",
   profession: "",
@@ -132,7 +134,9 @@ export default function RegisterPage() {
           }
         }
       }
-      const created = await api.createProfile({ ...form, dateOfBirth: form.dateOfBirth || null });
+      // "Looking for" is derived from the profile's gender (a groom seeks a bride and vice versa).
+      const lookingFor = form.gender === "Male" ? "Bride" : "Groom";
+      const created = await api.createProfile({ ...form, lookingFor, dateOfBirth: form.dateOfBirth || null });
       toast.success(t("toast_ok"));
       router.push(`/profiles/${created.id}`);
     } catch {
@@ -255,15 +259,6 @@ export default function RegisterPage() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label={t("l_lookingfor")}>
-                <Select value={form.lookingFor} onValueChange={setStr("lookingFor")}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Bride">{t("bride")}</SelectItem>
-                    <SelectItem value="Groom">{t("groom")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
               <Field label={t("l_mobile")}>
                 <div className="flex gap-2">
                   <Select value={dialCode} onValueChange={(v) => updateMobile(v ?? "+971", phone)}>
@@ -353,6 +348,16 @@ export default function RegisterPage() {
                   </SelectContent>
                 </Select>
               </Field>
+              {form.congregation === "Other" && (
+                <>
+                  <Field label={t("l_presbyter_name")}>
+                    <Input value={form.presbyterName ?? ""} onChange={(e) => set("presbyterName", e.target.value)} placeholder={t("ph_presbyter_name")} />
+                  </Field>
+                  <Field label={t("l_presbyter_contact")}>
+                    <Input value={form.presbyterContact ?? ""} onChange={(e) => set("presbyterContact", e.target.value)} placeholder={t("ph_presbyter_contact")} />
+                  </Field>
+                </>
+              )}
             </div>
             <Field label={t("l_walk")}>
               <Textarea value={form.aboutFaith ?? ""} onChange={(e) => set("aboutFaith", e.target.value)} rows={2} />

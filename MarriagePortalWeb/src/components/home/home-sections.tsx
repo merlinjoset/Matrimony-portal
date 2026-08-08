@@ -128,6 +128,9 @@ export function FeaturesSection() {
 
 export function FeaturedSection({ children }: { children: React.ReactNode }) {
   const { t } = useT();
+  const { member } = useMemberShortlist();
+  // Recently-joined profiles are members-only - hidden until signed in.
+  if (!member) return null;
   return (
     <section className="border-t border-border bg-white py-14">
       <div className="mx-auto max-w-6xl px-5">

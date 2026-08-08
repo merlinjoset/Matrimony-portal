@@ -107,6 +107,8 @@ export interface CreateProfileInput {
   denomination: string;
   homeParish: string;
   congregation: string;
+  presbyterName?: string | null;
+  presbyterContact?: string | null;
   aboutFaith?: string | null;
   education?: string | null;
   profession?: string | null;

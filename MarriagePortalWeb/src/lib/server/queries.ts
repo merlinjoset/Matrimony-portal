@@ -139,14 +139,14 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
   await sql`
     INSERT INTO "TblProfiles"
       ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender",
-       "DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","AboutFaith",
+       "DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","AboutFaith",
        "Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${referenceId}, ${dto.membershipNo ?? null}, ${ownerMemberId}, ${dto.createdFor ?? "Self"},
        ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
        ${dto.dateOfBirth ?? null}, ${dto.height ?? null}, ${dto.maritalStatus ?? "Never married"},
        ${dto.motherTongue ?? "Tamil"}, ${dto.denomination ?? "CSI"}, ${dto.homeParish ?? ""},
-       ${dto.congregation ?? "Dubai"}, ${dto.aboutFaith ?? null}, ${dto.education ?? null},
+       ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.education ?? null},
        ${dto.profession ?? null}, ${dto.city ?? null}, ${dto.fatherOccupation ?? null},
        ${dto.motherOccupation ?? null}, ${dto.mainPhotoUrl ?? null}, 'Pending', now(), false)`;
 
