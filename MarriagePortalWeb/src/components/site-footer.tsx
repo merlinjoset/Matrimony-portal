@@ -31,8 +31,8 @@ export function SiteFooter() {
         <div>
           <h5 className="mb-3.5 text-[15px] font-semibold text-white">{t("foot_office")}</h5>
           <div className="space-y-2.5 text-sm">
-            <a href="mailto:office@csitamilparishdubai.com" className="block w-fit transition hover:text-white">
-              office@csitamilparishdubai.com
+            <a href="mailto:admin@csitamilparishdubai.com" className="block w-fit transition hover:text-white">
+              admin@csitamilparishdubai.com
             </a>
             <a href="tel:+971501386756" className="block w-fit transition hover:text-white">+971 50 138 6756</a>
             <a
