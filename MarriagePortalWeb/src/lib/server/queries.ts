@@ -70,22 +70,32 @@ const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","FullName",
 // ---------- profiles ----------
 export interface ProfileQuery {
   gender?: string;
-  denomination?: string;
-  congregation?: string;
+  denomination?: string | string[];
+  congregation?: string | string[];
   status?: string;
   live?: boolean;
   page?: number;
   pageSize?: number;
 }
 
+/** Normalise a filter value that may be a single string, a comma-list, or an array into a clean string[]. */
+function toList(v: string | string[] | undefined): string[] {
+  if (!v) return [];
+  const arr = Array.isArray(v) ? v : v.split(",");
+  return arr.map((x) => x.trim()).filter(Boolean);
+}
+
 export async function browseProfiles(q: ProfileQuery): Promise<PagedResult<ProfileListItem>> {
   const page = q.page && q.page > 0 ? q.page : 1;
   const pageSize = q.pageSize && q.pageSize >= 1 && q.pageSize <= 100 ? q.pageSize : 24;
 
+  const denoms = toList(q.denomination);
+  const congs = toList(q.congregation);
+
   let where = sql`"IsDeleted" = false`;
   if (q.gender) where = sql`${where} AND "Gender" = ${q.gender}`;
-  if (q.denomination) where = sql`${where} AND "Denomination" = ${q.denomination}`;
-  if (q.congregation) where = sql`${where} AND "Congregation" = ${q.congregation}`;
+  if (denoms.length) where = sql`${where} AND "Denomination" = ANY(${denoms})`;
+  if (congs.length) where = sql`${where} AND "Congregation" = ANY(${congs})`;
   if (q.status) where = sql`${where} AND "Status" = ${q.status}`;
   if (q.live) where = sql`${where} AND ("Status" = 'Verified' OR "Status" = 'Active')`;
 

@@ -27,6 +27,7 @@ import { api } from "@/lib/api";
 import { ADMIN_CONGREGATIONS, ADMIN_ROLES, type AdminUser, type CreateUserInput } from "@/lib/types";
 
 const ROLE_COLOR: Record<string, string> = {
+  "Super Admin": "#6d28d9",
   "Diocese Admin": "#8a2a38",
   "Parish Presbyter": "#3f6b54",
   Moderator: "#9c6b1f",

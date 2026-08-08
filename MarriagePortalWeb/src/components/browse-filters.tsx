@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { CONGREGATIONS, DENOMINATIONS } from "@/lib/types";
 import { useT } from "@/lib/i18n";
 
@@ -26,6 +27,17 @@ export function BrowseFilters() {
     router.push(`/browse?${params.toString()}`);
   }
 
+  function updateMulti(key: string, values: string[]) {
+    const params = new URLSearchParams(sp.toString());
+    if (values.length === 0) params.delete(key);
+    else params.set(key, values.join(","));
+    params.delete("page");
+    router.push(`/browse?${params.toString()}`);
+  }
+
+  const denoms = (sp.get("denomination") ?? "").split(",").filter(Boolean);
+  const congs = (sp.get("congregation") ?? "").split(",").filter(Boolean);
+
   return (
     <div className="flex flex-wrap gap-2.5">
       <Select value={sp.get("gender") ?? ALL} onValueChange={(v) => update("gender", v)}>
@@ -37,25 +49,21 @@ export function BrowseFilters() {
         </SelectContent>
       </Select>
 
-      <Select value={sp.get("denomination") ?? ALL} onValueChange={(v) => update("denomination", v)}>
-        <SelectTrigger className="w-[180px] bg-white"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{t("any_denom")}</SelectItem>
-          {DENOMINATIONS.map((d) => (
-            <SelectItem key={d} value={d}>{d}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <MultiSelect
+        className="w-[180px]"
+        options={DENOMINATIONS}
+        selected={denoms}
+        onChange={(v) => updateMulti("denomination", v)}
+        placeholder={t("any_denom")}
+      />
 
-      <Select value={sp.get("congregation") ?? ALL} onValueChange={(v) => update("congregation", v)}>
-        <SelectTrigger className="w-[180px] bg-white"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{t("any_congregation")}</SelectItem>
-          {CONGREGATIONS.map((c) => (
-            <SelectItem key={c} value={c}>{c}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <MultiSelect
+        className="w-[180px]"
+        options={CONGREGATIONS}
+        selected={congs}
+        onChange={(v) => updateMulti("congregation", v)}
+        placeholder={t("any_congregation")}
+      />
     </div>
   );
 }

@@ -137,6 +137,7 @@ export interface CreateUserInput {
 }
 
 export const ADMIN_ROLES = [
+  "Super Admin",
   "Diocese Admin",
   "Parish Presbyter",
   "Moderator",

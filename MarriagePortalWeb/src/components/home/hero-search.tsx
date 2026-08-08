@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { useT } from "@/lib/i18n";
 import { CONGREGATIONS, DENOMINATIONS } from "@/lib/types";
 
@@ -18,14 +19,14 @@ export function HeroSearch() {
   const { t } = useT();
   const router = useRouter();
   const [gender, setGender] = useState("Female");
-  const [denom, setDenom] = useState("any");
-  const [cong, setCong] = useState("any");
+  const [denom, setDenom] = useState<string[]>([]);
+  const [cong, setCong] = useState<string[]>([]);
 
   function search() {
     const p = new URLSearchParams();
     p.set("gender", gender);
-    if (denom !== "any") p.set("denomination", denom);
-    if (cong !== "any") p.set("congregation", cong);
+    if (denom.length) p.set("denomination", denom.join(","));
+    if (cong.length) p.set("congregation", cong.join(","));
     router.push(`/browse?${p.toString()}`);
   }
 
@@ -67,24 +68,12 @@ export function HeroSearch() {
 
         <div className="space-y-1.5">
           <Label className="text-[12.5px]">{t("denomination")}</Label>
-          <Select value={denom} onValueChange={(v) => setDenom(v ?? "any")}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">{t("any_christian")}</SelectItem>
-              {DENOMINATIONS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <MultiSelect options={DENOMINATIONS} selected={denom} onChange={setDenom} placeholder={t("any_christian")} />
         </div>
 
         <div className="space-y-1.5">
           <Label className="text-[12.5px]">{t("parish_congregation")}</Label>
-          <Select value={cong} onValueChange={(v) => setCong(v ?? "any")}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">{t("any")}</SelectItem>
-              {CONGREGATIONS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <MultiSelect options={CONGREGATIONS} selected={cong} onChange={setCong} placeholder={t("any")} />
         </div>
 
         <Button onClick={search} className="w-full bg-gold text-maroon hover:bg-gold! hover:brightness-105">
