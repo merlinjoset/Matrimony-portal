@@ -23,7 +23,19 @@ function StatusPill({ status }: { status: ContactRequestStatus }) {
     Approved: t("rq_approved"),
     Declined: t("rq_declined"),
   };
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${map[status]}`}>{label[status]}</span>;
+  return <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${map[status]}`}>{label[status]}</span>;
+}
+
+function initials(name: string): string {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "?";
+}
+
+function Avatar({ name }: { name: string }) {
+  return (
+    <div className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-maroon to-brand-green text-sm font-bold text-white shadow-sm">
+      {initials(name)}
+    </div>
+  );
 }
 
 export default function RequestsPage() {
@@ -79,11 +91,12 @@ export default function RequestsPage() {
             ) : (
               <div className="space-y-3">
                 {incoming.map((r) => (
-                  <Card key={r.id} className="flex flex-wrap items-center gap-3 p-4">
+                  <Card key={r.id} className="flex flex-wrap items-center gap-4 p-4 transition hover:shadow-md">
+                    <Avatar name={r.requesterName} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm">
-                        <span className="font-semibold">{r.requesterName}</span>
-                        {r.requesterCongregation ? <span className="text-muted-foreground"> · {r.requesterCongregation}</span> : null}
+                      <p className="text-sm font-semibold">
+                        {r.requesterName}
+                        {r.requesterCongregation ? <span className="font-normal text-muted-foreground"> · {r.requesterCongregation}</span> : null}
                       </p>
                       <p className="text-[13px] text-muted-foreground">
                         {t("rq_wants")}{" "}
@@ -93,7 +106,7 @@ export default function RequestsPage() {
                       </p>
                     </div>
                     {r.status === "Pending" ? (
-                      <div className="flex gap-2">
+                      <div className="flex shrink-0 gap-2">
                         <Button
                           size="sm"
                           disabled={busy === r.id}
@@ -131,13 +144,14 @@ export default function RequestsPage() {
             ) : (
               <div className="space-y-3">
                 {outgoing.map((r) => (
-                  <Card key={r.id} className="flex flex-wrap items-center gap-3 p-4">
-                    <p className="min-w-0 flex-1 text-[13px] text-muted-foreground">
-                      {t("rq_youasked")}{" "}
-                      <Link href={`/profiles/${r.profileId}`} className="font-medium text-maroon hover:underline">
-                        {r.profileName} ({r.profileReferenceId})
+                  <Card key={r.id} className="flex items-center gap-4 p-4 transition hover:shadow-md">
+                    <Avatar name={r.profileName} />
+                    <div className="min-w-0 flex-1">
+                      <Link href={`/profiles/${r.profileId}`} className="font-semibold text-foreground hover:text-maroon hover:underline">
+                        {r.profileName}
                       </Link>
-                    </p>
+                      <p className="text-[12.5px] text-muted-foreground">{r.profileReferenceId} · {t("rq_youasked_line")}</p>
+                    </div>
                     <StatusPill status={r.status} />
                   </Card>
                 ))}

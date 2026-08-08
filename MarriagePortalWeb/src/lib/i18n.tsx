@@ -188,6 +188,7 @@ const en: Dict = {
   rq_signin: "Sign in with your membership card to see your contact requests.",
   rq_wants: "asks to see the contact for",
   rq_youasked: "You asked to see the contact for",
+  rq_youasked_line: "You requested their contact number",
 
   // how it works
   how_h: "How it works",
@@ -448,6 +449,7 @@ const ta: Dict = {
   rq_signin: "உங்கள் தொடர்பு கோரிக்கைகளைப் பார்க்க உறுப்பினர் அட்டையுடன் உள்நுழையவும்.",
   rq_wants: "தொடர்பைப் பார்க்கக் கோருகிறார்:",
   rq_youasked: "நீங்கள் தொடர்பைப் பார்க்கக் கோரியது:",
+  rq_youasked_line: "அவர்களின் தொடர்பு எண்ணைக் கோரியுள்ளீர்கள்",
 
   how_h: "எப்படி செயல்படுகிறது",
   how_sub: "எளிய, கண்ணியமான நான்கு படிகள் - உங்கள் திருச்சபையின் வழிகாட்டுதலுடன்.",
