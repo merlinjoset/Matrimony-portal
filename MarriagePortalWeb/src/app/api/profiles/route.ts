@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { browseProfiles, createProfile, validateMembership } from "@/lib/server/queries";
+import { notifyNewProfile } from "@/lib/server/notifications";
 import type { CreateProfileInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,5 +28,13 @@ export async function POST(req: NextRequest) {
   if (!membership.valid) return new Response(membership.message ?? "Invalid membership card.", { status: 400 });
 
   const created = await createProfile(dto, membership.memberId);
+
+  // Notify the parish office that a profile is awaiting verification (never blocks the response).
+  try {
+    await notifyNewProfile(created, dto.mobile ?? null);
+  } catch (err) {
+    console.error("[profiles] notification failed:", err);
+  }
+
   return Response.json(created, { status: 201 });
 }
