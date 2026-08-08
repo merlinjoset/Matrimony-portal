@@ -3,7 +3,7 @@ import { ProfileCard } from "@/components/profile-card";
 import { ProfileGridSkeleton } from "@/components/profile-card-skeleton";
 import {
   HomeHero,
-  ScriptureBand,
+  DisclaimerBand,
   FeaturesSection,
   FeaturedSection,
 } from "@/components/home/home-sections";
@@ -34,7 +34,7 @@ export default function HomePage() {
   return (
     <>
       <HomeHero />
-      <ScriptureBand />
+      <DisclaimerBand />
       <FeaturesSection />
       <FeaturedSection>
         <Suspense fallback={<ProfileGridSkeleton count={3} />}>

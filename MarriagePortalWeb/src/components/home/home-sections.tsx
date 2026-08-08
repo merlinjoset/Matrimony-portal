@@ -51,14 +51,37 @@ function Stat({ n, label }: { n: string; label: string }) {
   );
 }
 
-export function ScriptureBand() {
-  const { t } = useT();
+export function DisclaimerBand() {
   return (
-    <section className="bg-gradient-to-b from-maroon to-maroon-2 py-11 text-center text-white">
-      <div className="mx-auto max-w-3xl px-5">
-        <div className="font-serif text-4xl text-gold">❝</div>
-        <p className="mx-auto max-w-2xl text-2xl italic leading-relaxed">{t("psalm")}</p>
-        <div className="mt-3 font-bold tracking-wide text-gold">{t("psalm_ref")}</div>
+    <section className="bg-gradient-to-b from-maroon to-maroon-2 py-12 text-white">
+      <div className="mx-auto max-w-4xl px-5">
+        <h2 className="mb-4 text-center text-lg font-bold uppercase tracking-wide text-gold">
+          Church Matrimonial Portal Disclaimer
+        </h2>
+        <div className="space-y-3 text-[13.5px] leading-relaxed text-white/90">
+          <p>
+            This Matrimonial Portal is provided solely as a facilitation service for members seeking suitable matrimonial
+            alliances. The Church acts only as a platform provider in listing.
+          </p>
+          <p>
+            The Church does not guarantee the accuracy, completeness, character, compatibility, suitability, financial
+            status, educational qualifications, family background, or intentions of any individual registered on the portal.
+          </p>
+          <p>
+            Any communication, meeting, engagement, marriage proposal, or matrimonial decision arising from interactions on
+            this portal is entirely the responsibility of the individuals and families involved.
+          </p>
+          <p>Users are advised to independently verify all information before making any commitment or decision.</p>
+          <p>
+            The Church, its Chairman, staff, committee members, and volunteers shall not be held liable for any disputes,
+            misunderstandings, financial loss, emotional distress, legal claims, or consequences arising from the use of this
+            service.
+          </p>
+          <p>
+            By registering on this portal, users acknowledge and agree that all matrimonial decisions are made voluntarily
+            and independently by the concerned parties.
+          </p>
+        </div>
       </div>
     </section>
   );
