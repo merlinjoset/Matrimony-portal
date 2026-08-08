@@ -76,8 +76,10 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
         const body = await res.text().catch(() => "");
         throw new ApiError(res.status, body || res.statusText);
       }
+      // Read as text so empty bodies (204, or 201 with no content) don't blow up JSON.parse.
       if (res.status === 204) return undefined as T;
-      return (await res.json()) as T;
+      const text = await res.text();
+      return (text ? JSON.parse(text) : undefined) as T;
     } catch (e) {
       // A real API error (4xx/5xx we surfaced) should not be retried.
       if (e instanceof ApiError) throw e;
