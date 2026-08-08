@@ -140,6 +140,13 @@ export const api = {
     });
   },
 
+  setUserStatus(id: string, status: string): Promise<void> {
+    return http<void>(`/admin/users/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+
   createInterest(input: CreateInterestInput): Promise<Interest> {
     return http<Interest>(`/interests`, {
       method: "POST",

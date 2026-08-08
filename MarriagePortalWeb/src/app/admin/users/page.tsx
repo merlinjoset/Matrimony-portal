@@ -63,6 +63,16 @@ export default function UsersPage() {
     }
   }
 
+  async function changeStatus(u: AdminUser, status: string) {
+    try {
+      await api.setUserStatus(u.id, status);
+      toast.success(`${u.name} is now ${status}.`);
+      load();
+    } catch {
+      toast.error("Could not update status. Is the API running?");
+    }
+  }
+
   return (
     <>
       <AdminHeader
@@ -139,6 +149,7 @@ export default function UsersPage() {
                   <th className="px-5 py-3 font-bold">Role</th>
                   <th className="px-5 py-3 font-bold">Congregation</th>
                   <th className="px-5 py-3 font-bold">Status</th>
+                  <th className="px-5 py-3 font-bold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -157,6 +168,13 @@ export default function UsersPage() {
                     <td className="px-5 py-3 text-sm">{u.congregation}</td>
                     <td className="px-5 py-3">
                       <Pill tone={u.status === "Active" ? "green" : u.status === "Invited" ? "amber" : "red"}>{u.status}</Pill>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      {u.status === "Active" ? (
+                        <Button size="sm" variant="outline" onClick={() => changeStatus(u, "Disabled")}>Disable</Button>
+                      ) : (
+                        <Button size="sm" onClick={() => changeStatus(u, "Active")}>Activate</Button>
+                      )}
                     </td>
                   </tr>
                 ))}
