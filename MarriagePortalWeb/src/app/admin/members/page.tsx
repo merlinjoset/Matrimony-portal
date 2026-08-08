@@ -135,7 +135,7 @@ export default function MembersPage() {
                           View
                         </Button>
                         {m.status === "Suspended" ? (
-                          <Button size="sm" variant="outline" disabled={busy === m.id} onClick={() => setStatus(m.id, "Active", m.fullName)}>
+                          <Button size="sm" variant="outline" disabled={busy === m.id} onClick={() => setStatus(m.id, "Verified", m.fullName)}>
                             Reactivate
                           </Button>
                         ) : (
