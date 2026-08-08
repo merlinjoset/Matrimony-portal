@@ -27,6 +27,7 @@ export interface ProfileDetail extends ProfileListItem {
   motherTongue: string;
   homeParish: string;
   aboutFaith: string | null;
+  expectations: string | null;
   fatherOccupation: string | null;
   motherOccupation: string | null;
   statusNote: string | null;
@@ -145,6 +146,7 @@ export interface CreateProfileInput {
   presbyterName?: string | null;
   presbyterContact?: string | null;
   aboutFaith?: string | null;
+  expectations?: string | null;
   education?: string | null;
   profession?: string | null;
   city?: string | null;

@@ -230,6 +230,7 @@ function ProfileDetailContent({ p }: { p: ProfileDetail }) {
               <Row label={t("d_parish")} value={p.homeParish} />
               <Row label={t("d_congregation")} value={p.congregation} />
               <Row label={t("d_walk")} value={p.aboutFaith} />
+              <Row label={t("d_expect")} value={p.expectations} />
             </dl>
           </Card>
 

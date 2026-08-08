@@ -58,6 +58,7 @@ function toDetail(r: Row): ProfileDetail {
     motherTongue: r.MotherTongue as string,
     homeParish: r.HomeParish as string,
     aboutFaith: s(r.AboutFaith),
+    expectations: s(r.Expectations),
     fatherOccupation: s(r.FatherOccupation),
     motherOccupation: s(r.MotherOccupation),
     statusNote: s(r.StatusNote),
@@ -66,7 +67,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","AboutFaith","Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","AboutFaith","Expectations","Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -139,14 +140,14 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
   await sql`
     INSERT INTO "TblProfiles"
       ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender",
-       "DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","AboutFaith",
+       "DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","AboutFaith","Expectations",
        "Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${referenceId}, ${dto.membershipNo ?? null}, ${ownerMemberId}, ${dto.createdFor ?? "Self"},
        ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
        ${dto.dateOfBirth ?? null}, ${dto.height ?? null}, ${dto.maritalStatus ?? "Never married"},
        ${dto.motherTongue ?? "Tamil"}, ${dto.denomination ?? "CSI"}, ${dto.homeParish ?? ""},
-       ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.education ?? null},
+       ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null}, ${dto.education ?? null},
        ${dto.profession ?? null}, ${dto.city ?? null}, ${dto.fatherOccupation ?? null},
        ${dto.motherOccupation ?? null}, ${dto.mainPhotoUrl ?? null}, 'Pending', now(), false)`;
 

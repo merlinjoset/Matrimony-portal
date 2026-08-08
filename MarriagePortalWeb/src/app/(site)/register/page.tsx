@@ -38,6 +38,7 @@ const empty: CreateProfileInput = {
   presbyterName: "",
   presbyterContact: "",
   aboutFaith: "",
+  expectations: "",
   education: "",
   profession: "",
   city: "",
@@ -361,6 +362,9 @@ export default function RegisterPage() {
             </div>
             <Field label={t("l_walk")}>
               <Textarea value={form.aboutFaith ?? ""} onChange={(e) => set("aboutFaith", e.target.value)} rows={2} />
+            </Field>
+            <Field label={t("l_expect")}>
+              <Textarea value={form.expectations ?? ""} onChange={(e) => set("expectations", e.target.value)} rows={2} placeholder={t("ph_expect")} />
             </Field>
           </fieldset>
 
