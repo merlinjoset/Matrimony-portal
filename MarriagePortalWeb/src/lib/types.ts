@@ -114,7 +114,7 @@ export interface CreateProfileInput {
 }
 
 export const CONGREGATIONS = ["Dubai", "Fujairah", "Ras Al Khaimah", "India", "Other"] as const;
-export const DENOMINATIONS = ["CSI", "Pentecostal", "Lutheran", "Roman Catholic", "Other Christian"] as const;
+export const DENOMINATIONS = ["CSI", "Pentecostal", "Full Gospel/AG", "Lutheran", "Roman Catholic", "Other Christian"] as const;
 
 // ---- Admin users ----
 export type AdminUserStatus = "Invited" | "Active" | "Disabled";
