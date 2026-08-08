@@ -40,7 +40,11 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
   const [items, setItems] = useState<ProfileListItem[]>([]);
 
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [card, setCard] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<ProfileListItem | null>(null);
@@ -87,22 +91,33 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
   }, [member, has, remove, add, t]);
 
   async function signIn() {
-    const c = card.trim();
-    if (!c) return;
-    setBusy(true); setError(null);
+    if (!username.trim() || !password) return;
+    setBusy(true); setError(null); setNotice(null);
     try {
-      const res = await api.validateMembership(c);
-      if (!res.valid || !res.memberId) { setError(res.message ?? "Invalid card."); return; }
-      const m: MemberSession = { memberId: res.memberId, name: res.name ?? "Member", membershipNo: c };
+      const m = await api.login(username.trim(), password);
       persistMember(m);
       toast.success(`${t("toast_signed_in")} - ${m.name}`);
-      setOpen(false); setCard("");
+      setOpen(false); setUsername(""); setPassword("");
       // fetch list, then add any pending profile
       const list = await api.getShortlist(m.memberId).catch(() => [] as ProfileListItem[]);
       setItems(list);
       if (pending) { add(m, pending); toast.success(t("sl_added")); setPending(null); }
-    } catch {
-      setError(t("ei_err"));
+    } catch (e) {
+      setError(e instanceof Error && e.message ? e.message : t("ei_err"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function signUp() {
+    if (!card.trim() || !username.trim() || !password) return;
+    setBusy(true); setError(null); setNotice(null);
+    try {
+      const res = await api.signup(card.trim(), username.trim(), password);
+      setNotice(res.message ?? t("su_ok"));
+      setMode("signin"); setPassword("");
+    } catch (e) {
+      setError(e instanceof Error && e.message ? e.message : t("ei_err"));
     } finally {
       setBusy(false);
     }
@@ -110,33 +125,67 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
 
   const signOut = () => { persistMember(null); setItems([]); toast.success(t("toast_signed_out")); };
 
+  const canSubmit = mode === "signin" ? !!username.trim() && !!password : !!card.trim() && !!username.trim() && !!password;
+
   return (
     <ShortlistContext.Provider
       value={{ member, ready, items, count: items.length, has, toggle, remove, signOut, openSignIn: () => setOpen(true) }}
     >
       {children}
-      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setError(null); setPending(null); } }}>
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setError(null); setNotice(null); setPending(null); setMode("signin"); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("signin_title")}</DialogTitle>
-            <DialogDescription>{t("signin_intro")}</DialogDescription>
+            <DialogTitle>{mode === "signin" ? t("signin_title") : t("su_title")}</DialogTitle>
+            <DialogDescription>{mode === "signin" ? t("signin_intro") : t("su_intro")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
+            {mode === "signup" && (
+              <div className="space-y-1.5">
+                <Label>{t("l_membership")}</Label>
+                <Input
+                  value={card}
+                  onChange={(e) => { setCard(e.target.value); setError(null); }}
+                  placeholder={t("ph_membership")}
+                />
+              </div>
+            )}
             <div className="space-y-1.5">
-              <Label>{t("l_membership")}</Label>
+              <Label>{t("l_username")}</Label>
               <Input
-                value={card}
-                onChange={(e) => { setCard(e.target.value); setError(null); }}
-                onKeyDown={(e) => { if (e.key === "Enter") signIn(); }}
-                placeholder={t("ph_membership")}
+                value={username}
+                autoComplete="username"
+                onChange={(e) => { setUsername(e.target.value); setError(null); }}
+                placeholder={t("ph_username")}
               />
             </div>
+            <div className="space-y-1.5">
+              <Label>{t("l_password")}</Label>
+              <Input
+                type="password"
+                value={password}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                onKeyDown={(e) => { if (e.key === "Enter") (mode === "signin" ? signIn() : signUp()); }}
+              />
+            </div>
+            {notice && <p className="text-sm font-medium text-brand-green">{notice}</p>}
             {error && <p className="text-sm text-destructive">{error}</p>}
+            <button
+              type="button"
+              onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); setNotice(null); }}
+              className="text-[13px] font-semibold text-maroon hover:underline"
+            >
+              {mode === "signin" ? t("su_switch") : t("si_switch")}
+            </button>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>{t("ei_cancel")}</Button>
-            <Button disabled={busy || !card.trim()} onClick={signIn} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
-              {busy ? t("m_validating") : t("signin_btn")}
+            <Button
+              disabled={busy || !canSubmit}
+              onClick={() => (mode === "signin" ? signIn() : signUp())}
+              className="bg-gold text-maroon hover:bg-gold! hover:brightness-105"
+            >
+              {busy ? t("m_validating") : mode === "signin" ? t("signin_btn") : t("su_btn")}
             </Button>
           </DialogFooter>
         </DialogContent>

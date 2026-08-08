@@ -2,10 +2,19 @@
 
 import { ProfileCard } from "@/components/profile-card";
 import { BrowseFilters } from "@/components/browse-filters";
+import { MemberGate } from "@/components/member-gate";
 import { useT } from "@/lib/i18n";
 import type { ProfileListItem } from "@/lib/types";
 
-export function BrowseView({
+export function BrowseView(props: { items: ProfileListItem[]; total: number; error: boolean }) {
+  return (
+    <MemberGate>
+      <BrowseContent {...props} />
+    </MemberGate>
+  );
+}
+
+function BrowseContent({
   items,
   total,
   error,

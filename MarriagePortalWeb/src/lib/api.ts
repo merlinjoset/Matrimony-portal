@@ -3,6 +3,8 @@ import type {
   ContactRequest,
   ContactRequestStatus,
   ContactReveal,
+  MemberAccount,
+  MemberSession,
   CreateInterestInput,
   CreateProfileInput,
   CreateUserInput,
@@ -151,6 +153,32 @@ export const api = {
 
   setInterestStatus(id: string, status: InterestStatus): Promise<void> {
     return http<void>(`/interests/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  // ---- Auth (username + password) ----
+  signup(membershipNo: string, username: string, password: string): Promise<{ message: string }> {
+    return http<{ message: string }>(`/auth/signup`, {
+      method: "POST",
+      body: JSON.stringify({ membershipNo, username, password }),
+    });
+  },
+
+  login(username: string, password: string): Promise<MemberSession> {
+    return http<MemberSession>(`/auth/login`, {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
+  },
+
+  getMemberAccounts(): Promise<MemberAccount[]> {
+    return http<MemberAccount[]>(`/admin/accounts`);
+  },
+
+  setMemberAccountStatus(id: string, status: string): Promise<void> {
+    return http<void>(`/admin/accounts/${id}/status`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
     });

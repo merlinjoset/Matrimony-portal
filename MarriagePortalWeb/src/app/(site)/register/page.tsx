@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+import { useMemberShortlist } from "@/lib/member-shortlist";
 import { CONGREGATIONS, COUNTRY_CODES, DENOMINATIONS, type CreateProfileInput, type Gender, type MemberValidation } from "@/lib/types";
 
 const empty: CreateProfileInput = {
@@ -54,6 +55,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export default function RegisterPage() {
   const router = useRouter();
   const { t } = useT();
+  const { member } = useMemberShortlist();
   const [form, setForm] = useState<CreateProfileInput>(empty);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -61,6 +63,9 @@ export default function RegisterPage() {
   const [membership, setMembership] = useState<MemberValidation | null>(null);
   const [dialCode, setDialCode] = useState("+971");
   const [phone, setPhone] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [agree, setAgree] = useState(false);
 
   function updateMobile(code: string, num: string) {
     setDialCode(code);
@@ -107,8 +112,25 @@ export default function RegisterPage() {
     e.preventDefault();
     if (!membership?.valid) return toast.error(t("m_required"));
     if (!form.fullName.trim()) return toast.error(t("toast_name"));
+    if (!agree) return toast.error(t("tc_req"));
+    // Guests choose a username + password: this creates their member login (admin activates it).
+    if (!member && (!username.trim() || password.length < 6)) return toast.error(t("acc_hint"));
     setSaving(true);
     try {
+      if (!member) {
+        try {
+          const res = await api.signup(form.membershipNo.trim(), username.trim(), password);
+          toast.success(res.message ?? t("su_ok"));
+        } catch (err) {
+          // An existing account for this card is fine - the profile can still be registered.
+          const msg = err instanceof Error ? err.message : "";
+          if (!msg.toLowerCase().includes("already exists")) {
+            toast.error(msg || t("toast_err"));
+            setSaving(false);
+            return;
+          }
+        }
+      }
       const created = await api.createProfile({ ...form, dateOfBirth: form.dateOfBirth || null });
       toast.success(t("toast_ok"));
       router.push(`/profiles/${created.id}`);
@@ -157,6 +179,31 @@ export default function RegisterPage() {
               </div>
             ) : null}
           </fieldset>
+
+          {!member && (
+            <fieldset className="space-y-4">
+              <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_account")}</legend>
+              <p className="text-[12.5px] text-muted-foreground">{t("acc_hint")}</p>
+              <div className="grid gap-3.5 md:grid-cols-2">
+                <Field label={t("l_username")}>
+                  <Input
+                    value={username}
+                    autoComplete="username"
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder={t("ph_username")}
+                  />
+                </Field>
+                <Field label={t("l_password")}>
+                  <Input
+                    type="password"
+                    value={password}
+                    autoComplete="new-password"
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </Field>
+              </div>
+            </fieldset>
+          )}
 
           <fieldset className="space-y-4">
             <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_photo")}</legend>
@@ -316,8 +363,51 @@ export default function RegisterPage() {
             </div>
           </fieldset>
 
+          <fieldset className="space-y-3">
+            <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("tc_h")}</legend>
+            <div className="max-h-52 space-y-2 overflow-y-auto rounded-lg border border-border bg-muted/30 p-4 text-[12.5px] leading-relaxed text-muted-foreground">
+              <p className="font-semibold text-foreground">Church Matrimonial Portal Disclaimer</p>
+              <p>
+                This Matrimonial Portal is provided solely as a facilitation service for members seeking suitable
+                matrimonial alliances. The Church acts only as a platform provider in listing.
+              </p>
+              <p>
+                The Church does not guarantee the accuracy, completeness, character, compatibility, suitability, financial
+                status, educational qualifications, family background, or intentions of any individual registered on the
+                portal.
+              </p>
+              <p>
+                Any communication, meeting, engagement, marriage proposal, or matrimonial decision arising from
+                interactions on this portal is entirely the responsibility of the individuals and families involved.
+              </p>
+              <p>Users are advised to independently verify all information before making any commitment or decision.</p>
+              <p>
+                The Church, its Chairman, staff, committee members, and volunteers shall not be held liable for any
+                disputes, misunderstandings, financial loss, emotional distress, legal claims, or consequences arising from
+                the use of this service.
+              </p>
+              <p>
+                By registering on this portal, users acknowledge and agree that all matrimonial decisions are made
+                voluntarily and independently by the concerned parties.
+              </p>
+            </div>
+            <label className="flex cursor-pointer items-start gap-2.5 text-sm">
+              <input
+                type="checkbox"
+                checked={agree}
+                onChange={(e) => setAgree(e.target.checked)}
+                className="mt-0.5 size-4 accent-[maroon]"
+              />
+              <span>{t("tc_agree")}</span>
+            </label>
+          </fieldset>
+
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" disabled={saving || !membership?.valid} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
+            <Button
+              type="submit"
+              disabled={saving || !membership?.valid || !agree}
+              className="bg-gold text-maroon hover:bg-gold! hover:brightness-105"
+            >
               {saving ? t("submitting") : t("submit_btn")}
             </Button>
             <Button type="button" variant="outline" onClick={() => setForm(empty)}>

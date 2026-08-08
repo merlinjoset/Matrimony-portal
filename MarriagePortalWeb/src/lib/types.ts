@@ -71,11 +71,23 @@ export interface MemberValidation {
   message: string | null;
 }
 
-/** Lightweight member session stored on the device after card sign-in. */
+/** Lightweight member session stored on the device after sign-in. */
 export interface MemberSession {
   memberId: string;
   name: string;
   membershipNo: string;
+  username?: string;
+}
+
+/** A member login account (admin view). */
+export interface MemberAccount {
+  id: string;
+  memberId: string;
+  membershipNo: string;
+  name: string;
+  username: string;
+  status: string; // Pending | Active | Disabled
+  createdAt: string;
 }
 
 export interface CreateProfileInput {

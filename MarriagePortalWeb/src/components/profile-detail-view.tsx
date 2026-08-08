@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/status-badge";
 import { ContactCard } from "@/components/contact-card";
+import { MemberGate } from "@/components/member-gate";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 import { api } from "@/lib/api";
@@ -39,6 +40,14 @@ function Row({ label, value }: { label: string; value?: string | number | null }
 }
 
 export function ProfileDetailView({ p }: { p: ProfileDetail }) {
+  return (
+    <MemberGate>
+      <ProfileDetailContent p={p} />
+    </MemberGate>
+  );
+}
+
+function ProfileDetailContent({ p }: { p: ProfileDetail }) {
   const { t } = useT();
   const { has, toggle } = useMemberShortlist();
   const saved = has(p.id);
