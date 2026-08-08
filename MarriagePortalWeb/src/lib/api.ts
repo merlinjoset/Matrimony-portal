@@ -198,6 +198,13 @@ export const api = {
     });
   },
 
+  setMemberAccountPassword(id: string, password: string): Promise<void> {
+    return http<void>(`/admin/accounts/${id}/password`, {
+      method: "PATCH",
+      body: JSON.stringify({ password }),
+    });
+  },
+
   // ---- Contact-reveal requests ----
   getContact(profileId: string, viewerMemberId: string): Promise<ContactReveal> {
     return http<ContactReveal>(`/profiles/${profileId}/contact?viewerMemberId=${encodeURIComponent(viewerMemberId)}`);

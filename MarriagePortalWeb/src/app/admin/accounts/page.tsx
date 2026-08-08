@@ -4,7 +4,16 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { AdminHeader, Pill } from "@/components/admin/admin-ui";
 import { api } from "@/lib/api";
 import type { MemberAccount } from "@/lib/types";
@@ -16,6 +25,9 @@ function tone(status: string): "green" | "amber" | "red" {
 export default function MemberAccountsPage() {
   const [rows, setRows] = useState<MemberAccount[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [pwAccount, setPwAccount] = useState<MemberAccount | null>(null);
+  const [pwValue, setPwValue] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
 
   const load = useCallback(() => {
     api.getMemberAccounts().then(setRows).catch(() => setRows([]));
@@ -33,6 +45,22 @@ export default function MemberAccountsPage() {
       toast.error("Action failed.");
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function savePassword() {
+    if (!pwAccount) return;
+    if (pwValue.length < 6) return toast.error("Password must be at least 6 characters.");
+    setPwSaving(true);
+    try {
+      await api.setMemberAccountPassword(pwAccount.id, pwValue);
+      toast.success(`Password reset for ${pwAccount.name}. Share the new password with them.`);
+      setPwAccount(null);
+      setPwValue("");
+    } catch {
+      toast.error("Could not reset password. Is the API running?");
+    } finally {
+      setPwSaving(false);
     }
   }
 
@@ -88,6 +116,13 @@ export default function MemberAccountsPage() {
                             Disable
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setPwAccount(a); setPwValue(""); }}
+                        >
+                          Reset password
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -97,6 +132,28 @@ export default function MemberAccountsPage() {
           )}
         </Card>
       </div>
+
+      <Dialog open={!!pwAccount} onOpenChange={(o) => { if (!o) { setPwAccount(null); setPwValue(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset password{pwAccount ? ` - ${pwAccount.name}` : ""}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-1">
+            <p className="text-sm text-muted-foreground">
+              Set a new login password for <b>{pwAccount?.username}</b> (card {pwAccount?.membershipNo}). Share it with the
+              member so they can sign in and change it.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="reset-pw">New password</Label>
+              <Input id="reset-pw" type="password" value={pwValue} onChange={(e) => setPwValue(e.target.value)} placeholder="At least 6 characters" autoFocus />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPwAccount(null); setPwValue(""); }}>Cancel</Button>
+            <Button onClick={savePassword} disabled={pwSaving}>{pwSaving ? "Saving…" : "Reset password"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

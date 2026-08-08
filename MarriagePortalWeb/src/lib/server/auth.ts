@@ -114,6 +114,15 @@ export async function setMemberAccountStatus(id: string, status: string): Promis
   return rows.length > 0;
 }
 
+/** Admin resets a member's login password. */
+export async function setMemberAccountPassword(id: string, password: string): Promise<{ ok: boolean; status: number; message?: string }> {
+  if ((password ?? "").length < 6) return { ok: false, status: 400, message: "Password must be at least 6 characters." };
+  const rows = await sql`
+    UPDATE "TblMemberAccounts" SET "PasswordHash" = ${hashPassword(password)}, "UpdatedAt" = now()
+    WHERE "Id" = ${id} AND "IsDeleted" = false RETURNING "Id"`;
+  return rows.length ? { ok: true, status: 204 } : { ok: false, status: 404, message: "Member account not found." };
+}
+
 // ---- admin (staff) login: password set by an admin, used to sign in to the admin panel ----
 
 export interface AdminAuthResult {
