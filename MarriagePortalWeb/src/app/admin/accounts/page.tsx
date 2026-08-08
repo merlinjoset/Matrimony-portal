@@ -29,7 +29,7 @@ export default function MemberAccountsPage() {
   const [pwValue, setPwValue] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [addForm, setAddForm] = useState({ membershipNo: "", username: "", password: "" });
+  const [addForm, setAddForm] = useState({ membershipNo: "", username: "", email: "", password: "" });
   const [addSaving, setAddSaving] = useState(false);
 
   const load = useCallback(() => {
@@ -60,11 +60,12 @@ export default function MemberAccountsPage() {
       await api.createMemberAccount({
         membershipNo: addForm.membershipNo.trim(),
         username: addForm.username.trim(),
+        email: addForm.email.trim() || undefined,
         password: addForm.password,
       });
       toast.success(`Member account "${addForm.username.trim()}" created and activated.`);
       setAddOpen(false);
-      setAddForm({ membershipNo: "", username: "", password: "" });
+      setAddForm({ membershipNo: "", username: "", email: "", password: "" });
       load();
     } catch (e) {
       const msg = String(e);
@@ -115,6 +116,7 @@ export default function MemberAccountsPage() {
                 <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-muted-foreground">
                   <th className="px-5 py-3 font-bold">Member</th>
                   <th className="px-5 py-3 font-bold">Username</th>
+                  <th className="px-5 py-3 font-bold">Email</th>
                   <th className="px-5 py-3 font-bold">Card #</th>
                   <th className="px-5 py-3 font-bold">Status</th>
                   <th className="px-5 py-3 font-bold">Action</th>
@@ -125,6 +127,7 @@ export default function MemberAccountsPage() {
                   <tr key={a.id} className="hover:bg-muted/30">
                     <td className="px-5 py-3 text-sm font-semibold">{a.name}</td>
                     <td className="px-5 py-3 text-sm">{a.username}</td>
+                    <td className="px-5 py-3 text-sm text-muted-foreground">{a.email || "-"}</td>
                     <td className="px-5 py-3 text-sm">{a.membershipNo}</td>
                     <td className="px-5 py-3"><Pill tone={tone(a.status)}>{a.status}</Pill></td>
                     <td className="px-5 py-3">
@@ -167,7 +170,7 @@ export default function MemberAccountsPage() {
         </Card>
       </div>
 
-      <Dialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) setAddForm({ membershipNo: "", username: "", password: "" }); }}>
+      <Dialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) setAddForm({ membershipNo: "", username: "", email: "", password: "" }); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add member account</DialogTitle>
@@ -184,6 +187,10 @@ export default function MemberAccountsPage() {
             <div className="space-y-1.5">
               <Label htmlFor="add-user">Username</Label>
               <Input id="add-user" value={addForm.username} onChange={(e) => setAddForm((f) => ({ ...f, username: e.target.value }))} placeholder="At least 3 characters" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="add-email">Email <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Input id="add-email" type="email" value={addForm.email} onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))} placeholder="member@example.com" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="add-pass">Password</Label>

@@ -89,12 +89,15 @@ export async function login(username: string, password: string): Promise<AuthRes
 export async function adminCreateMemberAccount(
   membershipNo: string,
   username: string,
-  password: string
+  password: string,
+  email?: string
 ): Promise<{ ok: boolean; status: number; message?: string }> {
   const user = (username ?? "").trim();
+  const mail = (email ?? "").trim();
   if (user.length < 3) return { ok: false, status: 400, message: "Username must be at least 3 characters." };
   if (!/^[a-zA-Z0-9_.@-]+$/.test(user)) return { ok: false, status: 400, message: "Username may only contain letters, numbers and . _ @ -" };
   if ((password ?? "").length < 6) return { ok: false, status: 400, message: "Password must be at least 6 characters." };
+  if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return { ok: false, status: 400, message: "Please enter a valid email address." };
 
   const membership = await validateMembership(membershipNo);
   if (!membership.valid || !membership.memberId) return { ok: false, status: 400, message: membership.message ?? "Invalid membership card." };
@@ -105,9 +108,12 @@ export async function adminCreateMemberAccount(
   const nameTaken = await sql`SELECT 1 FROM "TblMemberAccounts" WHERE lower("Username") = lower(${user}) AND "IsDeleted" = false LIMIT 1`;
   if (nameTaken.length) return { ok: false, status: 409, message: "That username is already taken." };
 
+  // Purge tombstones of previously-removed accounts so the unique card/username indexes are free to reuse.
+  await sql`DELETE FROM "TblMemberAccounts" WHERE "IsDeleted" = true AND ("MembershipNo" = ${membershipNo.trim()} OR lower("Username") = lower(${user}))`;
+
   await sql`
-    INSERT INTO "TblMemberAccounts" ("Id","MemberId","MembershipNo","Name","Username","PasswordHash","Status","CreatedAt","IsDeleted")
-    VALUES (${crypto.randomUUID()}, ${membership.memberId}, ${membershipNo.trim()}, ${membership.name ?? "Member"}, ${user}, ${hashPassword(password)}, 'Active', now(), false)`;
+    INSERT INTO "TblMemberAccounts" ("Id","MemberId","MembershipNo","Name","Username","Email","PasswordHash","Status","CreatedAt","IsDeleted")
+    VALUES (${crypto.randomUUID()}, ${membership.memberId}, ${membershipNo.trim()}, ${membership.name ?? "Member"}, ${user}, ${mail || null}, ${hashPassword(password)}, 'Active', now(), false)`;
 
   return { ok: true, status: 201 };
 }
@@ -119,13 +125,14 @@ export interface MemberAccountRow {
   membershipNo: string;
   name: string;
   username: string;
+  email: string | null;
   status: string;
   createdAt: string;
 }
 
 export async function listMemberAccounts(): Promise<MemberAccountRow[]> {
   const rows = await sql`
-    SELECT "Id","MemberId","MembershipNo","Name","Username","Status","CreatedAt"
+    SELECT "Id","MemberId","MembershipNo","Name","Username","Email","Status","CreatedAt"
     FROM "TblMemberAccounts" WHERE "IsDeleted" = false ORDER BY "CreatedAt" DESC`;
   return rows.map((r) => ({
     id: r.Id as string,
@@ -133,6 +140,7 @@ export async function listMemberAccounts(): Promise<MemberAccountRow[]> {
     membershipNo: r.MembershipNo as string,
     name: r.Name as string,
     username: r.Username as string,
+    email: (r.Email as string) ?? null,
     status: r.Status as string,
     createdAt: new Date(r.CreatedAt as string).toISOString(),
   }));

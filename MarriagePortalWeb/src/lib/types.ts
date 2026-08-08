@@ -86,6 +86,7 @@ export interface MemberAccount {
   membershipNo: string;
   name: string;
   username: string;
+  email: string | null;
   status: string; // Pending | Active | Disabled
   createdAt: string;
 }

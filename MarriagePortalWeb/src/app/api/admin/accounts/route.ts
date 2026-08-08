@@ -7,8 +7,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json()) as { membershipNo: string; username: string; password: string };
-  const result = await adminCreateMemberAccount(body.membershipNo, body.username, body.password);
+  const body = (await req.json()) as { membershipNo: string; username: string; password: string; email?: string };
+  const result = await adminCreateMemberAccount(body.membershipNo, body.username, body.password, body.email);
   if (!result.ok) {
     return new Response(JSON.stringify({ message: result.message }), {
       status: result.status,
