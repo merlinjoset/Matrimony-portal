@@ -263,7 +263,7 @@ const en: Dict = {
   foot_about: "A faith-centred matrimony ministry serving the CSI Tamil parish community. One body in Christ.",
   foot_heritage:
     "⛪ The mother church of the CSI Tamil congregations in the UAE - based in Dubai, with branches in Fujairah and Ras Al Khaimah.",
-  foot_office: "Parish office",
+  foot_office: "Contact",
   foot_explore: "Explore",
   foot_copy: "© 2026 CSI Tamil Parish Matrimony Ministry",
   powered_by: "Powered by",
@@ -514,7 +514,7 @@ const ta: Dict = {
   foot_about: "CSI தமிழ் திருச்சபை சமூகத்திற்கு சேவை செய்யும் விசுவாச மைய திருமண ஊழியம். கிறிஸ்துவில் ஒரே சரீரம்.",
   foot_heritage:
     "⛪ ஐக்கிய அரபு அமீரகத்தில் உள்ள CSI தமிழ் சபைகளின் தாய் திருச்சபை - துபாயில் அமைந்துள்ளது, புஜைரா மற்றும் ராஸ் அல் கைமாவில் கிளைகளுடன்.",
-  foot_office: "திருச்சபை அலுவலகம்",
+  foot_office: "தொடர்பு",
   foot_explore: "ஆராயுங்கள்",
   foot_copy: "© 2026 CSI தமிழ் திருச்சபை திருமண ஊழியம்",
   powered_by: "உருவாக்கியவர்",

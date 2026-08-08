@@ -31,7 +31,6 @@ export function SiteFooter() {
         <div>
           <h5 className="mb-3.5 text-[15px] font-semibold text-white">{t("foot_office")}</h5>
           <div className="space-y-2.5 text-sm">
-            <p className="leading-relaxed">St Paul&apos;s Hall, Holy Trinity Church Compound, Oud Metha, Dubai, UAE</p>
             <a href="mailto:office@csitamilparishdubai.com" className="block w-fit transition hover:text-white">
               office@csitamilparishdubai.com
             </a>
