@@ -68,7 +68,6 @@ export function FeaturesSection() {
   const { t } = useT();
   const features = [
     { ic: "✝", t: "f1t", d: "f1d" },
-    { ic: "🛡️", t: "f2t", d: "f2d" },
     { ic: "🔒", t: "f3t", d: "f3d" },
     { ic: "🤝", t: "f4t", d: "f4d" },
     { ic: "🌍", t: "f5t", d: "f5d" },
