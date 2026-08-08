@@ -113,3 +113,48 @@ export async function setMemberAccountStatus(id: string, status: string): Promis
   const rows = await sql`UPDATE "TblMemberAccounts" SET "Status" = ${status}, "UpdatedAt" = now() WHERE "Id" = ${id} AND "IsDeleted" = false RETURNING "Id"`;
   return rows.length > 0;
 }
+
+// ---- admin (staff) login: password set by an admin, used to sign in to the admin panel ----
+
+export interface AdminAuthResult {
+  ok: boolean;
+  status: number;
+  message?: string;
+  user?: { id: string; name: string; email: string; role: string };
+}
+
+/** Set (or reset) a staff user's admin-panel password. Only 'Active' users can then sign in. */
+export async function setAdminUserPassword(id: string, password: string): Promise<{ ok: boolean; status: number; message?: string }> {
+  if ((password ?? "").length < 6) return { ok: false, status: 400, message: "Password must be at least 6 characters." };
+  const rows = await sql`
+    UPDATE "TblUsers" SET "PasswordHash" = ${hashPassword(password)}, "UpdatedAt" = now()
+    WHERE "Id" = ${id} AND "IsDeleted" = false RETURNING "Id"`;
+  return rows.length ? { ok: true, status: 204 } : { ok: false, status: 404, message: "User not found." };
+}
+
+/** Sign in to the admin panel with email + password. Only 'Active' staff with a password set may sign in. */
+export async function adminLogin(email: string, password: string): Promise<AdminAuthResult> {
+  const rows = await sql`
+    SELECT "Id","Name","Email","Role","Status","PasswordHash"
+    FROM "TblUsers"
+    WHERE lower("Email") = lower(${(email ?? "").trim()}) AND "IsDeleted" = false
+    LIMIT 1`;
+  const u = rows[0];
+  if (!u || !u.PasswordHash || !verifyPassword(password ?? "", u.PasswordHash as string)) {
+    return { ok: false, status: 401, message: "Invalid email or password." };
+  }
+  if (u.Status !== "Active") return { ok: false, status: 403, message: "This staff account is not active. Ask an admin to activate it." };
+  return { ok: true, status: 200, user: { id: u.Id as string, name: u.Name as string, email: u.Email as string, role: u.Role as string } };
+}
+
+/** True once at least one staff user has a password. Until then the admin panel stays open (bootstrap). */
+export async function anyAdminHasPassword(): Promise<boolean> {
+  const rows = await sql`SELECT 1 FROM "TblUsers" WHERE "PasswordHash" IS NOT NULL AND "IsDeleted" = false LIMIT 1`;
+  return rows.length > 0;
+}
+
+export async function getAdminUserById(id: string): Promise<{ id: string; name: string; email: string; role: string } | null> {
+  const rows = await sql`SELECT "Id","Name","Email","Role" FROM "TblUsers" WHERE "Id" = ${id} AND "IsDeleted" = false LIMIT 1`;
+  const u = rows[0];
+  return u ? { id: u.Id as string, name: u.Name as string, email: u.Email as string, role: u.Role as string } : null;
+}

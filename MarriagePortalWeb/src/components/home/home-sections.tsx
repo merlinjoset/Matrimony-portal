@@ -4,9 +4,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeroSearch } from "@/components/home/hero-search";
 import { useT } from "@/lib/i18n";
+import { useMemberShortlist } from "@/lib/member-shortlist";
 
 export function HomeHero() {
   const { t } = useT();
+  const { member } = useMemberShortlist();
   return (
     <section className="border-b border-border bg-gradient-to-b from-white to-cream">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2">
@@ -24,9 +26,11 @@ export function HomeHero() {
             <Button render={<Link href="/register" />} nativeButton={false} size="lg" className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
               {t("register_free")}
             </Button>
-            <Button render={<Link href="/browse" />} nativeButton={false} size="lg" variant="outline">
-              {t("nav_browse")}
-            </Button>
+            {member ? (
+              <Button render={<Link href="/browse" />} nativeButton={false} size="lg" variant="outline">
+                {t("nav_browse")}
+              </Button>
+            ) : null}
           </div>
 
           <div className="mt-8 flex flex-wrap gap-7">

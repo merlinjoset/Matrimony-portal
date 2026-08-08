@@ -40,6 +40,9 @@ export default function UsersPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<CreateUserInput>(emptyUser);
   const [saving, setSaving] = useState(false);
+  const [pwUser, setPwUser] = useState<AdminUser | null>(null);
+  const [pwValue, setPwValue] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
 
   const load = useCallback(() => {
     api.getUsers().then(setUsers).catch(() => setUsers([]));
@@ -70,6 +73,22 @@ export default function UsersPage() {
       load();
     } catch {
       toast.error("Could not update status. Is the API running?");
+    }
+  }
+
+  async function savePassword() {
+    if (!pwUser) return;
+    if (pwValue.length < 6) return toast.error("Password must be at least 6 characters.");
+    setPwSaving(true);
+    try {
+      await api.setUserPassword(pwUser.id, pwValue);
+      toast.success(`Password set for ${pwUser.name}. They can now sign in with their email.`);
+      setPwUser(null);
+      setPwValue("");
+    } catch {
+      toast.error("Could not set password. Is the API running?");
+    } finally {
+      setPwSaving(false);
     }
   }
 
@@ -169,12 +188,15 @@ export default function UsersPage() {
                     <td className="px-5 py-3">
                       <Pill tone={u.status === "Active" ? "green" : u.status === "Invited" ? "amber" : "red"}>{u.status}</Pill>
                     </td>
-                    <td className="px-5 py-3 text-right">
-                      {u.status === "Active" ? (
-                        <Button size="sm" variant="outline" onClick={() => changeStatus(u, "Disabled")}>Disable</Button>
-                      ) : (
-                        <Button size="sm" onClick={() => changeStatus(u, "Active")}>Activate</Button>
-                      )}
+                    <td className="px-5 py-3">
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => { setPwUser(u); setPwValue(""); }}>Set password</Button>
+                        {u.status === "Active" ? (
+                          <Button size="sm" variant="outline" onClick={() => changeStatus(u, "Disabled")}>Disable</Button>
+                        ) : (
+                          <Button size="sm" onClick={() => changeStatus(u, "Active")}>Activate</Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -183,6 +205,28 @@ export default function UsersPage() {
           )}
         </Card>
       </div>
+
+      <Dialog open={!!pwUser} onOpenChange={(o) => { if (!o) { setPwUser(null); setPwValue(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set password{pwUser ? ` - ${pwUser.name}` : ""}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-1">
+            <p className="text-sm text-muted-foreground">
+              This staff member will sign in to the admin panel with their email (<b>{pwUser?.email}</b>) and this password.
+              They must be <b>Active</b> to sign in.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-pw">New password</Label>
+              <Input id="new-pw" type="password" value={pwValue} onChange={(e) => setPwValue(e.target.value)} placeholder="At least 6 characters" autoFocus />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPwUser(null); setPwValue(""); }}>Cancel</Button>
+            <Button onClick={savePassword} disabled={pwSaving}>{pwSaving ? "Saving…" : "Save password"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

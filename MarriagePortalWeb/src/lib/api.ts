@@ -147,6 +147,13 @@ export const api = {
     });
   },
 
+  setUserPassword(id: string, password: string): Promise<void> {
+    return http<void>(`/admin/users/${id}/password`, {
+      method: "PATCH",
+      body: JSON.stringify({ password }),
+    });
+  },
+
   createInterest(input: CreateInterestInput): Promise<Interest> {
     return http<Interest>(`/interests`, {
       method: "POST",

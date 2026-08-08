@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -14,8 +14,18 @@ import {
   Flag,
   Settings,
   ExternalLink,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface AdminUserInfo {
+  name: string;
+  role: string;
+}
+
+function initials(name: string): string {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "AD";
+}
 
 const items = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -29,8 +39,14 @@ const items = [
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ user }: { user?: AdminUserInfo | null }) {
   const path = usePathname();
+  const router = useRouter();
+
+  async function logout() {
+    await fetch("/api/admin/logout", { method: "POST" });
+    router.refresh();
+  }
   return (
     <aside className="sticky top-0 flex h-screen w-60 flex-col bg-gradient-to-b from-maroon to-maroon-2 text-white">
       <div className="flex items-center gap-2.5 border-b border-white/15 px-4 py-4">
@@ -63,15 +79,20 @@ export function AdminSidebar() {
 
       <div className="border-t border-white/15 p-3 text-sm">
         <div className="mb-2 flex items-center gap-2.5">
-          <div className="grid size-8 place-items-center rounded-full bg-gold text-[13px] font-bold text-maroon">RB</div>
+          <div className="grid size-8 place-items-center rounded-full bg-gold text-[13px] font-bold text-maroon">{initials(user?.name ?? "Admin")}</div>
           <div>
-            <div className="font-semibold text-white">Rev. Benjamin</div>
-            <div className="text-[11px] opacity-80">Diocese Admin</div>
+            <div className="font-semibold text-white">{user?.name ?? "Admin"}</div>
+            <div className="text-[11px] opacity-80">{user?.role ?? "Staff"}</div>
           </div>
         </div>
         <Link href="/" className="flex items-center gap-1.5 text-[12.5px] text-[#f1e7d8] hover:underline">
           <ExternalLink className="size-3.5" /> View public site
         </Link>
+        {user && (
+          <button onClick={logout} className="mt-2 flex items-center gap-1.5 text-[12.5px] text-[#f1e7d8] hover:underline">
+            <LogOut className="size-3.5" /> Sign out
+          </button>
+        )}
       </div>
     </aside>
   );

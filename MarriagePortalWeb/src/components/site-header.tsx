@@ -15,9 +15,10 @@ export function SiteHeader() {
 
   const nav = [
     { href: "/", label: t("nav_home") },
-    { href: "/browse", label: t("nav_browse") },
+    // Browsing profiles and the shortlist are members-only - hidden until signed in.
+    ...(member ? [{ href: "/browse", label: t("nav_browse") }] : []),
     { href: "/how-it-works", label: t("nav_how") },
-    { href: "/shortlist", label: t("nav_shortlist"), badge: count },
+    ...(member ? [{ href: "/shortlist", label: t("nav_shortlist"), badge: count }] : []),
     // Contact-request approvals are only meaningful once signed in.
     ...(member ? [{ href: "/requests", label: t("nav_requests") }] : []),
     // Register is only for people who are not yet signed-in members.
