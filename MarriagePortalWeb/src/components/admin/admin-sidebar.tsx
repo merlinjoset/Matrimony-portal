@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 const items = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/verify", label: "Verification Queue", icon: ShieldCheck },
-  { href: "/admin/members", label: "Members", icon: Users },
+  { href: "/admin/members", label: "Profiles", icon: Users },
   { href: "/admin/accounts", label: "Member Accounts", icon: KeyRound },
   { href: "/admin/interests", label: "Interests", icon: Heart },
   { href: "/admin/parishes", label: "Parishes", icon: Church },

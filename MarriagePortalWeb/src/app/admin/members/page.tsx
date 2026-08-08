@@ -83,8 +83,8 @@ export default function MembersPage() {
   return (
     <>
       <AdminHeader
-        title="Members"
-        subtitle={rows ? `${total} member${total === 1 ? "" : "s"}` : "Loading…"}
+        title="Profiles"
+        subtitle={rows ? `${total} profile${total === 1 ? "" : "s"}` : "Loading…"}
         action={
           <Select value={filter} onValueChange={(v) => setFilter(v ?? "all")}>
             <SelectTrigger className="w-[170px] bg-white"><SelectValue /></SelectTrigger>
