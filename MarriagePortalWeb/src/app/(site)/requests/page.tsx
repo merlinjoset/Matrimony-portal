@@ -32,7 +32,7 @@ function initials(name: string): string {
 
 function Avatar({ name }: { name: string }) {
   return (
-    <div className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-maroon to-brand-green text-sm font-bold text-white shadow-sm">
+    <div className="grid size-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-maroon to-brand-green text-[11px] font-bold text-white shadow-sm">
       {initials(name)}
     </div>
   );
@@ -91,14 +91,14 @@ export default function RequestsPage() {
             ) : (
               <div className="space-y-3">
                 {incoming.map((r) => (
-                  <Card key={r.id} className="flex flex-wrap items-center gap-4 p-4 transition hover:shadow-md">
+                  <Card key={r.id} className="flex flex-wrap items-center gap-3 px-3.5 py-2.5 transition hover:shadow-sm">
                     <Avatar name={r.requesterName} />
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 leading-tight">
                       <p className="text-sm font-semibold">
                         {r.requesterName}
                         {r.requesterCongregation ? <span className="font-normal text-muted-foreground"> · {r.requesterCongregation}</span> : null}
                       </p>
-                      <p className="text-[13px] text-muted-foreground">
+                      <p className="text-[11.5px] text-muted-foreground">
                         {t("rq_wants")}{" "}
                         <Link href={`/profiles/${r.profileId}`} className="font-medium text-maroon hover:underline">
                           {r.profileName} ({r.profileReferenceId})
@@ -144,13 +144,13 @@ export default function RequestsPage() {
             ) : (
               <div className="space-y-3">
                 {outgoing.map((r) => (
-                  <Card key={r.id} className="flex items-center gap-4 p-4 transition hover:shadow-md">
+                  <Card key={r.id} className="flex items-center gap-3 px-3.5 py-2.5 transition hover:shadow-sm">
                     <Avatar name={r.profileName} />
-                    <div className="min-w-0 flex-1">
-                      <Link href={`/profiles/${r.profileId}`} className="font-semibold text-foreground hover:text-maroon hover:underline">
+                    <div className="min-w-0 flex-1 leading-tight">
+                      <Link href={`/profiles/${r.profileId}`} className="text-sm font-semibold text-foreground hover:text-maroon hover:underline">
                         {r.profileName}
                       </Link>
-                      <p className="text-[12.5px] text-muted-foreground">{r.profileReferenceId} · {t("rq_youasked_line")}</p>
+                      <p className="text-[11.5px] text-muted-foreground">{r.profileReferenceId} · {t("rq_youasked_line")}</p>
                     </div>
                     <StatusPill status={r.status} />
                   </Card>
