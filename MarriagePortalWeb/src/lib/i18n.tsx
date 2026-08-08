@@ -26,7 +26,7 @@ const en: Dict = {
   register_free: "Register Free",
 
   // stats
-  private_circ: "Private Circulation Only",
+  private_circ: "Private Use Only",
   stat_verified: "Verified faithful profiles",
   stat_congregations: "UAE congregations",
   stat_marriages: "Holy matrimonies",
@@ -286,7 +286,7 @@ const ta: Dict = {
     "கிறிஸ்தவ சமூகத்திற்குள் வாழ்க்கைத் துணையைக் கண்டடைய ஒரு விசுவாச மையமான இடம் - பகிர்ந்த விசுவாசம், குடும்ப விழுமியங்கள், திருச்சபை ஐக்கியத்தின் அடிப்படையில். கிறிஸ்துவே மையம்.",
   register_free: "இலவசமாக பதிவு செய்க",
 
-  private_circ: "தனிப்பட்ட பகிர்வுக்கு மட்டும்",
+  private_circ: "தனிப்பட்ட பயன்பாட்டிற்கு மட்டும்",
   stat_verified: "சரிபார்க்கப்பட்ட சுயவிவரங்கள்",
   stat_congregations: "ஐ.அ.எ. சபைகள்",
   stat_marriages: "புனித திருமணங்கள்",
