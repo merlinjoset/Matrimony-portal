@@ -17,7 +17,7 @@ const en: Dict = {
   create_profile: "Create Profile",
 
   // hero
-  hero_verse: "“What God has joined together…” - Mark 10:9",
+  hero_verse: "“Therefore what God has joined together, let no one separate.” - Mark 10:9",
   hero_title_a: "A trusted matrimony service for our ",
   hero_title_em: "CSI Tamil parish",
   hero_title_b: " family",
@@ -261,7 +261,7 @@ const ta: Dict = {
   nav_register: "பதிவு செய்க",
   create_profile: "சுயவிவரம் உருவாக்கு",
 
-  hero_verse: "“கடவுள் இணைத்ததை மனிதன் பிரிக்காதிருப்பானாக” - மாற்கு 10:9",
+  hero_verse: "“ஆகையால், கடவுள் இணைத்ததை மனிதன் பிரிக்காதிருப்பானாக.” - மாற்கு 10:9",
   hero_title_a: "நமது ",
   hero_title_em: "CSI தமிழ் திருச்சபை",
   hero_title_b: " குடும்பத்திற்கான நம்பகமான திருமணச் சேவை",
