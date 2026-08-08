@@ -9,7 +9,6 @@ export default function HowItWorksPage() {
     { n: 1, t: "s1t", d: "s1d" },
     { n: 2, t: "s2t", d: "s2d" },
     { n: 3, t: "s3t", d: "s3d" },
-    { n: 4, t: "s4t", d: "s4d" },
   ];
   return (
     <section className="mx-auto max-w-6xl px-5 py-14">
@@ -19,7 +18,7 @@ export default function HowItWorksPage() {
         <p className="mx-auto mt-1 max-w-xl text-muted-foreground">{t("how_sub")}</p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {steps.map((s) => (
           <Card key={s.n} className="p-6 text-center">
             <div className="mx-auto mb-3 grid size-11 place-items-center rounded-full bg-maroon text-lg font-bold text-white">
