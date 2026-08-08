@@ -56,13 +56,16 @@ export async function signup(membershipNo: string, username: string, password: s
   };
 }
 
-// Credential-sharing guard: if an account signs in from this many distinct IPs within the
-// window, we treat the login as shared and lock the account until an admin re-activates it.
-const SHARE_WINDOW_MINUTES = 60;
-const MAX_DISTINCT_IPS = 4;
+async function logLogin(accountId: string, username: string, ip: string | null, userAgent: string | null, success: boolean) {
+  await sql`
+    INSERT INTO "TblLoginLog" ("Id","MemberAccountId","Username","IpAddress","UserAgent","Success","CreatedAt")
+    VALUES (${crypto.randomUUID()}, ${accountId}, ${username}, ${ip}, ${(userAgent ?? "").slice(0, 400) || null}, ${success}, now())`;
+}
 
 /** Sign in with username + password. Only 'Active' (admin-approved) accounts may sign in.
- *  The client IP is logged, and accounts used from too many locations at once are locked. */
+ *  The client IP is logged. An account is bound to the IP of its first sign-in: the real
+ *  member (same device/IP) is always allowed, and a login from any OTHER IP is refused -
+ *  so shared credentials do not work elsewhere, and the owner is never locked out. */
 export async function login(username: string, password: string, ip?: string | null, userAgent?: string | null): Promise<AuthResult> {
   const rows = await sql`
     SELECT "Id","MemberId","MembershipNo","Name","Username","PasswordHash","Status"
@@ -76,24 +79,24 @@ export async function login(username: string, password: string, ip?: string | nu
   if (account.Status === "Pending") return { ok: false, status: 403, message: "Your account is awaiting admin activation. Please try again later." };
   if (account.Status !== "Active") return { ok: false, status: 403, message: "This account is disabled. Please contact the parish office." };
 
+  const accountId = account.Id as string;
   const cleanIp = (ip ?? "").trim() || null;
 
-  // Record this successful sign-in with its IP.
-  await sql`
-    INSERT INTO "TblLoginLog" ("Id","MemberAccountId","Username","IpAddress","UserAgent","Success","CreatedAt")
-    VALUES (${crypto.randomUUID()}, ${account.Id as string}, ${account.Username as string}, ${cleanIp}, ${(userAgent ?? "").slice(0, 400) || null}, true, now())`;
-
-  // Detect credential sharing: too many distinct IPs in a short window.
-  const distinct = await sql`
-    SELECT count(DISTINCT "IpAddress")::int AS c
-    FROM "TblLoginLog"
-    WHERE "MemberAccountId" = ${account.Id as string}
-      AND "Success" = true AND "IpAddress" IS NOT NULL
-      AND "CreatedAt" > now() - (${SHARE_WINDOW_MINUTES} * interval '1 minute')`;
-  if (Number(distinct[0]?.c ?? 0) >= MAX_DISTINCT_IPS) {
-    await sql`UPDATE "TblMemberAccounts" SET "Status" = 'Disabled', "UpdatedAt" = now() WHERE "Id" = ${account.Id as string}`;
-    return { ok: false, status: 403, message: "This account was signed in from too many different locations and has been locked for security. Please contact the parish office to restore access." };
+  // Bind to the IP of the first successful sign-in. Allow that IP always; refuse any other.
+  // If the IP is unknown (no proxy header) we fail open so nobody is wrongly blocked.
+  if (cleanIp) {
+    const bound = await sql`
+      SELECT "IpAddress" FROM "TblLoginLog"
+      WHERE "MemberAccountId" = ${accountId} AND "Success" = true AND "IpAddress" IS NOT NULL
+      ORDER BY "CreatedAt" ASC LIMIT 1`;
+    const boundIp = (bound[0]?.IpAddress as string) ?? null;
+    if (boundIp && cleanIp !== boundIp) {
+      await logLogin(accountId, account.Username as string, cleanIp, userAgent ?? null, false);
+      return { ok: false, status: 403, message: "This account is registered to a different device. If this is you, please contact the parish office." };
+    }
   }
+
+  await logLogin(accountId, account.Username as string, cleanIp, userAgent ?? null, true);
 
   return {
     ok: true,
@@ -179,6 +182,36 @@ export async function listMemberAccounts(): Promise<MemberAccountRow[]> {
     createdAt: new Date(r.CreatedAt as string).toISOString(),
     lastLoginIp: (r.LastIp as string) ?? null,
     lastLoginAt: r.LastLoginAt ? new Date(r.LastLoginAt as string).toISOString() : null,
+  }));
+}
+
+export interface LoginLogRow {
+  id: string;
+  username: string;
+  name: string | null;
+  ip: string | null;
+  userAgent: string | null;
+  success: boolean;
+  createdAt: string;
+}
+
+/** Recent member sign-in activity (allowed and refused), newest first. */
+export async function listLoginLogs(limit = 200): Promise<LoginLogRow[]> {
+  const capped = Math.min(Math.max(limit, 1), 500);
+  const rows = await sql`
+    SELECT l."Id", l."Username", a."Name", l."IpAddress", l."UserAgent", l."Success", l."CreatedAt"
+    FROM "TblLoginLog" l
+    LEFT JOIN "TblMemberAccounts" a ON a."Id" = l."MemberAccountId"
+    ORDER BY l."CreatedAt" DESC
+    LIMIT ${capped}`;
+  return rows.map((r) => ({
+    id: r.Id as string,
+    username: r.Username as string,
+    name: (r.Name as string) ?? null,
+    ip: (r.IpAddress as string) ?? null,
+    userAgent: (r.UserAgent as string) ?? null,
+    success: Boolean(r.Success),
+    createdAt: new Date(r.CreatedAt as string).toISOString(),
   }));
 }
 

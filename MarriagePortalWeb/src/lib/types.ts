@@ -94,6 +94,17 @@ export interface MemberAccount {
   lastLoginAt: string | null;
 }
 
+/** A member sign-in record (admin login-activity view). */
+export interface LoginLog {
+  id: string;
+  username: string;
+  name: string | null;
+  ip: string | null;
+  userAgent: string | null;
+  success: boolean;
+  createdAt: string;
+}
+
 export interface CreateProfileInput {
   membershipNo: string;
   createdFor: string;

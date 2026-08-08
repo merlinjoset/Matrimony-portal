@@ -10,6 +10,7 @@ import type {
   CreateUserInput,
   Interest,
   InterestStatus,
+  LoginLog,
   MemberValidation,
   PagedResult,
   ProfileDetail,
@@ -211,6 +212,10 @@ export const api = {
 
   getMemberAccounts(): Promise<MemberAccount[]> {
     return http<MemberAccount[]>(`/admin/accounts`);
+  },
+
+  getLoginLogs(): Promise<LoginLog[]> {
+    return http<LoginLog[]>(`/admin/logins`);
   },
 
   createMemberAccount(input: { membershipNo: string; username: string; password: string; email?: string }): Promise<void> {

@@ -15,6 +15,7 @@ import {
   Settings,
   ExternalLink,
   LogOut,
+  ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ const items = [
   { href: "/admin/verify", label: "Verification Queue", icon: ShieldCheck },
   { href: "/admin/members", label: "Profiles", icon: Users },
   { href: "/admin/accounts", label: "Member Accounts", icon: KeyRound },
+  { href: "/admin/logins", label: "Login Activity", icon: ScrollText },
   { href: "/admin/interests", label: "Interests", icon: Heart },
   { href: "/admin/parishes", label: "Parishes", icon: Church },
   { href: "/admin/users", label: "Users & Roles", icon: UserCog },
