@@ -1,10 +1,7 @@
 import "server-only";
 import type { ProfileDetail } from "@/lib/types";
-import { sendMail, adminNotifyAddress } from "./mailer";
-
-function appBaseUrl(): string {
-  return process.env.APP_BASE_URL || "https://matrimony.csitamilparishdubai.com";
-}
+import { sendAdminMail } from "./mailer";
+import { getEmailSettings } from "./settings";
 
 /** Build a WhatsApp click-to-chat link to a phone number, with an optional prefilled message. */
 export function whatsappLink(mobile: string | null, message: string): string | null {
@@ -20,6 +17,8 @@ export function whatsappLink(mobile: string | null, message: string): string | n
  * click-to-chat link so the office can reach the applicant in one tap. Never throws.
  */
 export async function notifyNewProfile(profile: ProfileDetail, mobile: string | null): Promise<void> {
+  const cfg = await getEmailSettings();
+  const baseUrl = cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com";
   const waMsg = `Hello ${profile.fullName}, this is CSI Tamil Parish Matrimony regarding your profile ${profile.referenceId}.`;
   const waHref = whatsappLink(mobile, waMsg);
 
@@ -40,7 +39,7 @@ export async function notifyNewProfile(profile: ProfileDetail, mobile: string | 
     .map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0;color:#6b6b6b;">${k}</td><td style="padding:4px 0;font-weight:600;">${v}</td></tr>`)
     .join("");
 
-  const verifyUrl = `${appBaseUrl()}/admin/verify`;
+  const verifyUrl = `${baseUrl}/admin/verify`;
   const waButton = waHref
     ? `<a href="${waHref}" style="display:inline-block;margin-right:10px;padding:10px 16px;background:#25D366;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Message on WhatsApp</a>`
     : "";
@@ -57,8 +56,7 @@ export async function notifyNewProfile(profile: ProfileDetail, mobile: string | 
       <p style="color:#9a8f84;font-size:12px;margin-top:22px;">CSI Holy Matrimony - CSI Tamil Parish, Dubai</p>
     </div>`;
 
-  await sendMail({
-    to: adminNotifyAddress(),
+  await sendAdminMail({
     subject: `New profile for verification: ${profile.fullName} (${profile.referenceId})`,
     html,
   });

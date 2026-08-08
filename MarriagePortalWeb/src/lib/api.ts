@@ -21,6 +21,28 @@ import type {
 // The API now lives inside this same Next.js app under /api (same origin).
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
+export interface EmailSettingsDto {
+  host: string;
+  port: string;
+  secure: boolean;
+  user: string;
+  from: string;
+  notifyEmail: string;
+  appBaseUrl: string;
+  hasPassword: boolean;
+}
+
+export interface EmailSettingsInput {
+  host: string;
+  port: string;
+  secure: boolean;
+  user: string;
+  pass?: string;
+  from: string;
+  notifyEmail: string;
+  appBaseUrl: string;
+}
+
 class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -209,6 +231,25 @@ export const api = {
     return http<void>(`/admin/accounts/${id}/password`, {
       method: "PATCH",
       body: JSON.stringify({ password }),
+    });
+  },
+
+  // ---- Email settings ----
+  getEmailSettings(): Promise<EmailSettingsDto> {
+    return http<EmailSettingsDto>(`/admin/settings/email`);
+  },
+
+  saveEmailSettings(input: EmailSettingsInput): Promise<void> {
+    return http<void>(`/admin/settings/email`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    });
+  },
+
+  sendTestEmail(to: string): Promise<void> {
+    return http<void>(`/admin/settings/email/test`, {
+      method: "POST",
+      body: JSON.stringify({ to }),
     });
   },
 
