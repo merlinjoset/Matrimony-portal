@@ -18,11 +18,11 @@ const en: Dict = {
 
   // hero
   hero_verse: "“Therefore what God has joined together, let no one separate.” - Mark 10:9",
-  hero_title_a: "A trusted matrimony service for our ",
-  hero_title_em: "CSI Tamil parish",
-  hero_title_b: " family",
+  hero_title_a: "A trusted matrimony list service for our ",
+  hero_title_em: "CSI Tamil Parish",
+  hero_title_b: " family - Dubai",
   hero_lead:
-    "A faith-centred space to find a life partner within the Christian community - built on shared faith, family values, and parish fellowship. With Christ at the centre.",
+    "A faith-centred space to find a life partner within the Christian community - built on shared faith, family values, and parish fellowship, with Christ at the centre.",
   register_free: "Register Free",
 
   // stats
@@ -280,7 +280,7 @@ const ta: Dict = {
   hero_verse: "“ஆகையால், கடவுள் இணைத்ததை மனிதன் பிரிக்காதிருப்பானாக.” - மாற்கு 10:9",
   hero_title_a: "நமது ",
   hero_title_em: "CSI தமிழ் திருச்சபை",
-  hero_title_b: " குடும்பத்திற்கான நம்பகமான திருமணச் சேவை",
+  hero_title_b: " குடும்பத்திற்கான நம்பகமான திருமணப் பட்டியல் சேவை - துபாய்",
   hero_lead:
     "கிறிஸ்தவ சமூகத்திற்குள் வாழ்க்கைத் துணையைக் கண்டடைய ஒரு விசுவாச மையமான இடம் - பகிர்ந்த விசுவாசம், குடும்ப விழுமியங்கள், திருச்சபை ஐக்கியத்தின் அடிப்படையில். கிறிஸ்துவே மையம்.",
   register_free: "இலவசமாக பதிவு செய்க",
