@@ -34,6 +34,10 @@ export function HomeHero() {
             <Stat n="3" label={t("stat_congregations")} />
             <Stat n="320+" label={t("stat_marriages")} />
           </div>
+
+          <p className="mt-6 text-[12.5px] font-semibold uppercase tracking-wider text-maroon/70">
+            {t("private_circ")}
+          </p>
         </div>
 
         <HeroSearch />
