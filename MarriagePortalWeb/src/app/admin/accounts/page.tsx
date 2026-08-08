@@ -79,6 +79,19 @@ export default function MemberAccountsPage() {
     }
   }
 
+  async function resetDevice(a: MemberAccount) {
+    setBusy(a.id);
+    try {
+      await api.resetMemberDevice(a.id);
+      toast.success(`${a.name} can now sign in from a new device.`);
+      load();
+    } catch {
+      toast.error("Could not reset device.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function savePassword() {
     if (!pwAccount) return;
     if (pwValue.length < 6) return toast.error("Password must be at least 6 characters.");
@@ -161,6 +174,15 @@ export default function MemberAccountsPage() {
                           onClick={() => { setPwAccount(a); setPwValue(""); }}
                         >
                           Reset password
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={busy === a.id}
+                          onClick={() => resetDevice(a)}
+                          title="Clear the bound device/IP so the member can sign in from a new location"
+                        >
+                          Reset device
                         </Button>
                       </div>
                     </td>

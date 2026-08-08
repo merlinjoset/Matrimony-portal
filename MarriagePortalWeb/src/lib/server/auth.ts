@@ -80,7 +80,10 @@ export async function login(username: string, password: string, ip?: string | nu
   if (account.Status !== "Active") return { ok: false, status: 403, message: "This account is disabled. Please contact the parish office." };
 
   const accountId = account.Id as string;
-  const cleanIp = (ip ?? "").trim() || null;
+  // Ignore localhost / loopback addresses - they are dev artifacts and must never bind an account.
+  const LOOPBACK = new Set(["::1", "127.0.0.1", "::ffff:127.0.0.1", "localhost"]);
+  const raw = (ip ?? "").trim();
+  const cleanIp = raw && !LOOPBACK.has(raw) ? raw : null;
 
   // Bind to the IP of the first successful sign-in. Allow that IP always; refuse any other.
   // If the IP is unknown (no proxy header) we fail open so nobody is wrongly blocked.
@@ -219,6 +222,15 @@ export async function setMemberAccountStatus(id: string, status: string): Promis
   if (!["Pending", "Active", "Disabled"].includes(status)) return false;
   const rows = await sql`UPDATE "TblMemberAccounts" SET "Status" = ${status}, "UpdatedAt" = now() WHERE "Id" = ${id} AND "IsDeleted" = false RETURNING "Id"`;
   return rows.length > 0;
+}
+
+/** Clear an account's login history so the next successful sign-in re-binds the device/IP.
+ *  Use when a member legitimately changed network/device and is being refused. */
+export async function resetMemberDevice(id: string): Promise<boolean> {
+  const exists = await sql`SELECT 1 FROM "TblMemberAccounts" WHERE "Id" = ${id} AND "IsDeleted" = false LIMIT 1`;
+  if (!exists.length) return false;
+  await sql`DELETE FROM "TblLoginLog" WHERE "MemberAccountId" = ${id}`;
+  return true;
 }
 
 /** Admin resets a member's login password. */

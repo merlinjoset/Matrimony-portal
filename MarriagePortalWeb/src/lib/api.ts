@@ -260,6 +260,10 @@ export const api = {
     });
   },
 
+  resetMemberDevice(id: string): Promise<void> {
+    return http<void>(`/admin/accounts/${id}/reset-device`, { method: "POST" });
+  },
+
   // ---- Email settings ----
   getEmailSettings(): Promise<EmailSettingsDto> {
     return http<EmailSettingsDto>(`/admin/settings/email`);
