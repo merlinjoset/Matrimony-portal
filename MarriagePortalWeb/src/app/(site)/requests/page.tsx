@@ -91,7 +91,7 @@ export default function RequestsPage() {
             ) : (
               <div className="space-y-3">
                 {incoming.map((r) => (
-                  <Card key={r.id} className="flex flex-wrap items-center gap-3 px-3.5 py-2.5 transition hover:shadow-sm">
+                  <Card key={r.id} className="flex flex-row flex-wrap items-center gap-3 px-3.5 py-2.5 transition hover:shadow-sm">
                     <Avatar name={r.requesterName} />
                     <div className="min-w-0 flex-1 leading-tight">
                       <p className="text-sm font-semibold">
@@ -144,7 +144,7 @@ export default function RequestsPage() {
             ) : (
               <div className="space-y-3">
                 {outgoing.map((r) => (
-                  <Card key={r.id} className="flex items-center gap-3 px-3.5 py-2.5 transition hover:shadow-sm">
+                  <Card key={r.id} className="flex flex-row items-center gap-3 px-3.5 py-2.5 transition hover:shadow-sm">
                     <Avatar name={r.profileName} />
                     <div className="min-w-0 flex-1 leading-tight">
                       <Link href={`/profiles/${r.profileId}`} className="text-sm font-semibold text-foreground hover:text-maroon hover:underline">
