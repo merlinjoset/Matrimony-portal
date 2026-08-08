@@ -53,6 +53,7 @@ function toDetail(r: Row): ProfileDetail {
     ...toListItem(r),
     createdFor: r.CreatedFor as string,
     lookingFor: r.LookingFor as string,
+    email: s(r.Email),
     maritalStatus: r.MaritalStatus as string,
     motherTongue: r.MotherTongue as string,
     homeParish: r.HomeParish as string,
@@ -65,7 +66,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","AboutFaith","Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","AboutFaith","Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -137,12 +138,12 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
 
   await sql`
     INSERT INTO "TblProfiles"
-      ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","FullName","Gender",
+      ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender",
        "DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","AboutFaith",
        "Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${referenceId}, ${dto.membershipNo ?? null}, ${ownerMemberId}, ${dto.createdFor ?? "Self"},
-       ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.fullName}, ${dto.gender},
+       ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
        ${dto.dateOfBirth ?? null}, ${dto.height ?? null}, ${dto.maritalStatus ?? "Never married"},
        ${dto.motherTongue ?? "Tamil"}, ${dto.denomination ?? "CSI"}, ${dto.homeParish ?? ""},
        ${dto.congregation ?? "Dubai"}, ${dto.aboutFaith ?? null}, ${dto.education ?? null},

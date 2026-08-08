@@ -22,6 +22,7 @@ export interface ProfileListItem {
 export interface ProfileDetail extends ProfileListItem {
   createdFor: string;
   lookingFor: string;
+  email: string | null;
   maritalStatus: string;
   motherTongue: string;
   homeParish: string;
@@ -96,6 +97,7 @@ export interface CreateProfileInput {
   createdFor: string;
   lookingFor: string;
   mobile: string;
+  email?: string | null;
   fullName: string;
   gender: Gender;
   dateOfBirth: string | null; // yyyy-MM-dd

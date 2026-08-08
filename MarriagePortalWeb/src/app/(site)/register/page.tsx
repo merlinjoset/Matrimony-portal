@@ -25,6 +25,7 @@ const empty: CreateProfileInput = {
   createdFor: "Son",
   lookingFor: "Bride",
   mobile: "",
+  email: "",
   fullName: "",
   gender: "Female",
   dateOfBirth: null,
@@ -282,6 +283,14 @@ export default function RegisterPage() {
                     required
                   />
                 </div>
+              </Field>
+              <Field label={t("l_email")}>
+                <Input
+                  type="email"
+                  value={form.email ?? ""}
+                  onChange={(e) => set("email", e.target.value)}
+                  placeholder="name@example.com"
+                />
               </Field>
             </div>
           </fieldset>
