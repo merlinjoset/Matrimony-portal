@@ -165,6 +165,64 @@ export async function setProfileStatus(id: string, status: string, note?: string
   return rows.length > 0;
 }
 
+// ---------- profile reports ----------
+export interface ReportRow {
+  id: string;
+  profileId: string;
+  profileName: string;
+  profileReferenceId: string;
+  reporterName: string | null;
+  reason: string;
+  details: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export async function createReport(input: {
+  profileId: string; reporterMemberId?: string | null; reporterName?: string | null; reason: string; details?: string | null;
+}): Promise<boolean> {
+  const exists = await sql`SELECT 1 FROM "TblProfiles" WHERE "Id" = ${input.profileId} AND "IsDeleted" = false LIMIT 1`;
+  if (!exists.length) return false;
+  await sql`
+    INSERT INTO "TblReports" ("Id","ProfileId","ReporterMemberId","ReporterName","Reason","Details","Status","CreatedAt","IsDeleted")
+    VALUES (${crypto.randomUUID()}, ${input.profileId}, ${input.reporterMemberId ?? null}, ${input.reporterName ?? null},
+            ${input.reason}, ${input.details ?? null}, 'Open', now(), false)`;
+  return true;
+}
+
+export async function listReports(): Promise<ReportRow[]> {
+  const rows = await sql`
+    SELECT r."Id", r."ProfileId", p."FullName", p."ReferenceId", r."ReporterName", r."Reason", r."Details", r."Status", r."CreatedAt"
+    FROM "TblReports" r
+    LEFT JOIN "TblProfiles" p ON p."Id" = r."ProfileId"
+    WHERE r."IsDeleted" = false
+    ORDER BY (r."Status" = 'Open') DESC, r."CreatedAt" DESC`;
+  return rows.map((r) => ({
+    id: r.Id as string,
+    profileId: r.ProfileId as string,
+    profileName: (r.FullName as string) ?? "(deleted profile)",
+    profileReferenceId: (r.ReferenceId as string) ?? "-",
+    reporterName: (r.ReporterName as string) ?? null,
+    reason: r.Reason as string,
+    details: (r.Details as string) ?? null,
+    status: r.Status as string,
+    createdAt: new Date(r.CreatedAt as string).toISOString(),
+  }));
+}
+
+/** Resolve a report: 'dismiss' closes it; 'suspend' suspends the reported profile and marks the report actioned. */
+export async function resolveReport(id: string, action: "dismiss" | "suspend"): Promise<boolean> {
+  const rows = await sql`SELECT "ProfileId" FROM "TblReports" WHERE "Id" = ${id} AND "IsDeleted" = false LIMIT 1`;
+  if (!rows.length) return false;
+  if (action === "suspend") {
+    await setProfileStatus(rows[0].ProfileId as string, "Suspended", "Suspended following a member report.");
+    await sql`UPDATE "TblReports" SET "Status" = 'ActionTaken' WHERE "Id" = ${id}`;
+  } else {
+    await sql`UPDATE "TblReports" SET "Status" = 'Dismissed' WHERE "Id" = ${id}`;
+  }
+  return true;
+}
+
 // ---------- members / membership validation ----------
 export async function validateMembership(membershipNo: string): Promise<MemberValidation> {
   const card = (membershipNo ?? "").trim();

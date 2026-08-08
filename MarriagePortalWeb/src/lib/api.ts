@@ -12,6 +12,7 @@ import type {
   InterestStatus,
   LoginLog,
   MemberValidation,
+  Report,
   PagedResult,
   ProfileDetail,
   ProfileListItem,
@@ -216,6 +217,24 @@ export const api = {
 
   getLoginLogs(): Promise<LoginLog[]> {
     return http<LoginLog[]>(`/admin/logins`);
+  },
+
+  reportProfile(profileId: string, input: { reason: string; details?: string; reporterMemberId?: string; reporterName?: string }): Promise<void> {
+    return http<void>(`/profiles/${profileId}/report`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  getReports(): Promise<Report[]> {
+    return http<Report[]>(`/admin/reports`);
+  },
+
+  resolveReport(id: string, action: "dismiss" | "suspend"): Promise<void> {
+    return http<void>(`/admin/reports/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ action }),
+    });
   },
 
   createMemberAccount(input: { membershipNo: string; username: string; password: string; email?: string }): Promise<void> {

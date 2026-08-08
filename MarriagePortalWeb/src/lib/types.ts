@@ -94,6 +94,28 @@ export interface MemberAccount {
   lastLoginAt: string | null;
 }
 
+/** Common reasons a member can report a profile. */
+export const REPORT_REASONS = [
+  "Fake or misleading profile",
+  "Inappropriate photo or content",
+  "Spam or harassment",
+  "Already married / not genuine",
+  "Other",
+] as const;
+
+/** A profile report (admin view). */
+export interface Report {
+  id: string;
+  profileId: string;
+  profileName: string;
+  profileReferenceId: string;
+  reporterName: string | null;
+  reason: string;
+  details: string | null;
+  status: string; // Open | Dismissed | ActionTaken
+  createdAt: string;
+}
+
 /** A member sign-in record (admin login-activity view). */
 export interface LoginLog {
   id: string;

@@ -23,7 +23,14 @@ import { MemberGate } from "@/components/member-gate";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 import { api } from "@/lib/api";
-import type { ProfileDetail } from "@/lib/types";
+import { REPORT_REASONS, type ProfileDetail } from "@/lib/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function initials(name: string) {
   return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -49,12 +56,37 @@ export function ProfileDetailView({ p }: { p: ProfileDetail }) {
 
 function ProfileDetailContent({ p }: { p: ProfileDetail }) {
   const { t } = useT();
-  const { has, toggle } = useMemberShortlist();
+  const { has, toggle, member } = useMemberShortlist();
   const saved = has(p.id);
 
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [form, setForm] = useState({ fromName: "", fromMobile: "", message: "" });
+
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<string>(REPORT_REASONS[0]);
+  const [reportDetails, setReportDetails] = useState("");
+  const [reporting, setReporting] = useState(false);
+
+  async function submitReport() {
+    setReporting(true);
+    try {
+      await api.reportProfile(p.id, {
+        reason: reportReason,
+        details: reportDetails.trim() || undefined,
+        reporterMemberId: member?.memberId,
+        reporterName: member?.name,
+      });
+      toast.success("Thank you. This profile has been reported to the parish office.");
+      setReportOpen(false);
+      setReportDetails("");
+      setReportReason(REPORT_REASONS[0]);
+    } catch {
+      toast.error("Could not submit the report. Please try again.");
+    } finally {
+      setReporting(false);
+    }
+  }
 
   async function sendInterest() {
     if (!form.fromName.trim()) return toast.error(t("ei_name_req"));
@@ -99,7 +131,43 @@ function ProfileDetailContent({ p }: { p: ProfileDetail }) {
             >
               {saved ? t("shortlisted") : t("shortlist")}
             </Button>
+            <button
+              onClick={() => setReportOpen(true)}
+              className="mt-1 text-center text-[12.5px] font-medium text-muted-foreground hover:text-destructive"
+            >
+              ⚑ Report this profile
+            </button>
           </div>
+
+          <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Report profile - {p.fullName}</DialogTitle>
+                <DialogDescription>Let the parish office know if something is wrong with this profile. Reports are confidential.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div className="space-y-1.5">
+                  <Label>Reason</Label>
+                  <Select value={reportReason} onValueChange={(v) => setReportReason(v ?? REPORT_REASONS[0])}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {REPORT_REASONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Details <span className="font-normal text-muted-foreground">(optional)</span></Label>
+                  <Textarea value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} rows={3} placeholder="Anything that helps us review this." />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setReportOpen(false)}>Cancel</Button>
+                <Button disabled={reporting} onClick={submitReport} className="bg-destructive text-white hover:bg-destructive/90">
+                  {reporting ? "Sending…" : "Submit report"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-md">
