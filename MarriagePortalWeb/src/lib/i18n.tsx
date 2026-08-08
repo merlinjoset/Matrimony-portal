@@ -44,6 +44,7 @@ const en: Dict = {
   parish_congregation: "Parish / Congregation",
   any: "Any",
   search_matches: "Search Matches",
+  signin_to_search: "Sign in or register to search profiles",
 
   // features
   feat_h: "Rooted in faith, built on trust",
@@ -303,6 +304,7 @@ const ta: Dict = {
   parish_congregation: "திருச்சபை / சபை",
   any: "அனைத்தும்",
   search_matches: "பொருத்தங்களைத் தேடு",
+  signin_to_search: "சுயவிவரங்களைத் தேட உள்நுழையவும் அல்லது பதிவு செய்யவும்",
 
   feat_h: "விசுவாசத்தில் வேரூன்றி, நம்பிக்கையில் கட்டப்பட்டது",
   feat_sub: "நமது கிறிஸ்தவ சமூகத்தின் விழுமியங்களுக்காக வடிவமைக்கப்பட்ட திருமண தளம்.",

@@ -28,6 +28,9 @@ export default function MemberAccountsPage() {
   const [pwAccount, setPwAccount] = useState<MemberAccount | null>(null);
   const [pwValue, setPwValue] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addForm, setAddForm] = useState({ membershipNo: "", username: "", password: "" });
+  const [addSaving, setAddSaving] = useState(false);
 
   const load = useCallback(() => {
     api.getMemberAccounts().then(setRows).catch(() => setRows([]));
@@ -45,6 +48,33 @@ export default function MemberAccountsPage() {
       toast.error("Action failed.");
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function addMember() {
+    if (!addForm.membershipNo.trim()) return toast.error("Enter the membership card number.");
+    if (addForm.username.trim().length < 3) return toast.error("Username must be at least 3 characters.");
+    if (addForm.password.length < 6) return toast.error("Password must be at least 6 characters.");
+    setAddSaving(true);
+    try {
+      await api.createMemberAccount({
+        membershipNo: addForm.membershipNo.trim(),
+        username: addForm.username.trim(),
+        password: addForm.password,
+      });
+      toast.success(`Member account "${addForm.username.trim()}" created and activated.`);
+      setAddOpen(false);
+      setAddForm({ membershipNo: "", username: "", password: "" });
+      load();
+    } catch (e) {
+      const msg = String(e);
+      toast.error(
+        msg.includes("409") ? "That card or username already has an account." :
+        msg.includes("400") ? "Invalid membership card or details." :
+        "Could not create account. Is the API running?"
+      );
+    } finally {
+      setAddSaving(false);
     }
   }
 
@@ -66,7 +96,11 @@ export default function MemberAccountsPage() {
 
   return (
     <>
-      <AdminHeader title="Member Accounts" subtitle="Activate member logins created at registration." />
+      <AdminHeader
+        title="Member Accounts"
+        subtitle="Activate member logins created at registration, or add one directly."
+        action={<Button onClick={() => setAddOpen(true)}>+ Add member</Button>}
+      />
       <div className="p-7">
         <Card className="p-0">
           {rows === null ? (
@@ -132,6 +166,36 @@ export default function MemberAccountsPage() {
           )}
         </Card>
       </div>
+
+      <Dialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) setAddForm({ membershipNo: "", username: "", password: "" }); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add member account</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-1">
+            <p className="text-sm text-muted-foreground">
+              Create a login for a member. The membership card is verified against the parish roster, and the account is
+              activated right away.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="add-card">Membership card number</Label>
+              <Input id="add-card" value={addForm.membershipNo} onChange={(e) => setAddForm((f) => ({ ...f, membershipNo: e.target.value }))} placeholder="e.g. 2792" autoFocus />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="add-user">Username</Label>
+              <Input id="add-user" value={addForm.username} onChange={(e) => setAddForm((f) => ({ ...f, username: e.target.value }))} placeholder="At least 3 characters" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="add-pass">Password</Label>
+              <Input id="add-pass" type="password" value={addForm.password} onChange={(e) => setAddForm((f) => ({ ...f, password: e.target.value }))} placeholder="At least 6 characters" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
+            <Button onClick={addMember} disabled={addSaving}>{addSaving ? "Creating…" : "Create account"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!pwAccount} onOpenChange={(o) => { if (!o) { setPwAccount(null); setPwValue(""); } }}>
         <DialogContent>

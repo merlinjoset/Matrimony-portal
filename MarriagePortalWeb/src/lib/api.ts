@@ -191,6 +191,13 @@ export const api = {
     return http<MemberAccount[]>(`/admin/accounts`);
   },
 
+  createMemberAccount(input: { membershipNo: string; username: string; password: string }): Promise<void> {
+    return http<void>(`/admin/accounts`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
   setMemberAccountStatus(id: string, status: string): Promise<void> {
     return http<void>(`/admin/accounts/${id}/status`, {
       method: "PATCH",

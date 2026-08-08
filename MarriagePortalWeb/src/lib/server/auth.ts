@@ -82,6 +82,36 @@ export async function login(username: string, password: string): Promise<AuthRes
   };
 }
 
+/**
+ * Admin creates a member login directly. Unlike self sign-up, the account is created 'Active'
+ * (the admin is vouching for it) so the member can sign in immediately.
+ */
+export async function adminCreateMemberAccount(
+  membershipNo: string,
+  username: string,
+  password: string
+): Promise<{ ok: boolean; status: number; message?: string }> {
+  const user = (username ?? "").trim();
+  if (user.length < 3) return { ok: false, status: 400, message: "Username must be at least 3 characters." };
+  if (!/^[a-zA-Z0-9_.@-]+$/.test(user)) return { ok: false, status: 400, message: "Username may only contain letters, numbers and . _ @ -" };
+  if ((password ?? "").length < 6) return { ok: false, status: 400, message: "Password must be at least 6 characters." };
+
+  const membership = await validateMembership(membershipNo);
+  if (!membership.valid || !membership.memberId) return { ok: false, status: 400, message: membership.message ?? "Invalid membership card." };
+
+  const cardTaken = await sql`SELECT 1 FROM "TblMemberAccounts" WHERE "MembershipNo" = ${membershipNo.trim()} AND "IsDeleted" = false LIMIT 1`;
+  if (cardTaken.length) return { ok: false, status: 409, message: "An account already exists for this membership card." };
+
+  const nameTaken = await sql`SELECT 1 FROM "TblMemberAccounts" WHERE lower("Username") = lower(${user}) AND "IsDeleted" = false LIMIT 1`;
+  if (nameTaken.length) return { ok: false, status: 409, message: "That username is already taken." };
+
+  await sql`
+    INSERT INTO "TblMemberAccounts" ("Id","MemberId","MembershipNo","Name","Username","PasswordHash","Status","CreatedAt","IsDeleted")
+    VALUES (${crypto.randomUUID()}, ${membership.memberId}, ${membershipNo.trim()}, ${membership.name ?? "Member"}, ${user}, ${hashPassword(password)}, 'Active', now(), false)`;
+
+  return { ok: true, status: 201 };
+}
+
 // ---- admin: manage member accounts ----
 export interface MemberAccountRow {
   id: string;

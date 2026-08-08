@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useMemberShortlist } from "@/lib/member-shortlist";
 import {
   Select,
   SelectContent,
@@ -18,6 +20,7 @@ import { CONGREGATIONS, DENOMINATIONS } from "@/lib/types";
 export function HeroSearch() {
   const { t } = useT();
   const router = useRouter();
+  const { member, openSignIn } = useMemberShortlist();
   const [gender, setGender] = useState("Female");
   const [denom, setDenom] = useState<string[]>([]);
   const [cong, setCong] = useState<string[]>([]);
@@ -76,9 +79,23 @@ export function HeroSearch() {
           <MultiSelect options={CONGREGATIONS} selected={cong} onChange={setCong} placeholder={t("any")} />
         </div>
 
-        <Button onClick={search} className="w-full bg-gold text-maroon hover:bg-gold! hover:brightness-105">
-          {t("search_matches")}
-        </Button>
+        {member ? (
+          <Button onClick={search} className="w-full bg-gold text-maroon hover:bg-gold! hover:brightness-105">
+            {t("search_matches")}
+          </Button>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-center text-[12.5px] text-muted-foreground">{t("signin_to_search")}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button onClick={openSignIn} variant="outline" className="w-full">
+                {t("nav_signin")}
+              </Button>
+              <Button render={<Link href="/register" />} nativeButton={false} className="w-full bg-gold text-maroon hover:bg-gold! hover:brightness-105">
+                {t("nav_register")}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

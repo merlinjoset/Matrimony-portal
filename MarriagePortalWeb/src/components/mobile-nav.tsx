@@ -19,8 +19,8 @@ export function MobileNav() {
   const { member } = useMemberShortlist();
   const nav = [
     { href: "/", label: t("nav_home") },
-    ...(member ? [{ href: "/browse", label: t("nav_browse") }] : []),
     { href: "/how-it-works", label: t("nav_how") },
+    ...(member ? [{ href: "/browse", label: t("nav_browse") }] : []),
     ...(member ? [{ href: "/shortlist", label: t("nav_shortlist") }] : []),
     ...(member ? [{ href: "/requests", label: t("nav_requests") }] : []),
     ...(member ? [] : [{ href: "/register", label: t("nav_register") }]),

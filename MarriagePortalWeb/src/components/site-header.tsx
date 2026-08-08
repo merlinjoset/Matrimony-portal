@@ -15,9 +15,9 @@ export function SiteHeader() {
 
   const nav = [
     { href: "/", label: t("nav_home") },
+    { href: "/how-it-works", label: t("nav_how") },
     // Browsing profiles and the shortlist are members-only - hidden until signed in.
     ...(member ? [{ href: "/browse", label: t("nav_browse") }] : []),
-    { href: "/how-it-works", label: t("nav_how") },
     ...(member ? [{ href: "/shortlist", label: t("nav_shortlist"), badge: count }] : []),
     // Contact-request approvals are only meaningful once signed in.
     ...(member ? [{ href: "/requests", label: t("nav_requests") }] : []),

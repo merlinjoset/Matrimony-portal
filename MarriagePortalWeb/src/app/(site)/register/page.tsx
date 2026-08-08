@@ -312,7 +312,6 @@ export default function RegisterPage() {
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Never married">{t("m_never")}</SelectItem>
-                    <SelectItem value="Divorced">{t("m_div")}</SelectItem>
                     <SelectItem value="Widowed">{t("m_wid")}</SelectItem>
                   </SelectContent>
                 </Select>
