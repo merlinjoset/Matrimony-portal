@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -68,6 +68,48 @@ function ProfileDetailContent({ p }: { p: ProfileDetail }) {
   const [reportDetails, setReportDetails] = useState("");
   const [reporting, setReporting] = useState(false);
 
+  // Owner-only photo editing.
+  const [isOwner, setIsOwner] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(p.mainPhotoUrl);
+  const [photoBusy, setPhotoBusy] = useState(false);
+
+  useEffect(() => {
+    if (!member) { setIsOwner(false); return; }
+    api.getContact(p.id, member.memberId).then((r) => setIsOwner(r.isOwner)).catch(() => setIsOwner(false));
+  }, [member, p.id]);
+
+  async function onChangePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !member) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Image is too large (max 5 MB).");
+    setPhotoBusy(true);
+    try {
+      const { url } = await api.uploadPhoto(file);
+      await api.updateProfilePhoto(p.id, member.memberId, url);
+      setPhotoUrl(url);
+      toast.success("Photo updated.");
+    } catch {
+      toast.error("Could not update the photo. Please try again.");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  async function removePhoto() {
+    if (!member) return;
+    setPhotoBusy(true);
+    try {
+      await api.updateProfilePhoto(p.id, member.memberId, null);
+      setPhotoUrl(null);
+      toast.success("Photo removed.");
+    } catch {
+      toast.error("Could not remove the photo.");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
   async function submitReport() {
     setReporting(true);
     try {
@@ -113,13 +155,34 @@ function ProfileDetailContent({ p }: { p: ProfileDetail }) {
       <div className="grid gap-8 md:grid-cols-[320px_1fr]">
         <div>
           <div className="grid h-72 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-maroon to-brand-green text-8xl font-bold text-white shadow-lg">
-            {p.mainPhotoUrl ? (
+            {photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.mainPhotoUrl} alt={p.fullName} className="h-full w-full object-cover" />
+              <img src={photoUrl} alt={p.fullName} className="h-full w-full object-cover" />
             ) : (
               initials(p.fullName)
             )}
           </div>
+          {isOwner && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <label className="cursor-pointer">
+                <span className="inline-flex h-8 items-center rounded-lg border border-border bg-background px-3 text-[13px] font-medium hover:bg-muted">
+                  {photoBusy ? "Uploading…" : photoUrl ? "📷 Change photo" : "📷 Add photo"}
+                </span>
+                <input type="file" accept="image/*" hidden onChange={onChangePhoto} disabled={photoBusy} />
+              </label>
+              {photoUrl && (
+                <button
+                  type="button"
+                  onClick={removePhoto}
+                  disabled={photoBusy}
+                  className="inline-flex h-8 items-center rounded-lg border border-destructive/40 px-3 text-[13px] font-medium text-destructive hover:bg-destructive/5"
+                >
+                  Remove
+                </button>
+              )}
+              <span className="text-[11.5px] text-muted-foreground">This is your profile</span>
+            </div>
+          )}
           <div className="mt-4 grid gap-2.5">
             <Button onClick={() => setOpen(true)} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
               {t("express_interest")}

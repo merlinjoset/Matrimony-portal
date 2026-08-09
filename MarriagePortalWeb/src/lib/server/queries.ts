@@ -351,6 +351,15 @@ export async function resolveReport(id: string, action: "dismiss" | "suspend"): 
   return true;
 }
 
+/** The owner of a profile updates (or removes) its photo. Only succeeds if the member owns it. */
+export async function updateProfilePhoto(profileId: string, ownerMemberId: string, url: string | null): Promise<boolean> {
+  const rows = await sql`
+    UPDATE "TblProfiles" SET "MainPhotoUrl" = ${url}, "UpdatedAt" = now()
+    WHERE "Id" = ${profileId} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false
+    RETURNING "Id"`;
+  return rows.length > 0;
+}
+
 // ---------- periodic re-verification ----------
 export interface ReverifyDue {
   id: string;

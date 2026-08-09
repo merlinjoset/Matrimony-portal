@@ -223,6 +223,13 @@ export const api = {
     return http<LoginLog[]>(`/admin/logins`);
   },
 
+  updateProfilePhoto(profileId: string, memberId: string, mainPhotoUrl: string | null): Promise<void> {
+    return http<void>(`/profiles/${profileId}/photo`, {
+      method: "PATCH",
+      body: JSON.stringify({ memberId, mainPhotoUrl }),
+    });
+  },
+
   reportProfile(profileId: string, input: { reason: string; details?: string; reporterMemberId?: string; reporterName?: string }): Promise<void> {
     return http<void>(`/profiles/${profileId}/report`, {
       method: "POST",
