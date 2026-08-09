@@ -18,7 +18,7 @@ const en: Dict = {
 
   // hero
   hero_verse: "“Therefore what God has joined together, let no one separate.” - Mark 10:9",
-  hero_title_a: "A trusted matrimony list service for our ",
+  hero_title_a: "A trusted matrimony listing service for our ",
   hero_title_em: "CSI Tamil Parish",
   hero_title_b: " family - Dubai",
   hero_lead:
