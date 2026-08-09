@@ -1,5 +1,6 @@
 import "server-only";
 import type { ProfileDetail } from "@/lib/types";
+import type { ReverifyDue } from "./queries";
 import { sendAdminMail } from "./mailer";
 import { getEmailSettings } from "./settings";
 
@@ -58,6 +59,45 @@ export async function notifyNewProfile(profile: ProfileDetail, mobile: string | 
 
   await sendAdminMail({
     subject: `New profile for verification: ${profile.fullName} (${profile.referenceId})`,
+    html,
+  });
+}
+
+/**
+ * Remind the parish office that some listings passed their 6-month re-verification date.
+ * Returns true if an email was sent. Never throws.
+ */
+export async function notifyReverifyDue(profiles: ReverifyDue[]): Promise<boolean> {
+  if (!profiles.length) return false;
+  const cfg = await getEmailSettings();
+  const baseUrl = cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com";
+
+  const rowsHtml = profiles
+    .map((p) => {
+      const since = new Date(p.lastVerifiedAt).toLocaleDateString();
+      return `<tr>
+        <td style="padding:5px 14px 5px 0;font-weight:600;">${p.fullName}</td>
+        <td style="padding:5px 14px 5px 0;color:#6b6b6b;">${p.referenceId}</td>
+        <td style="padding:5px 14px 5px 0;color:#6b6b6b;">${p.congregation}</td>
+        <td style="padding:5px 0;color:#6b6b6b;">verified ${since}</td>
+      </tr>`;
+    })
+    .join("");
+
+  const html = `
+    <div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:auto;color:#2c2522;">
+      <h2 style="color:#8a2a38;margin:0 0 4px;">${profiles.length} listing${profiles.length === 1 ? "" : "s"} due for re-verification</h2>
+      <p style="color:#6b6b6b;margin:0 0 16px;">
+        These profiles have been live for more than 6 months. Please review each one and re-verify it if it is still valid,
+        or suspend / mark it committed if it is no longer active.
+      </p>
+      <table style="border-collapse:collapse;font-size:14px;margin-bottom:18px;">${rowsHtml}</table>
+      <a href="${baseUrl}/admin/members" style="display:inline-block;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Open Profiles in admin</a>
+      <p style="color:#9a8f84;font-size:12px;margin-top:22px;">CSI Holy Matrimony - CSI Tamil Parish, Dubai. Re-verifying a listing resets its clock for another 6 months.</p>
+    </div>`;
+
+  return await sendAdminMail({
+    subject: `${profiles.length} matrimony listing${profiles.length === 1 ? "" : "s"} due for re-verification`,
     html,
   });
 }

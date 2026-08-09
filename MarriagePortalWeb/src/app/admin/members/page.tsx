@@ -140,6 +140,17 @@ export default function MembersPage() {
                           </Button>
                         ) : (
                           <>
+                            {(m.status === "Verified" || m.status === "Active") && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busy === m.id}
+                                onClick={() => setStatus(m.id, "Verified", m.fullName)}
+                                title="Confirm this listing is still valid - resets the 6-month re-verification clock"
+                              >
+                                Re-verify
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               variant="outline"

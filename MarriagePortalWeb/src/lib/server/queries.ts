@@ -156,10 +156,14 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
 
 export async function setProfileStatus(id: string, status: string, note?: string | null): Promise<boolean> {
   const clearsNote = !(status === "Rejected" || status === "Suspended");
+  // Verifying (or re-verifying) restarts the 6-month re-verification clock.
+  const verifying = status === "Verified";
   const rows = await sql`
     UPDATE "TblProfiles"
     SET "Status" = ${status},
         "StatusNote" = ${clearsNote ? null : (note ?? null)},
+        "LastVerifiedAt" = ${verifying ? sql`now()` : sql`"LastVerifiedAt"`},
+        "ReverifyNotifiedAt" = ${verifying ? sql`NULL` : sql`"ReverifyNotifiedAt"`},
         "UpdatedAt" = now()
     WHERE "Id" = ${id} AND "IsDeleted" = false
     RETURNING "Id"`;
@@ -345,6 +349,40 @@ export async function resolveReport(id: string, action: "dismiss" | "suspend"): 
     await sql`UPDATE "TblReports" SET "Status" = 'Dismissed' WHERE "Id" = ${id}`;
   }
   return true;
+}
+
+// ---------- periodic re-verification ----------
+export interface ReverifyDue {
+  id: string;
+  referenceId: string;
+  fullName: string;
+  congregation: string;
+  lastVerifiedAt: string;
+}
+
+/** Live profiles verified more than 6 months ago that have not been re-notified in the last 30 days. */
+export async function findProfilesDueForReverify(): Promise<ReverifyDue[]> {
+  const rows = await sql`
+    SELECT "Id","ReferenceId","FullName","Congregation","LastVerifiedAt"
+    FROM "TblProfiles"
+    WHERE "IsDeleted" = false
+      AND "Status" IN ('Verified','Active')
+      AND "LastVerifiedAt" IS NOT NULL
+      AND "LastVerifiedAt" < now() - interval '6 months'
+      AND ("ReverifyNotifiedAt" IS NULL OR "ReverifyNotifiedAt" < now() - interval '30 days')
+    ORDER BY "LastVerifiedAt" ASC`;
+  return rows.map((r) => ({
+    id: r.Id as string,
+    referenceId: r.ReferenceId as string,
+    fullName: r.FullName as string,
+    congregation: (r.Congregation as string) ?? "",
+    lastVerifiedAt: new Date(r.LastVerifiedAt as string).toISOString(),
+  }));
+}
+
+export async function markReverifyNotified(ids: string[]): Promise<void> {
+  if (!ids.length) return;
+  await sql`UPDATE "TblProfiles" SET "ReverifyNotifiedAt" = now() WHERE "Id" = ANY(${ids})`;
 }
 
 // ---------- members / membership validation ----------
