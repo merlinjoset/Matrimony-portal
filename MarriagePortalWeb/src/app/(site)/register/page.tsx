@@ -157,7 +157,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="mb-6 rounded-xl border border-maroon/20 bg-maroon/5 p-4">
-          <div className="mb-2 text-[13px] font-bold uppercase tracking-wide text-maroon">{t("how_h")}</div>
+          <div className="mb-2 text-[13px] font-bold uppercase tracking-wide text-maroon">{t("reg_how_h")}</div>
           <ul className="space-y-1.5 text-sm text-foreground/80">
             <li className="flex gap-2"><span>📝</span><span>{t("how_1")}</span></li>
             <li className="flex gap-2"><span>🛡️</span><span>{t("how_2")}</span></li>

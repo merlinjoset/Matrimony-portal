@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 const styles: Record<ProfileStatus, string> = {
   Verified: "bg-brand-green/12 text-brand-green border-brand-green/30",
   Active: "bg-brand-green/12 text-brand-green border-brand-green/30",
+  Committed: "bg-brand-green/12 text-brand-green border-brand-green/30",
   Pending: "bg-gold/15 text-[#9a6b00] border-gold/40",
   Suspended: "bg-destructive/10 text-destructive border-destructive/30",
   Rejected: "bg-destructive/10 text-destructive border-destructive/30",
@@ -13,6 +14,7 @@ const styles: Record<ProfileStatus, string> = {
 const labels: Record<ProfileStatus, string> = {
   Verified: "✓ Verified",
   Active: "● Active",
+  Committed: "💍 Committed",
   Pending: "Pending",
   Suspended: "Suspended",
   Rejected: "✕ Rejected",
