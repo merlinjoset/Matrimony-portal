@@ -166,6 +166,126 @@ export async function setProfileStatus(id: string, status: string, note?: string
   return rows.length > 0;
 }
 
+// ---------- 3-level listing verification ----------
+// Roles are ranked; a level requires an approver of at least that rank.
+//   L1 (initial check)  -> Office Staff / Moderator and above
+//   L2 (presbyter review)-> Parish Presbyter and above
+//   L3 (final approval)  -> Diocese Admin / Super Admin
+const ROLE_RANK: Record<string, number> = {
+  "Office Staff": 1,
+  Moderator: 1,
+  "Parish Presbyter": 2,
+  "Diocese Admin": 3,
+  "Super Admin": 3,
+};
+const LEVEL_MIN_RANK: Record<number, number> = { 1: 1, 2: 2, 3: 3 };
+export const LEVEL_LABEL: Record<number, string> = { 1: "Initial check", 2: "Presbyter review", 3: "Final approval" };
+
+/** Checklist the approver must confirm at each level before approving. */
+export const APPROVAL_CHECKLIST: Record<number, string[]> = {
+  1: [
+    "Membership card matches the parish roster",
+    "Name and contact details are complete",
+    "Photo (if provided) is appropriate",
+  ],
+  2: [
+    "Faith and denomination details are consistent",
+    "No signs of a fake or duplicate profile",
+    "Family / parish reference is satisfactory",
+  ],
+  3: [
+    "Levels 1 and 2 have been reviewed",
+    "Profile is accurate and complete",
+    "Approved for public listing",
+  ],
+};
+
+export interface ApprovalInfo {
+  level: number;
+  byName: string | null;
+  byRole: string | null;
+  createdAt: string;
+}
+
+export async function getProfileApprovals(profileIds: string[]): Promise<Record<string, ApprovalInfo[]>> {
+  if (!profileIds.length) return {};
+  const rows = await sql`
+    SELECT "ProfileId","Level","ApprovedByName","ApprovedByRole","CreatedAt"
+    FROM "TblProfileApprovals" WHERE "ProfileId" = ANY(${profileIds}) ORDER BY "Level" ASC`;
+  const map: Record<string, ApprovalInfo[]> = {};
+  for (const r of rows) {
+    const pid = r.ProfileId as string;
+    (map[pid] ??= []).push({
+      level: Number(r.Level),
+      byName: (r.ApprovedByName as string) ?? null,
+      byRole: (r.ApprovedByRole as string) ?? null,
+      createdAt: new Date(r.CreatedAt as string).toISOString(),
+    });
+  }
+  return map;
+}
+
+/** Approve one verification level for a profile. Levels must be done in order (1 -> 2 -> 3);
+ *  level 3 marks the profile Verified. Regular staff need 3 different approvers; a Super Admin may do all. */
+export async function approveProfileLevel(
+  profileId: string,
+  level: number,
+  admin: { id: string; name: string; role: string },
+  checklist?: string[]
+): Promise<{ ok: boolean; status: number; message?: string }> {
+  const required = APPROVAL_CHECKLIST[level] ?? [];
+  const checked = checklist ?? [];
+  if (!required.every((item) => checked.includes(item))) {
+    return { ok: false, status: 400, message: "Please confirm all checklist items before approving this level." };
+  }
+  const rows = await sql`SELECT "ApprovalLevel","Status" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`;
+  const p = rows[0];
+  if (!p) return { ok: false, status: 404, message: "Profile not found." };
+  if (p.Status !== "Pending") return { ok: false, status: 409, message: "This profile is not awaiting approval." };
+
+  const current = Number(p.ApprovalLevel);
+  if (level !== current + 1) return { ok: false, status: 409, message: `This profile needs Level ${current + 1} (${LEVEL_LABEL[current + 1]}) approval next.` };
+
+  const rank = ROLE_RANK[admin.role] ?? 0;
+  if (rank < (LEVEL_MIN_RANK[level] ?? 99)) {
+    return { ok: false, status: 403, message: `Level ${level} (${LEVEL_LABEL[level]}) needs a higher role than ${admin.role}.` };
+  }
+
+  // Each level needs a different approver - Super Admin is exempt so a small team is never blocked.
+  if (admin.role !== "Super Admin") {
+    const prior = await sql`SELECT 1 FROM "TblProfileApprovals" WHERE "ProfileId" = ${profileId} AND "ApprovedByUserId" = ${admin.id} LIMIT 1`;
+    if (prior.length) return { ok: false, status: 409, message: "You already approved a level for this profile - each level needs a different approver." };
+  }
+
+  await sql`
+    INSERT INTO "TblProfileApprovals" ("Id","ProfileId","Level","ApprovedByUserId","ApprovedByName","ApprovedByRole","Checklist","CreatedAt")
+    VALUES (${crypto.randomUUID()}, ${profileId}, ${level}, ${admin.id}, ${admin.name}, ${admin.role}, ${JSON.stringify(checked)}, now())`;
+  await sql`UPDATE "TblProfiles" SET "ApprovalLevel" = ${level}, "UpdatedAt" = now() WHERE "Id" = ${profileId}`;
+  if (level === 3) await setProfileStatus(profileId, "Verified");
+
+  return { ok: true, status: 200 };
+}
+
+export interface VerifyQueueItem extends ProfileListItem {
+  approvalLevel: number;
+  approvals: ApprovalInfo[];
+}
+
+/** Pending profiles awaiting the 3-level approval, with their progress. */
+export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
+  const rows = await sql`
+    SELECT ${LIST_COLS}, "ApprovalLevel" FROM "TblProfiles"
+    WHERE "IsDeleted" = false AND "Status" = 'Pending'
+    ORDER BY "CreatedAt" ASC`;
+  const ids = rows.map((r) => r.Id as string);
+  const approvals = await getProfileApprovals(ids);
+  return rows.map((r) => ({
+    ...toListItem(r as Row),
+    approvalLevel: Number(r.ApprovalLevel),
+    approvals: approvals[r.Id as string] ?? [],
+  }));
+}
+
 // ---------- profile reports ----------
 export interface ReportRow {
   id: string;

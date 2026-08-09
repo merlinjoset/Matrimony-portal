@@ -152,8 +152,17 @@ export default function RegisterPage() {
       <Card className="p-8">
         <h2 className="text-2xl font-bold">{t("reg_h")}</h2>
         <p className="mb-5 text-muted-foreground">{t("reg_sub")}</p>
-        <div className="mb-6 rounded-lg border border-brand-green/25 bg-brand-green/10 px-3.5 py-3 text-sm text-brand-green">
+        <div className="mb-4 rounded-lg border border-brand-green/25 bg-brand-green/10 px-3.5 py-3 text-sm text-brand-green">
           {t("reg_note")}
+        </div>
+
+        <div className="mb-6 rounded-xl border border-maroon/20 bg-maroon/5 p-4">
+          <div className="mb-2 text-[13px] font-bold uppercase tracking-wide text-maroon">{t("how_h")}</div>
+          <ul className="space-y-1.5 text-sm text-foreground/80">
+            <li className="flex gap-2"><span>📝</span><span>{t("how_1")}</span></li>
+            <li className="flex gap-2"><span>🛡️</span><span>{t("how_2")}</span></li>
+            <li className="flex gap-2"><span>🔒</span><span>{t("how_3")}</span></li>
+          </ul>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-7">
@@ -317,6 +326,7 @@ export default function RegisterPage() {
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Never married">{t("m_never")}</SelectItem>
+                    <SelectItem value="Divorced">{t("m_div")}</SelectItem>
                     <SelectItem value="Widowed">{t("m_wid")}</SelectItem>
                   </SelectContent>
                 </Select>

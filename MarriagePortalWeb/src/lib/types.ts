@@ -186,6 +186,45 @@ export const ADMIN_ROLES = [
   "Office Staff",
 ] as const;
 
+// ---- 3-level listing verification ----
+export const LEVEL_LABEL: Record<number, string> = { 1: "Initial check", 2: "Presbyter review", 3: "Final approval" };
+export const APPROVAL_CHECKLIST: Record<number, string[]> = {
+  1: [
+    "Membership card matches the parish roster",
+    "Name and contact details are complete",
+    "Photo (if provided) is appropriate",
+  ],
+  2: [
+    "Faith and denomination details are consistent",
+    "No signs of a fake or duplicate profile",
+    "Family / parish reference is satisfactory",
+  ],
+  3: [
+    "Levels 1 and 2 have been reviewed",
+    "Profile is accurate and complete",
+    "Approved for public listing",
+  ],
+};
+
+export interface CurrentAdmin {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+export interface ApprovalInfo {
+  level: number;
+  byName: string | null;
+  byRole: string | null;
+  createdAt: string;
+}
+
+export interface VerifyQueueItem extends ProfileListItem {
+  approvalLevel: number;
+  approvals: ApprovalInfo[];
+}
+
 export const ADMIN_CONGREGATIONS = [
   "Dubai (Main)",
   "Fujairah",

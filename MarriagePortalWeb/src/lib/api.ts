@@ -3,6 +3,8 @@ import type {
   ContactRequest,
   ContactRequestStatus,
   ContactReveal,
+  CurrentAdmin,
+  VerifyQueueItem,
   MemberAccount,
   MemberSession,
   CreateInterestInput,
@@ -230,6 +232,21 @@ export const api = {
 
   getReports(): Promise<Report[]> {
     return http<Report[]>(`/admin/reports`);
+  },
+
+  getMe(): Promise<CurrentAdmin> {
+    return http<CurrentAdmin>(`/admin/me`);
+  },
+
+  getVerifyQueue(): Promise<VerifyQueueItem[]> {
+    return http<VerifyQueueItem[]>(`/admin/verify-queue`);
+  },
+
+  approveProfileLevel(id: string, level: number, checklist: string[]): Promise<void> {
+    return http<void>(`/admin/profiles/${id}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ level, checklist }),
+    });
   },
 
   resolveReport(id: string, action: "dismiss" | "suspend"): Promise<void> {
