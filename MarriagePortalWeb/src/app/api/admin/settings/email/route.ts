@@ -1,8 +1,11 @@
 import { getEmailSettings, saveEmailSettings, hasStoredSmtpPassword } from "@/lib/server/settings";
+import { requireAdmin } from "@/lib/server/guard";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const g = await requireAdmin();
+  if (!g.ok) return g.response;
   const cfg = await getEmailSettings();
   const hasPassword = await hasStoredSmtpPassword();
   // Never return the stored password.
@@ -19,6 +22,8 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
+  const g = await requireAdmin();
+  if (!g.ok) return g.response;
   const body = (await req.json()) as {
     host?: string; port?: string; secure?: boolean; user?: string; pass?: string; from?: string; notifyEmail?: string; appBaseUrl?: string;
   };

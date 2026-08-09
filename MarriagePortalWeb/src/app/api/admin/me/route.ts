@@ -1,11 +1,9 @@
-import { getAdminSession } from "@/lib/server/admin-session";
-import { getAdminUserById } from "@/lib/server/auth";
+import { requireAdmin } from "@/lib/server/guard";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const id = await getAdminSession();
-  const user = id ? await getAdminUserById(id) : null;
-  // In bootstrap mode (no password set yet) there is no session; report a Super Admin so the panel stays usable.
-  return Response.json(user ?? { id: "bootstrap", name: "Admin", email: "", role: "Super Admin" });
+  const g = await requireAdmin();
+  if (!g.ok) return g.response;
+  return Response.json(g.admin);
 }

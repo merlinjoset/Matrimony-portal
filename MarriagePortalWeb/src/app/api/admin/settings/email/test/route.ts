@@ -1,8 +1,11 @@
 import { sendTestMail } from "@/lib/server/mailer";
+import { requireAdmin } from "@/lib/server/guard";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const g = await requireAdmin();
+  if (!g.ok) return g.response;
   const body = (await req.json()) as { to: string };
   const to = (body.to ?? "").trim();
   if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
