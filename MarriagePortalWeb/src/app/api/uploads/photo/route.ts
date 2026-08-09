@@ -1,11 +1,8 @@
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { randomUUID } from "crypto";
+import { savePhoto } from "@/lib/server/photos";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const ALLOWED = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 const MAX_BYTES = 5 * 1024 * 1024;
 
 export async function POST(req: Request) {
@@ -20,14 +17,9 @@ export async function POST(req: Request) {
   if (file.size > MAX_BYTES) return new Response("Image is too large (max 5 MB).", { status: 400 });
   if (!file.type.toLowerCase().startsWith("image/")) return new Response("Only image files are allowed.", { status: 400 });
 
-  let ext = path.extname(file.name).toLowerCase();
-  if (!ALLOWED.has(ext)) ext = ".jpg";
+  // Store the image in the database so it survives Render redeploys (the local disk is ephemeral).
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const id = await savePhoto(buffer, file.type.toLowerCase());
 
-  const dir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(dir, { recursive: true });
-  const fileName = `${randomUUID().replace(/-/g, "")}${ext}`;
-  await writeFile(path.join(dir, fileName), Buffer.from(await file.arrayBuffer()));
-
-  // Relative URL resolves against the app's own origin.
-  return Response.json({ url: `/uploads/${fileName}` });
+  return Response.json({ url: `/api/photos/${id}` });
 }
