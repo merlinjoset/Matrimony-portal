@@ -13,7 +13,7 @@ function tone(status: string): "green" | "amber" | "red" {
   return status === "Open" ? "amber" : status === "ActionTaken" ? "red" : "green";
 }
 function label(status: string): string {
-  return status === "ActionTaken" ? "Suspended" : status;
+  return status === "ActionTaken" ? "Actioned" : status;
 }
 
 export default function ReportsPage() {
@@ -66,7 +66,10 @@ export default function ReportsPage() {
                         <Avatar name={r.profileName} i={i + 3} />
                         <div>
                           <div className="text-sm font-semibold">{r.profileName}</div>
-                          <div className="text-[11.5px] text-muted-foreground">{r.profileReferenceId}</div>
+                          <div className="text-[11.5px] text-muted-foreground">
+                            {r.profileReferenceId}
+                            {r.profileStatus && <> · now <span className={r.profileStatus === "Suspended" ? "font-semibold text-destructive" : "font-semibold text-brand-green"}>{r.profileStatus}</span></>}
+                          </div>
                         </div>
                       </div>
                     </td>

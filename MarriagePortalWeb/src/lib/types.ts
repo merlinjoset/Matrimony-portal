@@ -110,6 +110,7 @@ export interface Report {
   profileId: string;
   profileName: string;
   profileReferenceId: string;
+  profileStatus: string | null; // the profile's current status
   reporterName: string | null;
   reason: string;
   details: string | null;

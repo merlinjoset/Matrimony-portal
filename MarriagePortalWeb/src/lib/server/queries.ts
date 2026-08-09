@@ -292,6 +292,7 @@ export interface ReportRow {
   profileId: string;
   profileName: string;
   profileReferenceId: string;
+  profileStatus: string | null;
   reporterName: string | null;
   reason: string;
   details: string | null;
@@ -313,7 +314,8 @@ export async function createReport(input: {
 
 export async function listReports(): Promise<ReportRow[]> {
   const rows = await sql`
-    SELECT r."Id", r."ProfileId", p."FullName", p."ReferenceId", r."ReporterName", r."Reason", r."Details", r."Status", r."CreatedAt"
+    SELECT r."Id", r."ProfileId", p."FullName", p."ReferenceId", p."Status" AS "ProfileStatus",
+           r."ReporterName", r."Reason", r."Details", r."Status", r."CreatedAt"
     FROM "TblReports" r
     LEFT JOIN "TblProfiles" p ON p."Id" = r."ProfileId"
     WHERE r."IsDeleted" = false
@@ -323,6 +325,7 @@ export async function listReports(): Promise<ReportRow[]> {
     profileId: r.ProfileId as string,
     profileName: (r.FullName as string) ?? "(deleted profile)",
     profileReferenceId: (r.ReferenceId as string) ?? "-",
+    profileStatus: (r.ProfileStatus as string) ?? null,
     reporterName: (r.ReporterName as string) ?? null,
     reason: r.Reason as string,
     details: (r.Details as string) ?? null,
