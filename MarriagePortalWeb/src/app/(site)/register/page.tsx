@@ -220,6 +220,11 @@ export default function RegisterPage() {
             </fieldset>
           )}
 
+          <div className="rounded-lg border border-maroon/15 bg-maroon/5 px-4 py-3">
+            <div className="text-[13px] font-bold uppercase tracking-wide text-maroon">{t("about_profile_h")}</div>
+            <p className="text-[12.5px] text-muted-foreground">{t("about_profile_sub")}</p>
+          </div>
+
           <fieldset className="space-y-4">
             <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_photo")}</legend>
             <div className="flex flex-wrap items-center gap-5">
