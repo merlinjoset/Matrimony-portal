@@ -26,7 +26,7 @@ import { AdminHeader, Avatar, Pill, statusTone } from "@/components/admin/admin-
 import { api } from "@/lib/api";
 import type { ProfileListItem, ProfileStatus } from "@/lib/types";
 
-const STATUSES = ["Pending", "Verified", "Active", "Suspended", "Rejected"] as const;
+const STATUSES = ["Pending", "Verified", "Active", "Committed", "Suspended", "Rejected"] as const;
 
 export default function MembersPage() {
   const [rows, setRows] = useState<ProfileListItem[] | null>(null);
@@ -134,20 +134,32 @@ export default function MembersPage() {
                         <Button render={<Link href={`/admin/members/${m.id}`} />} nativeButton={false} size="sm" variant="ghost">
                           View
                         </Button>
-                        {m.status === "Suspended" ? (
+                        {m.status === "Suspended" || m.status === "Committed" ? (
                           <Button size="sm" variant="outline" disabled={busy === m.id} onClick={() => setStatus(m.id, "Verified", m.fullName)}>
                             Reactivate
                           </Button>
                         ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={busy === m.id}
-                            onClick={() => { setSuspendTarget(m); setReason(""); }}
-                            className="border-destructive/40 text-destructive hover:bg-destructive/5"
-                          >
-                            Suspend
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={busy === m.id}
+                              onClick={() => setStatus(m.id, "Committed", m.fullName)}
+                              className="border-brand-green/40 text-brand-green hover:bg-brand-green/5"
+                              title="Mark this profile as married / committed - it will be removed from browsing"
+                            >
+                              💍 Committed
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={busy === m.id}
+                              onClick={() => { setSuspendTarget(m); setReason(""); }}
+                              className="border-destructive/40 text-destructive hover:bg-destructive/5"
+                            >
+                              Suspend
+                            </Button>
+                          </>
                         )}
                       </div>
                     </td>

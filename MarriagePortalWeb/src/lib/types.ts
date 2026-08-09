@@ -1,7 +1,7 @@
 // Mirrors the .NET API DTOs (CsiMatrimony.Application.Profiles)
 
 export type Gender = "Female" | "Male";
-export type ProfileStatus = "Pending" | "Verified" | "Active" | "Suspended" | "Rejected";
+export type ProfileStatus = "Pending" | "Verified" | "Active" | "Committed" | "Suspended" | "Rejected";
 
 export interface ProfileListItem {
   id: string;

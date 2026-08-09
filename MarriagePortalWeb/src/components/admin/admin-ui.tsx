@@ -51,6 +51,7 @@ export function statusTone(status: string): "green" | "amber" | "red" | "grey" {
   switch (status) {
     case "Verified":
     case "Active":
+    case "Committed":
       return "green";
     case "Pending":
       return "amber";
