@@ -44,7 +44,9 @@ export function HeroSearch() {
         <div className="space-y-1.5">
           <Label className="text-[12.5px]">{t("looking_for")}</Label>
           <Select value={gender} onValueChange={(v) => setGender(v ?? "Female")}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full">
+              <SelectValue>{(v) => (v === "Male" ? t("opt_groom") : t("opt_bride"))}</SelectValue>
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="Female">{t("opt_bride")}</SelectItem>
               <SelectItem value="Male">{t("opt_groom")}</SelectItem>

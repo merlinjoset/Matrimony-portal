@@ -316,7 +316,9 @@ export default function RegisterPage() {
               </Field>
               <Field label={t("l_gender")}>
                 <Select value={form.gender} onValueChange={(v) => set("gender", (v ?? "Female") as Gender)}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full">
+                    <SelectValue>{(v) => (v === "Male" ? t("g_male") : t("g_female"))}</SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Female">{t("g_female")}</SelectItem>
                     <SelectItem value="Male">{t("g_male")}</SelectItem>

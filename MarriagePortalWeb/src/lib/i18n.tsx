@@ -195,7 +195,7 @@ const en: Dict = {
 
   // how it works
   how_h: "How it works",
-  how_sub: "Four simple, dignified steps - guided by your parish.",
+  how_sub: "Three simple, dignified steps - guided by your parish.",
   s1t: "Register",
   s1d: "Create a profile with your faith, family and education details. Parents may register on behalf.",
   s2t: "Parish verifies",
@@ -464,7 +464,7 @@ const ta: Dict = {
   rq_youasked_line: "அவர்களின் தொடர்பு எண்ணைக் கோரியுள்ளீர்கள்",
 
   how_h: "எப்படி செயல்படுகிறது",
-  how_sub: "எளிய, கண்ணியமான நான்கு படிகள் - உங்கள் திருச்சபையின் வழிகாட்டுதலுடன்.",
+  how_sub: "எளிய, கண்ணியமான மூன்று படிகள் - உங்கள் திருச்சபையின் வழிகாட்டுதலுடன்.",
   s1t: "பதிவு செய்க",
   s1d: "உங்கள் விசுவாசம், குடும்பம், கல்வி விவரங்களுடன் சுயவிவரம் உருவாக்குங்கள். பெற்றோர் சார்பாகவும் பதிவு செய்யலாம்.",
   s2t: "திருச்சபை சரிபார்க்கிறது",
