@@ -154,6 +154,8 @@ export interface CreateProfileInput {
   fatherOccupation?: string | null;
   motherOccupation?: string | null;
   mainPhotoUrl?: string | null;
+  /** Verified-email token (for non-members registering via email OTP instead of a card). */
+  emailToken?: string;
 }
 
 export const CONGREGATIONS = ["Dubai", "Fujairah", "Ras Al Khaimah", "India", "Other"] as const;

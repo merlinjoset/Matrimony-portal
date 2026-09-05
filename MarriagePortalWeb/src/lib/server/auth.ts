@@ -2,6 +2,7 @@ import "server-only";
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { sql } from "./db";
 import { validateMembership } from "./queries";
+import { guestMemberId, verifyEmailToken } from "./otp";
 import type { MemberSession } from "@/lib/types";
 
 // ---- password hashing (scrypt, no external deps) ----
@@ -48,6 +49,50 @@ export async function signup(membershipNo: string, username: string, password: s
   await sql`
     INSERT INTO "TblMemberAccounts" ("Id","MemberId","MembershipNo","Name","Username","PasswordHash","Status","CreatedAt","IsDeleted")
     VALUES (${crypto.randomUUID()}, ${membership.memberId}, ${membershipNo.trim()}, ${membership.name ?? "Member"}, ${user}, ${hashPassword(password)}, 'Pending', now(), false)`;
+
+  return {
+    ok: true,
+    status: 201,
+    message: "Account created. A parish admin will activate it shortly - you can sign in once it is approved.",
+  };
+}
+
+/**
+ * Create a member login for a non-member, gated by a verified-email token (from the email OTP)
+ * instead of a membership card. The account has no membership number and a deterministic
+ * MemberId derived from the email, so its profile links to it. Like a member sign-up it starts
+ * 'Pending' until a parish admin activates it. Once active it is treated exactly like a member.
+ */
+export async function signupGuest(
+  email: string,
+  token: string,
+  username: string,
+  password: string,
+  name?: string
+): Promise<AuthResult> {
+  const user = (username ?? "").trim();
+  if (user.length < 3) return { ok: false, status: 400, message: "Username must be at least 3 characters." };
+  if (!/^[a-zA-Z0-9_.@-]+$/.test(user)) return { ok: false, status: 400, message: "Username may only contain letters, numbers and . _ @ -" };
+  if ((password ?? "").length < 6) return { ok: false, status: 400, message: "Password must be at least 6 characters." };
+
+  const v = verifyEmailToken(token);
+  if (!v.valid || !v.email || v.email !== (email ?? "").trim().toLowerCase()) {
+    return { ok: false, status: 400, message: "Email verification expired. Please verify your email again." };
+  }
+
+  const memberId = guestMemberId(v.email);
+  const emailTaken = await sql`SELECT 1 FROM "TblMemberAccounts" WHERE "MemberId" = ${memberId} AND "IsDeleted" = false LIMIT 1`;
+  if (emailTaken.length) return { ok: false, status: 409, message: "An account already exists for this email. Please sign in." };
+
+  const nameTaken = await sql`SELECT 1 FROM "TblMemberAccounts" WHERE lower("Username") = lower(${user}) AND "IsDeleted" = false LIMIT 1`;
+  if (nameTaken.length) return { ok: false, status: 409, message: "That username is already taken." };
+
+  // Free any tombstoned rows so the unique username index can be reused.
+  await sql`DELETE FROM "TblMemberAccounts" WHERE "IsDeleted" = true AND (lower("Username") = lower(${user}) OR "MemberId" = ${memberId})`;
+
+  await sql`
+    INSERT INTO "TblMemberAccounts" ("Id","MemberId","MembershipNo","Name","Username","Email","PasswordHash","Status","CreatedAt","IsDeleted")
+    VALUES (${crypto.randomUUID()}, ${memberId}, ${null}, ${(name ?? "").trim() || user}, ${user}, ${v.email}, ${hashPassword(password)}, 'Pending', now(), false)`;
 
   return {
     ok: true,

@@ -208,6 +208,28 @@ export const api = {
     });
   },
 
+  // ---- non-member email OTP ----
+  sendEmailOtp(email: string): Promise<{ message: string }> {
+    return http<{ message: string }>(`/otp/send`, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  verifyEmailOtp(email: string, code: string): Promise<{ message: string; token: string }> {
+    return http<{ message: string; token: string }>(`/otp/verify`, {
+      method: "POST",
+      body: JSON.stringify({ email, code }),
+    });
+  },
+
+  signupGuest(email: string, emailToken: string, username: string, password: string, name: string): Promise<{ message: string }> {
+    return http<{ message: string }>(`/auth/signup`, {
+      method: "POST",
+      body: JSON.stringify({ email, emailToken, username, password, name }),
+    });
+  },
+
   login(username: string, password: string): Promise<MemberSession> {
     return http<MemberSession>(`/auth/login`, {
       method: "POST",

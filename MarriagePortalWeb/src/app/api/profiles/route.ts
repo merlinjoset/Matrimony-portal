@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { browseProfiles, createProfile, validateMembership } from "@/lib/server/queries";
+import { guestMemberId, verifyEmailToken } from "@/lib/server/otp";
 import { notifyNewProfile } from "@/lib/server/notifications";
 import type { CreateProfileInput } from "@/lib/types";
 
@@ -24,10 +25,19 @@ export async function POST(req: NextRequest) {
   const dto = (await req.json()) as CreateProfileInput;
   if (!dto.fullName || !dto.fullName.trim()) return new Response("Full name is required.", { status: 400 });
 
-  const membership = await validateMembership(dto.membershipNo ?? "");
-  if (!membership.valid) return new Response(membership.message ?? "Invalid membership card.", { status: 400 });
+  // Identity is proven by EITHER a valid parish membership card OR a verified-email token (non-members).
+  let ownerMemberId: string | null;
+  if (dto.emailToken) {
+    const v = verifyEmailToken(dto.emailToken);
+    if (!v.valid || !v.email) return new Response("Email verification expired. Please verify your email again.", { status: 400 });
+    ownerMemberId = guestMemberId(v.email);
+  } else {
+    const membership = await validateMembership(dto.membershipNo ?? "");
+    if (!membership.valid) return new Response(membership.message ?? "Invalid membership card.", { status: 400 });
+    ownerMemberId = membership.memberId;
+  }
 
-  const created = await createProfile(dto, membership.memberId);
+  const created = await createProfile(dto, ownerMemberId);
 
   // Notify the parish office that a profile is awaiting verification (never blocks the response).
   try {

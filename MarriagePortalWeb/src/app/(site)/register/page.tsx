@@ -70,6 +70,15 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [agree, setAgree] = useState(false);
+  // Non-member email-OTP path (an alternative to the membership card).
+  const [authMode, setAuthMode] = useState<"card" | "email">("card");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [emailToken, setEmailToken] = useState<string | null>(null);
+  const identityOk = authMode === "card" ? !!membership?.valid : !!emailToken;
 
   function updateMobile(code: string, num: string) {
     setDialCode(code);
@@ -87,6 +96,39 @@ export default function RegisterPage() {
       setMembership({ valid: false, memberId: null, name: null, congregation: null, message: t("ei_err") });
     } finally {
       setChecking(false);
+    }
+  }
+
+  async function sendOtp() {
+    const email = otpEmail.trim();
+    if (!email) return;
+    setOtpSending(true);
+    try {
+      const res = await api.sendEmailOtp(email);
+      setOtpSent(true);
+      setEmailToken(null);
+      toast.success(res.message);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("toast_err"));
+    } finally {
+      setOtpSending(false);
+    }
+  }
+
+  async function verifyOtp() {
+    const email = otpEmail.trim();
+    const code = otpCode.trim();
+    if (!email || code.length !== 6) return;
+    setOtpVerifying(true);
+    try {
+      const res = await api.verifyEmailOtp(email, code);
+      setEmailToken(res.token);
+      toast.success(res.message);
+    } catch (err) {
+      setEmailToken(null);
+      toast.error(err instanceof Error ? err.message : t("toast_err"));
+    } finally {
+      setOtpVerifying(false);
     }
   }
 
@@ -114,7 +156,7 @@ export default function RegisterPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!membership?.valid) return toast.error(t("m_required"));
+    if (!identityOk) return toast.error(authMode === "card" ? t("m_required") : t("otp_required"));
     if (!form.fullName.trim()) return toast.error(t("toast_name"));
     if (!agree) return toast.error(t("tc_req"));
     // Guests choose a username + password: this creates their member login (admin activates it).
@@ -123,7 +165,10 @@ export default function RegisterPage() {
     try {
       if (!member) {
         try {
-          const res = await api.signup(form.membershipNo.trim(), username.trim(), password);
+          const res =
+            authMode === "email"
+              ? await api.signupGuest(otpEmail.trim(), emailToken!, username.trim(), password, form.fullName.trim())
+              : await api.signup(form.membershipNo.trim(), username.trim(), password);
           toast.success(res.message ?? t("su_ok"));
         } catch (err) {
           // An existing account for this card is fine - the profile can still be registered.
@@ -137,7 +182,12 @@ export default function RegisterPage() {
       }
       // "Looking for" is derived from the profile's gender (a groom seeks a bride and vice versa).
       const lookingFor = form.gender === "Male" ? "Bride" : "Groom";
-      const created = await api.createProfile({ ...form, lookingFor, dateOfBirth: form.dateOfBirth || null });
+      const created = await api.createProfile({
+        ...form,
+        lookingFor,
+        dateOfBirth: form.dateOfBirth || null,
+        emailToken: authMode === "email" ? emailToken ?? undefined : undefined,
+      });
       toast.success(t("toast_ok"));
       router.push(`/profiles/${created.id}`);
     } catch {
@@ -168,31 +218,98 @@ export default function RegisterPage() {
         <form onSubmit={onSubmit} className="space-y-7">
           <fieldset className="space-y-3">
             <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_membership")}</legend>
-            <p className="text-[12.5px] text-muted-foreground">{t("m_hint")}</p>
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="flex-1 space-y-1.5" style={{ minWidth: 220 }}>
-                <Label className="text-[12.5px]">{t("l_membership")}</Label>
-                <Input
-                  value={form.membershipNo}
-                  onChange={(e) => { set("membershipNo", e.target.value); setMembership(null); }}
-                  onBlur={validateCard}
-                  placeholder={t("ph_membership")}
-                  className={membership?.valid ? "border-brand-green" : membership && !membership.valid ? "border-destructive" : ""}
-                />
-              </div>
-              <Button type="button" variant="outline" disabled={checking || !form.membershipNo.trim()} onClick={validateCard}>
-                {checking ? t("m_validating") : t("m_validate")}
-              </Button>
+
+            {/* Member (card) vs non-member (email OTP) */}
+            <div className="inline-flex rounded-lg border border-border p-0.5 text-[13px] font-medium">
+              <button
+                type="button"
+                onClick={() => setAuthMode("card")}
+                className={`rounded-md px-3 py-1.5 transition ${authMode === "card" ? "bg-maroon text-white" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {t("reg_mode_member")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthMode("email")}
+                className={`rounded-md px-3 py-1.5 transition ${authMode === "email" ? "bg-maroon text-white" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {t("reg_mode_guest")}
+              </button>
             </div>
-            {membership?.valid ? (
-              <div className="rounded-lg border border-brand-green/30 bg-brand-green/10 px-3.5 py-2.5 text-sm text-brand-green">
-                {t("m_valid")} - {membership.name}{membership.congregation ? `, ${membership.congregation}` : ""}
-              </div>
-            ) : membership && !membership.valid ? (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-2.5 text-sm text-destructive">
-                {membership.message}
-              </div>
-            ) : null}
+
+            {authMode === "card" ? (
+              <>
+                <p className="text-[12.5px] text-muted-foreground">{t("m_hint")}</p>
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="flex-1 space-y-1.5" style={{ minWidth: 220 }}>
+                    <Label className="text-[12.5px]">{t("l_membership")}</Label>
+                    <Input
+                      value={form.membershipNo}
+                      onChange={(e) => { set("membershipNo", e.target.value); setMembership(null); }}
+                      onBlur={validateCard}
+                      placeholder={t("ph_membership")}
+                      className={membership?.valid ? "border-brand-green" : membership && !membership.valid ? "border-destructive" : ""}
+                    />
+                  </div>
+                  <Button type="button" variant="outline" disabled={checking || !form.membershipNo.trim()} onClick={validateCard}>
+                    {checking ? t("m_validating") : t("m_validate")}
+                  </Button>
+                </div>
+                {membership?.valid ? (
+                  <div className="rounded-lg border border-brand-green/30 bg-brand-green/10 px-3.5 py-2.5 text-sm text-brand-green">
+                    {t("m_valid")} - {membership.name}{membership.congregation ? `, ${membership.congregation}` : ""}
+                  </div>
+                ) : membership && !membership.valid ? (
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-2.5 text-sm text-destructive">
+                    {membership.message}
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <p className="text-[12.5px] text-muted-foreground">{t("otp_hint")}</p>
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="flex-1 space-y-1.5" style={{ minWidth: 220 }}>
+                    <Label className="text-[12.5px]">{t("l_otp_email")}</Label>
+                    <Input
+                      type="email"
+                      value={otpEmail}
+                      disabled={!!emailToken}
+                      onChange={(e) => { setOtpEmail(e.target.value); setEmailToken(null); setOtpSent(false); }}
+                      placeholder={t("ph_otp_email")}
+                      className={emailToken ? "border-brand-green" : ""}
+                    />
+                  </div>
+                  <Button type="button" variant="outline" disabled={otpSending || !otpEmail.trim() || !!emailToken} onClick={sendOtp}>
+                    {otpSending ? t("otp_sending") : otpSent ? t("otp_resend") : t("otp_send")}
+                  </Button>
+                </div>
+                {otpSent && !emailToken && (
+                  <>
+                    <p className="text-[12.5px] text-muted-foreground">{t("otp_sent")}</p>
+                    <div className="flex flex-wrap items-end gap-3">
+                      <div className="flex-1 space-y-1.5" style={{ minWidth: 180 }}>
+                        <Label className="text-[12.5px]">{t("l_otp_code")}</Label>
+                        <Input
+                          inputMode="numeric"
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          placeholder="000000"
+                        />
+                      </div>
+                      <Button type="button" variant="outline" disabled={otpVerifying || otpCode.length !== 6} onClick={verifyOtp}>
+                        {otpVerifying ? t("otp_verifying") : t("otp_verify")}
+                      </Button>
+                    </div>
+                  </>
+                )}
+                {emailToken && (
+                  <div className="rounded-lg border border-brand-green/30 bg-brand-green/10 px-3.5 py-2.5 text-sm text-brand-green">
+                    {t("otp_verified")} - {otpEmail.trim()}
+                  </div>
+                )}
+              </>
+            )}
           </fieldset>
 
           {!member && (
