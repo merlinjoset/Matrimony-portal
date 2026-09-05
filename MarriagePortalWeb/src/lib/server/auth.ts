@@ -305,6 +305,37 @@ export async function setAdminUserPassword(id: string, password: string): Promis
   return rows.length ? { ok: true, status: 204 } : { ok: false, status: 404, message: "User not found." };
 }
 
+/**
+ * Self-service password reset, gated by a verified-email token from the email OTP.
+ * `scope` selects the account type: admin staff (TblUsers) or a member/guest login
+ * (TblMemberAccounts). The email must match the OTP-verified address.
+ */
+export async function resetPasswordWithEmail(
+  email: string,
+  token: string,
+  newPassword: string,
+  scope: "admin" | "member"
+): Promise<{ ok: boolean; status: number; message?: string }> {
+  if ((newPassword ?? "").length < 6) return { ok: false, status: 400, message: "Password must be at least 6 characters." };
+
+  const v = verifyEmailToken(token);
+  if (!v.valid || !v.email || v.email !== (email ?? "").trim().toLowerCase()) {
+    return { ok: false, status: 400, message: "Email verification expired. Please verify your email again." };
+  }
+
+  if (scope === "admin") {
+    const rows = await sql`SELECT "Id" FROM "TblUsers" WHERE lower("Email") = lower(${v.email}) AND "IsDeleted" = false LIMIT 1`;
+    if (!rows[0]) return { ok: false, status: 404, message: "No staff account found for this email address." };
+    const r = await setAdminUserPassword(rows[0].Id as string, newPassword);
+    return r.ok ? { ok: true, status: 200, message: "Password updated. You can now sign in with your new password." } : r;
+  }
+
+  const rows = await sql`SELECT "Id" FROM "TblMemberAccounts" WHERE lower("Email") = lower(${v.email}) AND "IsDeleted" = false LIMIT 1`;
+  if (!rows[0]) return { ok: false, status: 404, message: "No account found for this email. If you did not add an email, please contact the parish office." };
+  const r = await setMemberAccountPassword(rows[0].Id as string, newPassword);
+  return r.ok ? { ok: true, status: 200, message: "Password updated. You can now sign in with your new password." } : r;
+}
+
 /** Sign in to the admin panel with email + password. Only 'Active' staff with a password set may sign in. */
 export async function adminLogin(email: string, password: string): Promise<AdminAuthResult> {
   const rows = await sql`

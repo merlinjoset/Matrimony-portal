@@ -223,6 +223,17 @@ export interface ApprovalInfo {
   createdAt: string;
 }
 
+export interface ApprovalLogEntry {
+  id: string;
+  referenceId: string;
+  fullName: string;
+  level: number;
+  byName: string | null;
+  byRole: string | null;
+  checklist: string[];
+  createdAt: string;
+}
+
 export interface VerifyQueueItem extends ProfileListItem {
   approvalLevel: number;
   approvals: ApprovalInfo[];

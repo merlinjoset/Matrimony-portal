@@ -34,9 +34,7 @@ export function HomeHero() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-7">
-            <Stat n="1,200+" label={t("stat_verified")} />
             <Stat n="3" label={t("stat_congregations")} />
-            <Stat n="320+" label={t("stat_marriages")} />
           </div>
 
           <p className="mt-6 text-[12.5px] font-semibold uppercase tracking-wider text-maroon/70">

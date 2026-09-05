@@ -16,6 +16,9 @@ import {
   ExternalLink,
   LogOut,
   ScrollText,
+  ListChecks,
+  UserCheck,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +34,9 @@ function initials(name: string): string {
 const items = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/verify", label: "Verification Queue", icon: ShieldCheck },
+  { href: "/admin/checklists", label: "Approval Checklist", icon: ListChecks },
+  { href: "/admin/approvers", label: "Approvers by Level", icon: UserCheck },
+  { href: "/admin/approval-log", label: "Approval Log", icon: History },
   { href: "/admin/members", label: "Profiles", icon: Users },
   { href: "/admin/accounts", label: "Member Accounts", icon: KeyRound },
   { href: "/admin/logins", label: "Login Activity", icon: ScrollText },

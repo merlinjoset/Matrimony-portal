@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { browseProfiles, createProfile, validateMembership } from "@/lib/server/queries";
 import { guestMemberId, verifyEmailToken } from "@/lib/server/otp";
-import { notifyNewProfile } from "@/lib/server/notifications";
+import { notifyLevelApprovers, notifyNewProfile } from "@/lib/server/notifications";
 import type { CreateProfileInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -39,9 +39,10 @@ export async function POST(req: NextRequest) {
 
   const created = await createProfile(dto, ownerMemberId);
 
-  // Notify the parish office that a profile is awaiting verification (never blocks the response).
+  // Notify the parish office, and email the Level 1 approvers to start the review (never blocks the response).
   try {
     await notifyNewProfile(created, dto.mobile ?? null);
+    await notifyLevelApprovers(created, 1);
   } catch (err) {
     console.error("[profiles] notification failed:", err);
   }

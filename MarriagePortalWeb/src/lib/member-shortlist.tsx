@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordReset } from "@/components/password-reset";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import type { MemberSession, ProfileListItem } from "@/lib/types";
@@ -40,7 +41,7 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
   const [items, setItems] = useState<ProfileListItem[]>([]);
 
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [card, setCard] = useState("");
@@ -135,9 +136,14 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setError(null); setNotice(null); setPending(null); setMode("signin"); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{mode === "signin" ? t("signin_title") : t("su_title")}</DialogTitle>
-            <DialogDescription>{mode === "signin" ? t("signin_intro") : t("su_intro")}</DialogDescription>
+            <DialogTitle>{mode === "reset" ? t("fp_title") : mode === "signin" ? t("signin_title") : t("su_title")}</DialogTitle>
+            <DialogDescription>{mode === "reset" ? "" : mode === "signin" ? t("signin_intro") : t("su_intro")}</DialogDescription>
           </DialogHeader>
+          {mode === "reset" ? (
+            <div className="py-2">
+              <PasswordReset scope="member" onCancel={() => { setMode("signin"); setError(null); setNotice(null); }} />
+            </div>
+          ) : (
           <div className="space-y-3 py-2">
             {mode === "signup" && (
               <div className="space-y-1.5">
@@ -170,14 +176,27 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
             </div>
             {notice && <p className="text-sm font-medium text-brand-green">{notice}</p>}
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <button
-              type="button"
-              onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); setNotice(null); }}
-              className="text-[13px] font-semibold text-maroon hover:underline"
-            >
-              {mode === "signin" ? t("su_switch") : t("si_switch")}
-            </button>
+            <div className="flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); setNotice(null); }}
+                className="text-[13px] font-semibold text-maroon hover:underline"
+              >
+                {mode === "signin" ? t("su_switch") : t("si_switch")}
+              </button>
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={() => { setMode("reset"); setError(null); setNotice(null); }}
+                  className="text-[13px] text-muted-foreground hover:underline"
+                >
+                  {t("fp_link")}
+                </button>
+              )}
+            </div>
           </div>
+          )}
+          {mode !== "reset" && (
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>{t("ei_cancel")}</Button>
             <Button
@@ -188,6 +207,7 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
               {busy ? t("m_validating") : mode === "signin" ? t("signin_btn") : t("su_btn")}
             </Button>
           </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </ShortlistContext.Provider>

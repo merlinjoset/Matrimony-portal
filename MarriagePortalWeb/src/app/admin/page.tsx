@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, Clock, Heart, Gem } from "lucide-react";
+import { Users, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,8 +27,6 @@ export default function AdminDashboard() {
   const cards = [
     { icon: Users, n: stats?.total, label: "Total members", tone: "text-maroon" },
     { icon: Clock, n: stats?.pending, label: "Pending verification", tone: "text-[#9a6b00]" },
-    { icon: Heart, n: 87, label: "Active interests", tone: "text-brand-green", sample: true },
-    { icon: Gem, n: 320, label: "Holy matrimonies", tone: "text-maroon", sample: true },
   ];
 
   return (
@@ -51,7 +49,7 @@ export default function AdminDashboard() {
                   {c.n === undefined ? <Skeleton className="h-8 w-12" /> : c.n.toLocaleString()}
                 </div>
                 <div className="mt-1 text-[12.5px] text-muted-foreground">
-                  {c.label} {c.sample && <span className="opacity-60">(sample)</span>}
+                  {c.label}
                 </div>
               </Card>
             );

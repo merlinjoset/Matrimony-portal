@@ -1,5 +1,7 @@
 import "server-only";
 import { sql } from "./db";
+import { getApprovalChecklist } from "./checklist";
+import { canApproveLevel } from "./approvers";
 import type {
   AdminUser,
   CreateInterestInput,
@@ -229,6 +231,46 @@ export async function getProfileApprovals(profileIds: string[]): Promise<Record<
   return map;
 }
 
+export interface ApprovalLogEntry {
+  id: string;
+  referenceId: string;
+  fullName: string;
+  level: number;
+  byName: string | null;
+  byRole: string | null;
+  checklist: string[];
+  createdAt: string;
+}
+
+/** Audit log of every level approval - who verified which profile, when, and what they confirmed. */
+export async function getApprovalLog(limit = 300): Promise<ApprovalLogEntry[]> {
+  const rows = await sql`
+    SELECT a."Id", a."Level", a."ApprovedByName", a."ApprovedByRole", a."Checklist", a."CreatedAt",
+           p."ReferenceId", p."FullName"
+    FROM "TblProfileApprovals" a
+    LEFT JOIN "TblProfiles" p ON p."Id" = a."ProfileId"
+    ORDER BY a."CreatedAt" DESC
+    LIMIT ${limit}`;
+  const parseList = (v: unknown): string[] => {
+    try {
+      const p = typeof v === "string" ? JSON.parse(v) : v;
+      return Array.isArray(p) ? p.filter((x): x is string => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  };
+  return rows.map((r) => ({
+    id: r.Id as string,
+    referenceId: (r.ReferenceId as string) ?? "-",
+    fullName: (r.FullName as string) ?? "(deleted profile)",
+    level: Number(r.Level),
+    byName: (r.ApprovedByName as string) ?? null,
+    byRole: (r.ApprovedByRole as string) ?? null,
+    checklist: parseList(r.Checklist),
+    createdAt: new Date(r.CreatedAt as string).toISOString(),
+  }));
+}
+
 /** Approve one verification level for a profile. Levels must be done in order (1 -> 2 -> 3);
  *  level 3 marks the profile Verified. Regular staff need 3 different approvers; a Super Admin may do all. */
 export async function approveProfileLevel(
@@ -237,7 +279,7 @@ export async function approveProfileLevel(
   admin: { id: string; name: string; role: string },
   checklist?: string[]
 ): Promise<{ ok: boolean; status: number; message?: string }> {
-  const required = APPROVAL_CHECKLIST[level] ?? [];
+  const required = (await getApprovalChecklist())[level] ?? [];
   const checked = checklist ?? [];
   if (!required.every((item) => checked.includes(item))) {
     return { ok: false, status: 400, message: "Please confirm all checklist items before approving this level." };
@@ -250,9 +292,10 @@ export async function approveProfileLevel(
   const current = Number(p.ApprovalLevel);
   if (level !== current + 1) return { ok: false, status: 409, message: `This profile needs Level ${current + 1} (${LEVEL_LABEL[current + 1]}) approval next.` };
 
-  const rank = ROLE_RANK[admin.role] ?? 0;
-  if (rank < (LEVEL_MIN_RANK[level] ?? 99)) {
-    return { ok: false, status: 403, message: `Level ${level} (${LEVEL_LABEL[level]}) needs a higher role than ${admin.role}.` };
+  // Gate by explicit level assignment (set by a Super Admin) if any exist, else by role rank.
+  const roleAllowed = (ROLE_RANK[admin.role] ?? 0) >= (LEVEL_MIN_RANK[level] ?? 99);
+  if (!(await canApproveLevel(level, admin.id, admin.role, roleAllowed))) {
+    return { ok: false, status: 403, message: `You are not assigned to approve Level ${level} (${LEVEL_LABEL[level]}).` };
   }
 
   // Each level needs a different approver - Super Admin is exempt so a small team is never blocked.

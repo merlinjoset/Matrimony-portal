@@ -1,8 +1,10 @@
 import "server-only";
 import type { ProfileDetail } from "@/lib/types";
+import { LEVEL_LABEL } from "@/lib/types";
 import type { ReverifyDue } from "./queries";
-import { sendAdminMail } from "./mailer";
+import { sendAdminMail, sendMail } from "./mailer";
 import { getEmailSettings } from "./settings";
+import { getApproverContacts } from "./approvers";
 
 /** Build a WhatsApp click-to-chat link to a phone number, with an optional prefilled message. */
 export function whatsappLink(mobile: string | null, message: string): string | null {
@@ -61,6 +63,53 @@ export async function notifyNewProfile(profile: ProfileDetail, mobile: string | 
     subject: `New profile for verification: ${profile.fullName} (${profile.referenceId})`,
     html,
   });
+}
+
+/**
+ * Tell the approvers assigned to `level` that a profile is now awaiting their checklist review.
+ * Emails each assigned approver individually; if a level has no assignees, it falls back to the
+ * parish-office address so nothing is missed. Never throws.
+ */
+export async function notifyLevelApprovers(profile: ProfileDetail, level: number): Promise<void> {
+  try {
+    const cfg = await getEmailSettings();
+    const baseUrl = cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com";
+    const label = LEVEL_LABEL[level] ?? `Level ${level}`;
+    const verifyUrl = `${baseUrl}/admin/verify`;
+    const subject = `Action needed - ${label} for ${profile.fullName} (${profile.referenceId})`;
+
+    const rows: [string, string | null][] = [
+      ["Reference", profile.referenceId],
+      ["Name", profile.fullName],
+      ["Gender", profile.gender],
+      ["Denomination", profile.denomination],
+      ["Congregation", profile.congregation],
+    ];
+    const rowsHtml = rows
+      .filter(([, v]) => v)
+      .map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0;color:#6b6b6b;">${k}</td><td style="padding:4px 0;font-weight:600;">${v}</td></tr>`)
+      .join("");
+
+    const body = (greeting: string) => `
+      <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#2c2522;">
+        <h2 style="color:#8a2a38;margin:0 0 4px;">${label} needed</h2>
+        <p style="color:#6b6b6b;margin:0 0 16px;">${greeting} A matrimony profile is waiting for your <strong>${label}</strong>. Please open it, complete the checklist, and approve to pass it to the next level.</p>
+        <table style="border-collapse:collapse;font-size:14px;margin-bottom:18px;">${rowsHtml}</table>
+        <a href="${verifyUrl}" style="display:inline-block;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Open the verification queue</a>
+        <p style="color:#9a8f84;font-size:12px;margin-top:22px;">CSI Holy Matrimony - CSI Tamil Parish, Dubai</p>
+      </div>`;
+
+    const approvers = await getApproverContacts(level);
+    if (approvers.length === 0) {
+      await sendAdminMail({ subject, html: body("Hello,") });
+      return;
+    }
+    for (const a of approvers) {
+      await sendMail({ to: a.email, subject, html: body(`Hello ${a.name},`) });
+    }
+  } catch (err) {
+    console.error("[notifications] notifyLevelApprovers failed:", err);
+  }
 }
 
 /**

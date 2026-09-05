@@ -1,5 +1,6 @@
 import type {
   AdminUser,
+  ApprovalLogEntry,
   ContactRequest,
   ContactRequestStatus,
   ContactReveal,
@@ -230,6 +231,13 @@ export const api = {
     });
   },
 
+  resetPassword(email: string, emailToken: string, newPassword: string, scope: "admin" | "member"): Promise<{ message: string }> {
+    return http<{ message: string }>(`/auth/reset-password`, {
+      method: "POST",
+      body: JSON.stringify({ email, emailToken, newPassword, scope }),
+    });
+  },
+
   login(username: string, password: string): Promise<MemberSession> {
     return http<MemberSession>(`/auth/login`, {
       method: "POST",
@@ -269,6 +277,32 @@ export const api = {
 
   getVerifyQueue(): Promise<VerifyQueueItem[]> {
     return http<VerifyQueueItem[]>(`/admin/verify-queue`);
+  },
+
+  getChecklist(): Promise<Record<number, string[]>> {
+    return http<Record<number, string[]>>(`/admin/checklist`);
+  },
+
+  getApprovers(): Promise<Record<number, string[]>> {
+    return http<Record<number, string[]>>(`/admin/approvers`);
+  },
+
+  saveApprovers(config: Record<number, string[]>): Promise<void> {
+    return http<void>(`/admin/approvers`, {
+      method: "PUT",
+      body: JSON.stringify(config),
+    });
+  },
+
+  getApprovalLog(): Promise<ApprovalLogEntry[]> {
+    return http<ApprovalLogEntry[]>(`/admin/approval-log`);
+  },
+
+  saveChecklist(config: Record<number, string[]>): Promise<void> {
+    return http<void>(`/admin/checklist`, {
+      method: "PUT",
+      body: JSON.stringify(config),
+    });
   },
 
   approveProfileLevel(id: string, level: number, checklist: string[]): Promise<void> {

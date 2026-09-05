@@ -45,11 +45,17 @@ export default function VerifyQueue() {
   const [checked, setChecked] = useState<Record<string, string[]>>({});
   const [reject, setReject] = useState<VerifyQueueItem | null>(null);
   const [reason, setReason] = useState("");
+  // Checklist is admin-configurable (see /admin/checklists); fall back to the built-in defaults.
+  const [checklist, setChecklist] = useState<Record<number, string[]>>(APPROVAL_CHECKLIST);
 
   const load = useCallback(() => {
     api.getVerifyQueue().then(setRows).catch(() => setRows([]));
   }, []);
-  useEffect(() => { api.getMe().then(setMe).catch(() => {}); load(); }, [load]);
+  useEffect(() => {
+    api.getMe().then(setMe).catch(() => {});
+    api.getChecklist().then(setChecklist).catch(() => {});
+    load();
+  }, [load]);
 
   function toggle(pid: string, item: string) {
     setChecked((c) => {
@@ -60,7 +66,7 @@ export default function VerifyQueue() {
 
   async function approve(p: VerifyQueueItem) {
     const level = p.approvalLevel + 1;
-    const items = APPROVAL_CHECKLIST[level] ?? [];
+    const items = checklist[level] ?? [];
     const done = checked[p.id] ?? [];
     if (!items.every((i) => done.includes(i))) return toast.error("Please confirm all checklist items first.");
     setBusy(p.id);
@@ -115,7 +121,7 @@ export default function VerifyQueue() {
           <div className="space-y-5">
             {rows.map((m, i) => {
               const nextLevel = m.approvalLevel + 1;
-              const items = APPROVAL_CHECKLIST[nextLevel] ?? [];
+              const items = checklist[nextLevel] ?? [];
               const done = checked[m.id] ?? [];
               const allChecked = items.every((it) => done.includes(it));
               const canApprove = myRank >= (LEVEL_MIN_RANK[nextLevel] ?? 99);

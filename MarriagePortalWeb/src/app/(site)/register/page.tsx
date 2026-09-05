@@ -123,6 +123,8 @@ export default function RegisterPage() {
     try {
       const res = await api.verifyEmailOtp(email, code);
       setEmailToken(res.token);
+      // Prefill the profile's contact email with the just-verified address (unless one is already typed).
+      if (!form.email?.trim()) set("email", email);
       toast.success(res.message);
     } catch (err) {
       setEmailToken(null);
