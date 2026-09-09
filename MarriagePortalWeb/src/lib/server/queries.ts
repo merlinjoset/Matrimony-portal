@@ -185,7 +185,7 @@ const ROLE_RANK: Record<string, number> = {
   "Super Admin": 3,
 };
 const LEVEL_MIN_RANK: Record<number, number> = { 1: 1, 2: 2, 3: 3 };
-export const LEVEL_LABEL: Record<number, string> = { 1: "Initial check", 2: "Presbyter review", 3: "Final approval" };
+export const LEVEL_LABEL: Record<number, string> = { 1: "Initial check", 2: "Admin review", 3: "Final approval" };
 
 /** Checklist the approver must confirm at each level before approving. */
 export const APPROVAL_CHECKLIST: Record<number, string[]> = {

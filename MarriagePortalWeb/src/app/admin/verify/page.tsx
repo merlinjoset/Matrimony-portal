@@ -106,7 +106,7 @@ export default function VerifyQueue() {
     <>
       <AdminHeader
         title="Verification Queue"
-        subtitle="Three-level approval - Initial check → Presbyter review → Final approval."
+        subtitle="Three-level approval - Initial check → Admin review → Final approval."
       />
       <div className="p-7">
         <div className="mb-4 rounded-lg border border-brand-green/25 bg-brand-green/10 px-4 py-3 text-sm text-brand-green">

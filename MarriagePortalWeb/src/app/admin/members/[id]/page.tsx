@@ -142,7 +142,7 @@ export default function AdminMemberDetail() {
                       Verify in queue →
                     </Button>
                     <p className="text-[12px] leading-snug text-muted-foreground">
-                      A profile is approved only after the 3-level verification (Initial check → Presbyter review → Final approval). It cannot be approved directly here.
+                      A profile is approved only after the 3-level verification (Initial check → Admin review → Final approval). It cannot be approved directly here.
                     </p>
                     <Button size="sm" variant="outline" disabled={busy} onClick={() => { setReasonMode("reject"); setReason(""); }} className="border-destructive/40 text-destructive hover:bg-destructive/5">✕ Reject</Button>
                   </>

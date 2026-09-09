@@ -190,7 +190,7 @@ export const ADMIN_ROLES = [
 ] as const;
 
 // ---- 3-level listing verification ----
-export const LEVEL_LABEL: Record<number, string> = { 1: "Initial check", 2: "Presbyter review", 3: "Final approval" };
+export const LEVEL_LABEL: Record<number, string> = { 1: "Initial check", 2: "Admin review", 3: "Final approval" };
 export const APPROVAL_CHECKLIST: Record<number, string[]> = {
   1: [
     "Membership card matches the parish roster",
