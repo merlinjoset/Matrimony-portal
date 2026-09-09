@@ -138,12 +138,20 @@ export default function AdminMemberDetail() {
               <div className="grid gap-2">
                 {p.status === "Pending" && (
                   <>
-                    <Button size="sm" disabled={busy} onClick={() => setStatus("Verified", "Verified")} className="bg-brand-green text-white hover:bg-brand-green/90">✓ Approve</Button>
+                    <Button size="sm" render={<Link href="/admin/verify" />} nativeButton={false} className="bg-brand-green text-white hover:bg-brand-green/90">
+                      Verify in queue →
+                    </Button>
+                    <p className="text-[12px] leading-snug text-muted-foreground">
+                      A profile is approved only after the 3-level verification (Initial check → Presbyter review → Final approval). It cannot be approved directly here.
+                    </p>
                     <Button size="sm" variant="outline" disabled={busy} onClick={() => { setReasonMode("reject"); setReason(""); }} className="border-destructive/40 text-destructive hover:bg-destructive/5">✕ Reject</Button>
                   </>
                 )}
                 {p.status === "Rejected" && (
-                  <Button size="sm" disabled={busy} onClick={() => setStatus("Verified", "Verified")} className="bg-brand-green text-white hover:bg-brand-green/90">✓ Approve now</Button>
+                  <>
+                    <Button size="sm" disabled={busy} onClick={() => setStatus("Pending", "Pending")} className="bg-brand-green text-white hover:bg-brand-green/90">Re-open for verification</Button>
+                    <p className="text-[12px] leading-snug text-muted-foreground">Sends it back to the 3-level Verification Queue.</p>
+                  </>
                 )}
                 {(p.status === "Verified" || p.status === "Active") && (
                   <Button size="sm" variant="outline" disabled={busy} onClick={() => { setReasonMode("suspend"); setReason(""); }} className="border-destructive/40 text-destructive hover:bg-destructive/5">Suspend</Button>
