@@ -25,6 +25,16 @@ export async function POST(req: NextRequest) {
   const dto = (await req.json()) as CreateProfileInput;
   if (!dto.fullName || !dto.fullName.trim()) return new Response("Full name is required.", { status: 400 });
 
+  // Age gate: a listing's subject must be at least 21 (mirrors the client-side rule).
+  if (!dto.dateOfBirth) return new Response("Date of birth is required.", { status: 400 });
+  const dob = new Date(dto.dateOfBirth);
+  if (isNaN(dob.getTime())) return new Response("Invalid date of birth.", { status: 400 });
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const mm = now.getMonth() - dob.getMonth();
+  if (mm < 0 || (mm === 0 && now.getDate() < dob.getDate())) age--;
+  if (age < 21) return new Response("The person must be at least 21 years old.", { status: 400 });
+
   // Identity is proven by EITHER a valid parish membership card OR a verified-email token (non-members).
   let ownerMemberId: string | null;
   if (dto.emailToken) {

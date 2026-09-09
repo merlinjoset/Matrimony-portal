@@ -47,6 +47,26 @@ const empty: CreateProfileInput = {
   mainPhotoUrl: null,
 };
 
+const MIN_AGE = 21;
+
+/** Whole-years age for a YYYY-MM-DD string, or null if unparseable. */
+function ageOf(iso: string): number | null {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const t = new Date();
+  let a = t.getFullYear() - d.getFullYear();
+  const m = t.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && t.getDate() < d.getDate())) a--;
+  return a;
+}
+
+/** ISO date exactly `years` ago from today (for the date input's min/max bounds). */
+function isoYearsAgo(years: number): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - years);
+  return d.toISOString().slice(0, 10);
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
@@ -160,6 +180,8 @@ export default function RegisterPage() {
     e.preventDefault();
     if (!identityOk) return toast.error(authMode === "card" ? t("m_required") : t("otp_required"));
     if (!form.fullName.trim()) return toast.error(t("toast_name"));
+    if (!form.dateOfBirth) return toast.error(t("dob_req"));
+    if ((ageOf(form.dateOfBirth) ?? 0) < MIN_AGE) return toast.error(t("dob_min"));
     if (!agree) return toast.error(t("tc_req"));
     // Guests choose a username + password: this creates their member login (admin activates it).
     if (!member && (!username.trim() || password.length < 6)) return toast.error(t("acc_hint"));
@@ -432,7 +454,13 @@ export default function RegisterPage() {
                 <Input value={form.fullName} onChange={(e) => set("fullName", e.target.value)} required />
               </Field>
               <Field label={t("l_dob")}>
-                <Input type="date" value={form.dateOfBirth ?? ""} onChange={(e) => set("dateOfBirth", e.target.value)} />
+                <Input
+                  type="date"
+                  value={form.dateOfBirth ?? ""}
+                  max={isoYearsAgo(MIN_AGE)}
+                  min={isoYearsAgo(100)}
+                  onChange={(e) => set("dateOfBirth", e.target.value)}
+                />
               </Field>
               <Field label={t("l_gender")}>
                 <Select value={form.gender} onValueChange={(v) => set("gender", (v ?? "Female") as Gender)}>
