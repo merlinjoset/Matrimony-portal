@@ -80,6 +80,9 @@ export interface ProfileQuery {
   live?: boolean;
   page?: number;
   pageSize?: number;
+  /** Include each listing's photo URL. Off by default so member-facing lists never leak
+   *  photos - a photo is only revealed on the profile page after the owner approves. */
+  includePhotos?: boolean;
 }
 
 /** Normalise a filter value that may be a single string, a comma-list, or an array into a clean string[]. */
@@ -112,7 +115,10 @@ export async function browseProfiles(q: ProfileQuery): Promise<PagedResult<Profi
     ORDER BY "CreatedAt" DESC
     OFFSET ${(page - 1) * pageSize} LIMIT ${pageSize}`;
 
-  return { items: rows.map((r) => toListItem(r as Row)), total, page, pageSize };
+  const items = rows.map((r) => toListItem(r as Row));
+  // Photos are private: strip them from list results unless explicitly requested (admin views).
+  if (!q.includePhotos) for (const it of items) it.mainPhotoUrl = null;
+  return { items, total, page, pageSize };
 }
 
 export async function getProfile(id: string): Promise<ProfileDetail | null> {
@@ -519,15 +525,18 @@ export async function requestContact(profileId: string, requesterMemberId: strin
 }
 
 export async function getContactReveal(profileId: string, viewerMemberId: string): Promise<ContactReveal> {
-  const p = (await sql`SELECT "Mobile","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
-  if (!p) return { status: null, mobile: null, isOwner: false };
+  const p = (await sql`SELECT "Mobile","MainPhotoUrl","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
+  if (!p) return { status: null, mobile: null, photoUrl: null, isOwner: false };
+  const photo = (p.MainPhotoUrl as string) ?? null;
   if (p.OwnerMemberId && p.OwnerMemberId === viewerMemberId) {
-    return { status: "Approved", mobile: (p.Mobile as string) ?? null, isOwner: true };
+    return { status: "Approved", mobile: (p.Mobile as string) ?? null, photoUrl: photo, isOwner: true };
   }
   const req = (await sql`SELECT "Status" FROM "TblContactRequests" WHERE "RequesterMemberId" = ${viewerMemberId} AND "ProfileId" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
-  if (!req) return { status: null, mobile: null, isOwner: false };
+  if (!req) return { status: null, mobile: null, photoUrl: null, isOwner: false };
   const status = req.Status as ContactReveal["status"];
-  return { status, mobile: status === "Approved" ? ((p.Mobile as string) ?? null) : null, isOwner: false };
+  const approved = status === "Approved";
+  // One approval reveals both the contact number and the photo.
+  return { status, mobile: approved ? ((p.Mobile as string) ?? null) : null, photoUrl: approved ? photo : null, isOwner: false };
 }
 
 export async function listIncomingContactRequests(ownerMemberId: string): Promise<ContactRequest[]> {

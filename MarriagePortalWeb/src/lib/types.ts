@@ -286,5 +286,6 @@ export interface ContactRequest {
 export interface ContactReveal {
   status: ContactRequestStatus | null; // null = not requested yet
   mobile: string | null; // set only when owner or approved
+  photoUrl: string | null; // set only when owner or approved (photo is private until approved)
   isOwner: boolean;
 }

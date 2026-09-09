@@ -8,5 +8,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const p = await getProfile(id);
   if (!p) notFound();
-  return <ProfileDetailView p={p} />;
+  // The photo is private: never send the URL in the page payload. The client reveals it
+  // through the contact/photo request flow (getContact) once the owner approves.
+  const hasPhoto = !!p.mainPhotoUrl;
+  return <ProfileDetailView p={{ ...p, mainPhotoUrl: null }} hasPhoto={hasPhoto} />;
 }

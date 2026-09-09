@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { browseProfiles, createProfile, validateMembership } from "@/lib/server/queries";
 import { guestMemberId, verifyEmailToken } from "@/lib/server/otp";
 import { notifyLevelApprovers, notifyNewProfile } from "@/lib/server/notifications";
+import { requireAdmin } from "@/lib/server/guard";
 import type { CreateProfileInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,8 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const p = req.nextUrl.searchParams;
   const num = (v: string | null) => (v ? Number(v) : undefined);
+  // Only admins get photo URLs in list results; everyone else must request-and-be-approved per profile.
+  const isAdmin = (await requireAdmin()).ok;
   const result = await browseProfiles({
     gender: p.get("gender") ?? undefined,
     denomination: p.get("denomination") ?? undefined,
@@ -17,6 +20,7 @@ export async function GET(req: NextRequest) {
     live: p.get("live") === "true",
     page: num(p.get("page")),
     pageSize: num(p.get("pageSize")),
+    includePhotos: isAdmin,
   });
   return Response.json(result);
 }

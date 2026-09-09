@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ import { MemberGate } from "@/components/member-gate";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 import { api } from "@/lib/api";
-import { REPORT_REASONS, type ProfileDetail } from "@/lib/types";
+import { REPORT_REASONS, type ContactReveal, type ProfileDetail } from "@/lib/types";
 import {
   Select,
   SelectContent,
@@ -46,17 +47,17 @@ function Row({ label, value }: { label: string; value?: string | number | null }
   );
 }
 
-export function ProfileDetailView({ p }: { p: ProfileDetail }) {
+export function ProfileDetailView({ p, hasPhoto = false }: { p: ProfileDetail; hasPhoto?: boolean }) {
   return (
     <MemberGate>
-      <ProfileDetailContent p={p} />
+      <ProfileDetailContent p={p} hasPhoto={hasPhoto} />
     </MemberGate>
   );
 }
 
-function ProfileDetailContent({ p }: { p: ProfileDetail }) {
+function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boolean }) {
   const { t } = useT();
-  const { has, toggle, member } = useMemberShortlist();
+  const { has, toggle, member, openSignIn } = useMemberShortlist();
   const saved = has(p.id);
 
   const [open, setOpen] = useState(false);
@@ -68,15 +69,33 @@ function ProfileDetailContent({ p }: { p: ProfileDetail }) {
   const [reportDetails, setReportDetails] = useState("");
   const [reporting, setReporting] = useState(false);
 
-  // Owner-only photo editing.
-  const [isOwner, setIsOwner] = useState(false);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(p.mainPhotoUrl);
+  // Photo is private: revealed by the contact/photo request flow (owner or approved viewer).
+  const [reveal, setReveal] = useState<ContactReveal | null>(null);
+  const isOwner = !!reveal?.isOwner;
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [reqBusy, setReqBusy] = useState(false);
 
   useEffect(() => {
-    if (!member) { setIsOwner(false); return; }
-    api.getContact(p.id, member.memberId).then((r) => setIsOwner(r.isOwner)).catch(() => setIsOwner(false));
+    if (!member) { setReveal(null); setPhotoUrl(null); return; }
+    api.getContact(p.id, member.memberId)
+      .then((r) => { setReveal(r); setPhotoUrl(r.photoUrl); })
+      .catch(() => { setReveal(null); setPhotoUrl(null); });
   }, [member, p.id]);
+
+  async function requestPhoto() {
+    if (!member) { openSignIn(); return; }
+    setReqBusy(true);
+    try {
+      await api.requestContact(p.id, member.memberId);
+      setReveal({ status: "Pending", mobile: null, photoUrl: null, isOwner: false });
+      toast.success(t("photo_requested"));
+    } catch {
+      toast.error(t("c_req_err"));
+    } finally {
+      setReqBusy(false);
+    }
+  }
 
   async function onChangePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -158,10 +177,35 @@ function ProfileDetailContent({ p }: { p: ProfileDetail }) {
             {photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photoUrl} alt={p.fullName} className="h-full w-full object-cover" />
+            ) : hasPhoto ? (
+              <div className="flex flex-col items-center gap-2 px-6 text-center">
+                <Lock className="size-8 opacity-90" />
+                <span className="text-sm font-medium opacity-90">{t("photo_locked")}</span>
+              </div>
             ) : (
               initials(p.fullName)
             )}
           </div>
+
+          {/* Photo is private - a non-owner requests it and the member approves before it shows. */}
+          {!isOwner && hasPhoto && !photoUrl && (
+            <div className="mt-2">
+              {reveal?.status === "Pending" ? (
+                <p className="text-sm font-medium text-amber-700">{t("photo_pending")}</p>
+              ) : reveal?.status === "Declined" ? (
+                <p className="text-sm text-muted-foreground">{t("photo_declined")}</p>
+              ) : (
+                <Button
+                  onClick={requestPhoto}
+                  disabled={reqBusy}
+                  variant="outline"
+                  className="w-full border-gold text-maroon hover:bg-gold/10"
+                >
+                  {reqBusy ? t("photo_requesting") : t("photo_request")}
+                </Button>
+              )}
+            </div>
+          )}
           {isOwner && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <label className="cursor-pointer">

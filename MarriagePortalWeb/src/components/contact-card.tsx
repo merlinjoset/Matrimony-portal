@@ -35,7 +35,7 @@ export function ContactCard({ profileId }: { profileId: string }) {
     setBusy(true);
     try {
       await api.requestContact(profileId, member.memberId);
-      setReveal({ status: "Pending", mobile: null, isOwner: false });
+      setReveal({ status: "Pending", mobile: null, photoUrl: null, isOwner: false });
       toast.success(t("c_req_sent"));
     } catch {
       toast.error(t("c_req_err"));

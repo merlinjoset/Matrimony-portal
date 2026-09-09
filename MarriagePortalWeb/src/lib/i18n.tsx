@@ -174,6 +174,12 @@ const en: Dict = {
   c_owner_note: "This is your profile - your contact number.",
   c_req_sent: "Request sent. The member will be asked to approve.",
   c_req_err: "Could not send the request. Is the API running?",
+  photo_locked: "Photo is private",
+  photo_request: "🔒 Request to view photo",
+  photo_requesting: "Sending…",
+  photo_pending: "⏳ Photo requested - shown after the member approves.",
+  photo_declined: "The member declined to share their photo.",
+  photo_requested: "Request sent. The photo is shown once the member approves.",
 
   // contact requests page
   nav_requests: "Requests",
@@ -464,6 +470,12 @@ const ta: Dict = {
   c_owner_note: "இது உங்கள் சுயவிவரம் - உங்கள் தொடர்பு எண்.",
   c_req_sent: "கோரிக்கை அனுப்பப்பட்டது. உறுப்பினர் அங்கீகரிக்கக் கேட்கப்படுவார்.",
   c_req_err: "கோரிக்கையை அனுப்ப முடியவில்லை. API இயங்குகிறதா?",
+  photo_locked: "புகைப்படம் தனிப்பட்டது",
+  photo_request: "🔒 புகைப்படத்தைக் காண கோரு",
+  photo_requesting: "அனுப்புகிறது…",
+  photo_pending: "⏳ புகைப்படம் கோரப்பட்டது - உறுப்பினர் அங்கீகரித்த பிறகு காட்டப்படும்.",
+  photo_declined: "உறுப்பினர் தமது புகைப்படத்தைப் பகிர மறுத்துவிட்டார்.",
+  photo_requested: "கோரிக்கை அனுப்பப்பட்டது. உறுப்பினர் அங்கீகரித்தவுடன் புகைப்படம் காட்டப்படும்.",
 
   // contact requests page
   nav_requests: "கோரிக்கைகள்",
