@@ -1,14 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeroSearch } from "@/components/home/hero-search";
+import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 
 export function HomeHero() {
   const { t } = useT();
   const { member } = useMemberShortlist();
+  // Live count of publicly-listed profiles (Verified + Active). Hidden until at least one exists.
+  const [listed, setListed] = useState<number | null>(null);
+  useEffect(() => {
+    api.getStats().then((s) => setListed(s.verified + s.active)).catch(() => {});
+  }, []);
   return (
     <section className="border-b border-border bg-gradient-to-b from-white to-cream">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2">
@@ -34,6 +41,7 @@ export function HomeHero() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-7">
+            {listed !== null && listed > 0 && <Stat n={String(listed)} label={t("stat_profiles")} />}
             <Stat n="3" label={t("stat_congregations")} />
           </div>
 

@@ -29,6 +29,7 @@ const en: Dict = {
   private_circ: "Private Use Only",
   stat_verified: "Verified faithful profiles",
   stat_congregations: "UAE congregations",
+  stat_profiles: "Profiles listed",
   stat_marriages: "Holy matrimonies",
 
   // search card
@@ -324,6 +325,7 @@ const ta: Dict = {
   private_circ: "தனிப்பட்ட பயன்பாட்டிற்கு மட்டும்",
   stat_verified: "சரிபார்க்கப்பட்ட சுயவிவரங்கள்",
   stat_congregations: "ஐ.அ.எ. சபைகள்",
+  stat_profiles: "பட்டியலிடப்பட்ட சுயவிவரங்கள்",
   stat_marriages: "புனித திருமணங்கள்",
 
   find_match: "உங்கள் துணையைக் கண்டறியுங்கள்",
