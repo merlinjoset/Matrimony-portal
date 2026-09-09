@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -36,6 +37,7 @@ const ShortlistContext = createContext<Ctx | null>(null);
 
 export function MemberShortlistProvider({ children }: { children: React.ReactNode }) {
   const { t } = useT();
+  const router = useRouter();
   const [member, setMember] = useState<MemberSession | null>(null);
   const [ready, setReady] = useState(false);
   const [items, setItems] = useState<ProfileListItem[]>([]);
@@ -301,7 +303,11 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
             <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); setNotice(null); }}
+                onClick={() => {
+                  // First-time users create their account together with their profile on /register.
+                  if (mode === "signin") { setOpen(false); router.push("/register"); return; }
+                  setMode("signin"); setError(null); setNotice(null);
+                }}
                 className="text-[13px] font-semibold text-maroon hover:underline"
               >
                 {mode === "signin" ? t("su_switch") : t("si_switch")}
