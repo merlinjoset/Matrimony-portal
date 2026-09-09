@@ -387,6 +387,7 @@ export default function RegisterPage() {
                 <Select value={form.createdFor} onValueChange={setStr("createdFor")}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="Self">{t("o_self")}</SelectItem>
                     <SelectItem value="Son">{t("o_son")}</SelectItem>
                     <SelectItem value="Daughter">{t("o_daughter")}</SelectItem>
                     <SelectItem value="Ward">{t("o_ward")}</SelectItem>

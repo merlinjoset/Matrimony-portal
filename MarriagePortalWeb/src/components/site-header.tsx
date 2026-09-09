@@ -27,9 +27,9 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-gradient-to-b from-maroon to-maroon-2 text-white shadow-md">
-      <div className="mx-auto flex h-[68px] max-w-6xl items-center gap-3 px-5">
+      <div className="mx-auto flex h-[68px] max-w-6xl items-center gap-2 px-4 sm:gap-3 sm:px-5">
         <MobileNav />
-        <Link href="/" className="flex shrink-0 items-center gap-3">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5 sm:gap-3">
           <Image
             src="/emblem.jpg"
             alt="Church of South India"
@@ -38,9 +38,9 @@ export function SiteHeader() {
             className="shrink-0 rounded-full bg-white p-[3px] shadow"
             priority
           />
-          <span className="leading-tight">
-            <span className="block whitespace-nowrap text-[19px] font-bold tracking-wide">{t("brand")}</span>
-            <span className="block whitespace-nowrap text-[11px] opacity-85">{t("brand_sub")}</span>
+          <span className="min-w-0 leading-tight">
+            <span className="block truncate text-[16px] font-bold tracking-wide sm:text-[19px]">{t("brand")}</span>
+            <span className="block truncate text-[11px] opacity-85">{t("brand_sub")}</span>
           </span>
         </Link>
 
@@ -64,13 +64,13 @@ export function SiteHeader() {
         {/* Right-side controls */}
         <div className="ml-auto flex shrink-0 items-center gap-2">
           {/* Language toggle */}
-          <div className="flex items-center gap-0.5 rounded-full bg-black/20 p-0.5">
+          <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-black/20 p-0.5">
             {(["en", "ta"] as const).map((l) => (
               <button
                 key={l}
                 onClick={() => setLang(l)}
                 className={cn(
-                  "whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-bold transition",
+                  "whitespace-nowrap rounded-full px-2.5 py-1 text-[12px] font-bold transition sm:px-3 sm:py-1.5 sm:text-[13px]",
                   lang === l ? "bg-gold text-maroon" : "text-white/70 hover:text-white"
                 )}
               >

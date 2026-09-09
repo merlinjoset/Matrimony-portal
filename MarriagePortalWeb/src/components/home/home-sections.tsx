@@ -12,7 +12,7 @@ export function HomeHero() {
   return (
     <section className="border-b border-border bg-gradient-to-b from-white to-cream">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2">
-        <div>
+        <div className="min-w-0">
           <span className="mb-4 inline-block rounded-full border border-brand-green/25 bg-brand-green/10 px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-green">
             {t("hero_verse")}
           </span>
@@ -42,7 +42,9 @@ export function HomeHero() {
           </p>
         </div>
 
-        <HeroSearch />
+        <div className="min-w-0">
+          <HeroSearch />
+        </div>
       </div>
     </section>
   );
