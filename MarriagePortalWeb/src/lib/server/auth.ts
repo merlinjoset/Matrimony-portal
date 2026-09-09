@@ -324,10 +324,17 @@ export async function resetPasswordWithEmail(
   }
 
   if (scope === "admin") {
-    const rows = await sql`SELECT "Id" FROM "TblUsers" WHERE lower("Email") = lower(${v.email}) AND "IsDeleted" = false LIMIT 1`;
+    const rows = await sql`SELECT "Id","Status" FROM "TblUsers" WHERE lower("Email") = lower(${v.email}) AND "IsDeleted" = false LIMIT 1`;
     if (!rows[0]) return { ok: false, status: 404, message: "No staff account found for this email address." };
     const r = await setAdminUserPassword(rows[0].Id as string, newPassword);
-    return r.ok ? { ok: true, status: 200, message: "Password updated. You can now sign in with your new password." } : r;
+    if (!r.ok) return r;
+    // An email-verified password set completes a pending invite, so activate the account.
+    // (A deliberately Disabled account is left disabled - only Invited is promoted.)
+    if (rows[0].Status === "Invited") {
+      await sql`UPDATE "TblUsers" SET "Status" = 'Active', "UpdatedAt" = now() WHERE "Id" = ${rows[0].Id as string}`;
+      return { ok: true, status: 200, message: "Password set and your staff account is now active. You can sign in." };
+    }
+    return { ok: true, status: 200, message: "Password updated. You can now sign in with your new password." };
   }
 
   const rows = await sql`SELECT "Id" FROM "TblMemberAccounts" WHERE lower("Email") = lower(${v.email}) AND "IsDeleted" = false LIMIT 1`;

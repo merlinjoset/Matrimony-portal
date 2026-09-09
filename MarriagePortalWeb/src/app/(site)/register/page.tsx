@@ -558,7 +558,7 @@ export default function RegisterPage() {
           <div className="flex flex-wrap gap-3">
             <Button
               type="submit"
-              disabled={saving || !membership?.valid || !agree}
+              disabled={saving || !identityOk || !agree}
               className="bg-gold text-maroon hover:bg-gold! hover:brightness-105"
             >
               {saving ? t("submitting") : t("submit_btn")}

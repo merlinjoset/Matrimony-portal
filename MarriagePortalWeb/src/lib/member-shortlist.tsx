@@ -49,6 +49,20 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<ProfileListItem | null>(null);
+  // Non-member sign-up via email OTP (an alternative to the membership card).
+  const [authMode, setAuthMode] = useState<"card" | "email">("card");
+  const [guestName, setGuestName] = useState("");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [emailToken, setEmailToken] = useState<string | null>(null);
+
+  function resetSignupExtras() {
+    setAuthMode("card"); setGuestName(""); setOtpEmail(""); setOtpCode("");
+    setOtpSent(false); setEmailToken(null);
+  }
 
   // restore session
   useEffect(() => {
@@ -110,13 +124,49 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
     }
   }
 
+  async function sendOtp() {
+    const email = otpEmail.trim();
+    if (!email) return;
+    setOtpSending(true); setError(null); setNotice(null);
+    try {
+      const res = await api.sendEmailOtp(email);
+      setOtpSent(true); setEmailToken(null);
+      setNotice(res.message);
+    } catch (e) {
+      setError(e instanceof Error && e.message ? e.message : t("ei_err"));
+    } finally {
+      setOtpSending(false);
+    }
+  }
+
+  async function verifyOtp() {
+    const email = otpEmail.trim();
+    const code = otpCode.trim();
+    if (!email || code.length !== 6) return;
+    setOtpVerifying(true); setError(null); setNotice(null);
+    try {
+      const res = await api.verifyEmailOtp(email, code);
+      setEmailToken(res.token);
+      setNotice(t("otp_verified"));
+    } catch (e) {
+      setEmailToken(null);
+      setError(e instanceof Error && e.message ? e.message : t("ei_err"));
+    } finally {
+      setOtpVerifying(false);
+    }
+  }
+
   async function signUp() {
-    if (!card.trim() || !username.trim() || !password) return;
+    const emailMode = authMode === "email";
+    if (emailMode ? (!emailToken || !username.trim() || !password) : (!card.trim() || !username.trim() || !password)) return;
     setBusy(true); setError(null); setNotice(null);
     try {
-      const res = await api.signup(card.trim(), username.trim(), password);
+      const res = emailMode
+        ? await api.signupGuest(otpEmail.trim(), emailToken!, username.trim(), password, guestName.trim())
+        : await api.signup(card.trim(), username.trim(), password);
       setNotice(res.message ?? t("su_ok"));
       setMode("signin"); setPassword("");
+      resetSignupExtras();
     } catch (e) {
       setError(e instanceof Error && e.message ? e.message : t("ei_err"));
     } finally {
@@ -126,18 +176,23 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
 
   const signOut = () => { persistMember(null); setItems([]); toast.success(t("toast_signed_out")); };
 
-  const canSubmit = mode === "signin" ? !!username.trim() && !!password : !!card.trim() && !!username.trim() && !!password;
+  const canSubmit =
+    mode === "signin"
+      ? !!username.trim() && !!password
+      : authMode === "email"
+        ? !!emailToken && !!username.trim() && !!password
+        : !!card.trim() && !!username.trim() && !!password;
 
   return (
     <ShortlistContext.Provider
       value={{ member, ready, items, count: items.length, has, toggle, remove, signOut, openSignIn: () => setOpen(true) }}
     >
       {children}
-      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setError(null); setNotice(null); setPending(null); setMode("signin"); } }}>
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setError(null); setNotice(null); setPending(null); setMode("signin"); resetSignupExtras(); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{mode === "reset" ? t("fp_title") : mode === "signin" ? t("signin_title") : t("su_title")}</DialogTitle>
-            <DialogDescription>{mode === "reset" ? "" : mode === "signin" ? t("signin_intro") : t("su_intro")}</DialogDescription>
+            <DialogDescription>{mode === "reset" ? "" : mode === "signin" ? t("signin_intro") : authMode === "email" ? t("otp_hint") : t("su_intro")}</DialogDescription>
           </DialogHeader>
           {mode === "reset" ? (
             <div className="py-2">
@@ -146,13 +201,80 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
           ) : (
           <div className="space-y-3 py-2">
             {mode === "signup" && (
-              <div className="space-y-1.5">
-                <Label>{t("l_membership")}</Label>
-                <Input
-                  value={card}
-                  onChange={(e) => { setCard(e.target.value); setError(null); }}
-                  placeholder={t("ph_membership")}
-                />
+              <div className="space-y-3">
+                {/* Parish member (card) vs non-member (email verification) */}
+                <div className="inline-flex w-full rounded-lg border border-border p-0.5 text-[13px] font-medium">
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode("card"); setError(null); }}
+                    className={`flex-1 rounded-md px-3 py-1.5 transition ${authMode === "card" ? "bg-maroon text-white" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {t("reg_mode_member")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode("email"); setError(null); }}
+                    className={`flex-1 rounded-md px-3 py-1.5 transition ${authMode === "email" ? "bg-maroon text-white" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {t("reg_mode_guest")}
+                  </button>
+                </div>
+
+                {authMode === "card" ? (
+                  <div className="space-y-1.5">
+                    <Label>{t("l_membership")}</Label>
+                    <Input
+                      value={card}
+                      onChange={(e) => { setCard(e.target.value); setError(null); }}
+                      placeholder={t("ph_membership")}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label>{t("l_otp_email")}</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="email"
+                          value={otpEmail}
+                          disabled={!!emailToken}
+                          onChange={(e) => { setOtpEmail(e.target.value); setEmailToken(null); setOtpSent(false); setError(null); }}
+                          placeholder={t("ph_otp_email")}
+                          className={`flex-1 ${emailToken ? "border-brand-green" : ""}`}
+                        />
+                        <Button type="button" variant="outline" disabled={otpSending || !otpEmail.trim() || !!emailToken} onClick={sendOtp}>
+                          {otpSending ? t("otp_sending") : otpSent ? t("otp_resend") : t("otp_send")}
+                        </Button>
+                      </div>
+                    </div>
+                    {otpSent && !emailToken && (
+                      <div className="space-y-1.5">
+                        <Label>{t("l_otp_code")}</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            inputMode="numeric"
+                            value={otpCode}
+                            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            placeholder="000000"
+                            className="flex-1"
+                          />
+                          <Button type="button" variant="outline" disabled={otpVerifying || otpCode.length !== 6} onClick={verifyOtp}>
+                            {otpVerifying ? t("otp_verifying") : t("otp_verify")}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {emailToken && (
+                      <div className="rounded-lg border border-brand-green/30 bg-brand-green/10 px-3 py-2 text-sm text-brand-green">
+                        {t("otp_verified")} - {otpEmail.trim()}
+                      </div>
+                    )}
+                    <div className="space-y-1.5">
+                      <Label>{t("l_fullname")}</Label>
+                      <Input value={guestName} onChange={(e) => setGuestName(e.target.value)} />
+                    </div>
+                  </>
+                )}
               </div>
             )}
             <div className="space-y-1.5">
