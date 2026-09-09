@@ -136,6 +136,10 @@ export const api = {
     return http<ProfileListItem[]>(`/members/${memberId}/shortlist`);
   },
 
+  hasProfile(memberId: string): Promise<{ hasProfile: boolean }> {
+    return http<{ hasProfile: boolean }>(`/members/${memberId}/has-profile`);
+  },
+
   addShortlist(memberId: string, profileId: string): Promise<void> {
     return http<void>(`/members/${memberId}/shortlist`, {
       method: "POST",

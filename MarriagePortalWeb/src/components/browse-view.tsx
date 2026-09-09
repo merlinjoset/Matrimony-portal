@@ -8,7 +8,7 @@ import type { ProfileListItem } from "@/lib/types";
 
 export function BrowseView(props: { items: ProfileListItem[]; total: number; error: boolean }) {
   return (
-    <MemberGate>
+    <MemberGate requireProfile>
       <BrowseContent {...props} />
     </MemberGate>
   );

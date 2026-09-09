@@ -49,7 +49,7 @@ function Row({ label, value }: { label: string; value?: string | number | null }
 
 export function ProfileDetailView({ p, hasPhoto = false }: { p: ProfileDetail; hasPhoto?: boolean }) {
   return (
-    <MemberGate>
+    <MemberGate requireProfile>
       <ProfileDetailContent p={p} hasPhoto={hasPhoto} />
     </MemberGate>
   );

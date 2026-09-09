@@ -461,7 +461,17 @@ export async function validateMembership(membershipNo: string): Promise<MemberVa
 async function findMemberById(id: string): Promise<{ name: string; congregation: string } | null> {
   const m = (await sql`SELECT "Name","Congregation" FROM "TblMembers" WHERE "Id" = ${id} AND "IsDeleted" = false LIMIT 1`)[0]
     ?? (await sql`SELECT "Name","Congregation" FROM "TblAGMMembers" WHERE "Id" = ${id} AND "IsDeleted" = false LIMIT 1`)[0];
-  return m ? { name: m.Name as string, congregation: m.Congregation as string } : null;
+  if (m) return { name: m.Name as string, congregation: m.Congregation as string };
+  // Guests (email-OTP accounts) are not in the parish roster - fall back to their member account
+  // so they can request contact and express interest just like parish members.
+  const a = (await sql`SELECT "Name" FROM "TblMemberAccounts" WHERE "MemberId" = ${id} AND "IsDeleted" = false LIMIT 1`)[0];
+  return a ? { name: a.Name as string, congregation: "" } : null;
+}
+
+/** True once the member owns at least one (non-deleted) listing. Gates browsing others. */
+export async function memberHasProfile(memberId: string): Promise<boolean> {
+  const rows = await sql`SELECT 1 FROM "TblProfiles" WHERE "OwnerMemberId" = ${memberId} AND "IsDeleted" = false LIMIT 1`;
+  return rows.length > 0;
 }
 
 // ---------- shortlist ----------
