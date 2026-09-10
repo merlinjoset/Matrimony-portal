@@ -140,6 +140,10 @@ export const api = {
     return http<{ hasProfile: boolean }>(`/members/${memberId}/has-profile`);
   },
 
+  getMemberSelf(memberId: string): Promise<{ name: string | null; mobile: string | null }> {
+    return http<{ name: string | null; mobile: string | null }>(`/members/${memberId}/self`);
+  },
+
   addShortlist(memberId: string, profileId: string): Promise<void> {
     return http<void>(`/members/${memberId}/shortlist`, {
       method: "POST",

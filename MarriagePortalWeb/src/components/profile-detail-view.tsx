@@ -63,6 +63,9 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [form, setForm] = useState({ fromName: "", fromMobile: "", message: "" });
+  // Pre-fill the member's own name + contact so Express Interest asks only for the message.
+  const [self, setSelf] = useState<{ name: string | null; mobile: string | null } | null>(null);
+  const prefilled = !!(self?.name && self?.mobile);
 
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState<string>(REPORT_REASONS[0]);
@@ -75,6 +78,16 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [reqBusy, setReqBusy] = useState(false);
+
+  useEffect(() => {
+    if (!member) { setSelf(null); return; }
+    api.getMemberSelf(member.memberId)
+      .then((s) => {
+        setSelf(s);
+        setForm((f) => ({ ...f, fromName: s.name ?? f.fromName, fromMobile: s.mobile ?? f.fromMobile }));
+      })
+      .catch(() => {});
+  }, [member]);
 
   useEffect(() => {
     if (!member) { setReveal(null); setPhotoUrl(null); return; }
@@ -286,14 +299,24 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
                 <DialogDescription>{t("ei_intro")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-2">
-                <div className="space-y-1.5">
-                  <Label>{t("ei_name")}</Label>
-                  <Input value={form.fromName} onChange={(e) => setForm({ ...form, fromName: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>{t("ei_mobile")}</Label>
-                  <Input value={form.fromMobile} onChange={(e) => setForm({ ...form, fromMobile: e.target.value })} placeholder="+971 …" />
-                </div>
+                {prefilled ? (
+                  <div className="rounded-lg border border-border bg-muted/40 px-3.5 py-2.5 text-sm">
+                    <span className="text-muted-foreground">{t("ei_sending_as")} </span>
+                    <span className="font-semibold">{form.fromName}</span>
+                    <span className="text-muted-foreground"> · {form.fromMobile}</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label>{t("ei_name")}</Label>
+                      <Input value={form.fromName} onChange={(e) => setForm({ ...form, fromName: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>{t("ei_mobile")}</Label>
+                      <Input value={form.fromMobile} onChange={(e) => setForm({ ...form, fromMobile: e.target.value })} placeholder="+971 …" />
+                    </div>
+                  </>
+                )}
                 <div className="space-y-1.5">
                   <Label>{t("ei_message")}</Label>
                   <Textarea rows={2} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />

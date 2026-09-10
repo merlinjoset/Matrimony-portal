@@ -482,6 +482,14 @@ export async function getProfileOwnerEmail(profileId: string): Promise<string | 
   return null;
 }
 
+/** The signed-in member's own name and contact number (from their account + their listing),
+ *  used to pre-fill "Express Interest" so they never re-enter details already on file. */
+export async function getMemberSelf(memberId: string): Promise<{ name: string | null; mobile: string | null }> {
+  const p = (await sql`SELECT "Mobile" FROM "TblProfiles" WHERE "OwnerMemberId" = ${memberId} AND "IsDeleted" = false ORDER BY "CreatedAt" DESC LIMIT 1`)[0];
+  const a = (await sql`SELECT "Name" FROM "TblMemberAccounts" WHERE "MemberId" = ${memberId} AND "IsDeleted" = false LIMIT 1`)[0];
+  return { name: a ? (a.Name as string) : null, mobile: p ? ((p.Mobile as string) ?? null) : null };
+}
+
 /** True once the member owns at least one (non-deleted) listing. Gates browsing others. */
 export async function memberHasProfile(memberId: string): Promise<boolean> {
   const rows = await sql`SELECT 1 FROM "TblProfiles" WHERE "OwnerMemberId" = ${memberId} AND "IsDeleted" = false LIMIT 1`;
