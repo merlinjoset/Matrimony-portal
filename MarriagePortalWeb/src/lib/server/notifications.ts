@@ -1,5 +1,5 @@
 import "server-only";
-import type { ProfileDetail } from "@/lib/types";
+import type { ContactRequest, ProfileDetail } from "@/lib/types";
 import { LEVEL_LABEL } from "@/lib/types";
 import type { ReverifyDue } from "./queries";
 import { sendAdminMail, sendMail } from "./mailer";
@@ -109,6 +109,43 @@ export async function notifyLevelApprovers(profile: ProfileDetail, level: number
     }
   } catch (err) {
     console.error("[notifications] notifyLevelApprovers failed:", err);
+  }
+}
+
+/** Tell the profile owner their listing has been verified and is now live. Never throws. */
+export async function notifyProfileVerified(profile: ProfileDetail, to: string): Promise<void> {
+  try {
+    const cfg = await getEmailSettings();
+    const baseUrl = cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com";
+    const html = `
+      <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#2c2522;">
+        <h2 style="color:#3f6b54;margin:0 0 6px;">Your profile is verified &#10003;</h2>
+        <p style="color:#6b6b6b;margin:0 0 16px;">Good news, ${profile.fullName}. Your matrimony listing <strong>${profile.referenceId}</strong> has completed the parish verification and is now live for other members to view.</p>
+        <a href="${baseUrl}/profiles/${profile.id}" style="display:inline-block;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">View your profile</a>
+        <p style="color:#9a8f84;font-size:12px;margin-top:22px;">CSI Holy Matrimony - CSI Tamil Parish, Dubai</p>
+      </div>`;
+    await sendMail({ to, subject: `Your profile is verified - ${profile.referenceId}`, html });
+  } catch (err) {
+    console.error("[notifications] notifyProfileVerified failed:", err);
+  }
+}
+
+/** Tell the profile owner that someone has requested to view their contact and photo. Never throws. */
+export async function notifyContactRequested(req: ContactRequest, to: string): Promise<void> {
+  try {
+    const cfg = await getEmailSettings();
+    const baseUrl = cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com";
+    const from = req.requesterCongregation ? `${req.requesterName} (${req.requesterCongregation})` : req.requesterName;
+    const html = `
+      <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#2c2522;">
+        <h2 style="color:#8a2a38;margin:0 0 6px;">New request to connect</h2>
+        <p style="color:#6b6b6b;margin:0 0 16px;"><strong>${from}</strong> has requested to view the contact details and photo for your listing <strong>${req.profileName}</strong> (${req.profileReferenceId}). Please review the request and approve or decline it.</p>
+        <a href="${baseUrl}/requests" style="display:inline-block;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Open your requests</a>
+        <p style="color:#9a8f84;font-size:12px;margin-top:22px;">CSI Holy Matrimony - CSI Tamil Parish, Dubai. Your details are shared only after you approve.</p>
+      </div>`;
+    await sendMail({ to, subject: `New contact request for ${req.profileName}`, html });
+  } catch (err) {
+    console.error("[notifications] notifyContactRequested failed:", err);
   }
 }
 

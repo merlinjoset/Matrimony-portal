@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, LogOut, Heart, Inbox } from "lucide-react";
+import { api } from "@/lib/api";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -23,7 +24,16 @@ export function MemberMenu() {
   const { member, signOut } = useMemberShortlist();
   const { t } = useT();
   const [open, setOpen] = useState(false);
+  const [pendingReq, setPendingReq] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+
+  // Count of incoming requests still awaiting the member's approval.
+  useEffect(() => {
+    if (!member) { setPendingReq(0); return; }
+    api.getIncomingContactRequests(member.memberId)
+      .then((rs) => setPendingReq(rs.filter((r) => r.status === "Pending").length))
+      .catch(() => {});
+  }, [member]);
 
   useEffect(() => {
     if (!open) return;
@@ -49,8 +59,13 @@ export function MemberMenu() {
         aria-expanded={open}
         className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-white"
       >
-        <span className="grid size-8 place-items-center rounded-full bg-gold text-[12.5px] font-bold text-maroon">
+        <span className="relative grid size-8 place-items-center rounded-full bg-gold text-[12.5px] font-bold text-maroon">
           {initials(member.name)}
+          {pendingReq > 0 && (
+            <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-white text-[10px] font-bold text-maroon shadow ring-1 ring-maroon/20">
+              {pendingReq > 9 ? "9+" : pendingReq}
+            </span>
+          )}
         </span>
         <ChevronDown className={cn("size-4 shrink-0 transition-transform", open && "rotate-180")} />
       </button>
@@ -80,6 +95,11 @@ export function MemberMenu() {
               role="menuitem"
             >
               <Inbox className="size-4 text-maroon" /> {t("nav_requests")}
+              {pendingReq > 0 && (
+                <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-gold px-1.5 text-[11px] font-bold text-maroon">
+                  {pendingReq}
+                </span>
+              )}
             </Link>
             <button
               onClick={() => { setOpen(false); signOut(); }}

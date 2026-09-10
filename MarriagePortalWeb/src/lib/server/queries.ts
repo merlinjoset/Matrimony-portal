@@ -36,6 +36,7 @@ function toListItem(r: Row): ProfileListItem {
   return {
     id: r.Id as string,
     referenceId: r.ReferenceId as string,
+    ownerMemberId: (r.OwnerMemberId as string) ?? null,
     fullName: r.FullName as string,
     gender: r.Gender as ProfileListItem["gender"],
     age: computeAge(r.DateOfBirth),
@@ -68,7 +69,7 @@ function toDetail(r: Row): ProfileDetail {
   };
 }
 
-const LIST_COLS = sql`"Id","ReferenceId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
+const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
 const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Denomination","HomeParish","Congregation","AboutFaith","Expectations","Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
 
 // ---------- profiles ----------
@@ -466,6 +467,19 @@ async function findMemberById(id: string): Promise<{ name: string; congregation:
   // so they can request contact and express interest just like parish members.
   const a = (await sql`SELECT "Name" FROM "TblMemberAccounts" WHERE "MemberId" = ${id} AND "IsDeleted" = false LIMIT 1`)[0];
   return a ? { name: a.Name as string, congregation: "" } : null;
+}
+
+/** Best email to reach a profile's owner: the profile's own contact email, else the owner
+ *  account's email (guests always have one from the email-OTP sign-up). Null if none on file. */
+export async function getProfileOwnerEmail(profileId: string): Promise<string | null> {
+  const p = (await sql`SELECT "Email","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
+  if (!p) return null;
+  if (p.Email) return p.Email as string;
+  if (p.OwnerMemberId) {
+    const a = (await sql`SELECT "Email" FROM "TblMemberAccounts" WHERE "MemberId" = ${p.OwnerMemberId} AND "IsDeleted" = false AND "Email" IS NOT NULL LIMIT 1`)[0];
+    if (a) return a.Email as string;
+  }
+  return null;
 }
 
 /** True once the member owns at least one (non-deleted) listing. Gates browsing others. */

@@ -227,24 +227,27 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
               <span className="text-[11.5px] text-muted-foreground">This is your profile</span>
             </div>
           )}
-          <div className="mt-4 grid gap-2.5">
-            <Button onClick={() => setOpen(true)} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
-              {t("express_interest")}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => toggle(p)}
-              className={saved ? "border-gold bg-gold/10 text-maroon" : ""}
-            >
-              {saved ? t("shortlisted") : t("shortlist")}
-            </Button>
-            <button
-              onClick={() => setReportOpen(true)}
-              className="mt-1 text-center text-[12.5px] font-medium text-muted-foreground hover:text-destructive"
-            >
-              ⚑ Report this profile
-            </button>
-          </div>
+          {/* Actions apply only to other members' profiles - hidden on your own. */}
+          {!isOwner && (
+            <div className="mt-4 grid gap-2.5">
+              <Button onClick={() => setOpen(true)} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
+                {t("express_interest")}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => toggle(p)}
+                className={saved ? "border-gold bg-gold/10 text-maroon" : ""}
+              >
+                {saved ? t("shortlisted") : t("shortlist")}
+              </Button>
+              <button
+                onClick={() => setReportOpen(true)}
+                className="mt-1 text-center text-[12.5px] font-medium text-muted-foreground hover:text-destructive"
+              >
+                ⚑ Report this profile
+              </button>
+            </div>
+          )}
 
           <Dialog open={reportOpen} onOpenChange={setReportOpen}>
             <DialogContent className="sm:max-w-md">

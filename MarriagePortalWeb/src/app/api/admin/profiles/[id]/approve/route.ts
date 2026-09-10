@@ -1,5 +1,5 @@
-import { approveProfileLevel, getProfile } from "@/lib/server/queries";
-import { notifyLevelApprovers } from "@/lib/server/notifications";
+import { approveProfileLevel, getProfile, getProfileOwnerEmail } from "@/lib/server/queries";
+import { notifyLevelApprovers, notifyProfileVerified } from "@/lib/server/notifications";
 import { requireAdmin } from "@/lib/server/guard";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +26,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       if (profile) await notifyLevelApprovers(profile, level + 1);
     } catch (err) {
       console.error("[approve] next-level notification failed:", err);
+    }
+  } else {
+    // Final approval - the profile is now Verified/live. Tell the owner by email.
+    try {
+      const profile = await getProfile(id);
+      const to = await getProfileOwnerEmail(id);
+      if (profile && to) await notifyProfileVerified(profile, to);
+    } catch (err) {
+      console.error("[approve] verified notification failed:", err);
     }
   }
 

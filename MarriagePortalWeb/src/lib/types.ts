@@ -6,6 +6,7 @@ export type ProfileStatus = "Pending" | "Verified" | "Active" | "Committed" | "S
 export interface ProfileListItem {
   id: string;
   referenceId: string;
+  ownerMemberId: string | null; // used client-side to hide the viewer's own listing
   fullName: string;
   gender: Gender;
   age: number | null;
