@@ -23,9 +23,12 @@ export interface ProfileListItem {
 export interface ProfileDetail extends ProfileListItem {
   createdFor: string;
   lookingFor: string;
+  mobile: string | null; // admin-only; stripped from member-facing payloads
   email: string | null;
   maritalStatus: string;
   motherTongue: string;
+  caste: string | null;
+  nativePlace: string | null;
   homeParish: string;
   aboutFaith: string | null;
   expectations: string | null;
@@ -142,6 +145,8 @@ export interface CreateProfileInput {
   height?: string | null;
   maritalStatus: string;
   motherTongue: string;
+  caste?: string | null;
+  nativePlace?: string | null;
   denomination: string;
   homeParish: string;
   congregation: string;

@@ -32,6 +32,8 @@ const empty: CreateProfileInput = {
   height: "",
   maritalStatus: "Never married",
   motherTongue: "Tamil",
+  caste: "",
+  nativePlace: "",
   denomination: "CSI",
   homeParish: "",
   congregation: "Dubai",
@@ -488,6 +490,12 @@ export default function RegisterPage() {
               </Field>
               <Field label={t("l_city")}>
                 <Input value={form.city ?? ""} onChange={(e) => set("city", e.target.value)} placeholder="e.g. Dubai, UAE" />
+              </Field>
+              <Field label={t("l_caste")}>
+                <Input value={form.caste ?? ""} onChange={(e) => set("caste", e.target.value)} placeholder={t("ph_caste")} />
+              </Field>
+              <Field label={t("l_native")}>
+                <Input value={form.nativePlace ?? ""} onChange={(e) => set("nativePlace", e.target.value)} placeholder={t("ph_native")} />
               </Field>
             </div>
           </fieldset>

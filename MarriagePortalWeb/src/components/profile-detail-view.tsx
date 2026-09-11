@@ -358,6 +358,8 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
               <Row label={t("d_marital")} value={p.maritalStatus} />
               <Row label={t("d_location")} value={p.city} />
               <Row label={t("d_mtongue")} value={p.motherTongue} />
+              <Row label={t("l_caste")} value={p.caste} />
+              <Row label={t("l_native")} value={p.nativePlace} />
             </dl>
           </Card>
 

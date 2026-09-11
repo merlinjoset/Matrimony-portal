@@ -169,11 +169,14 @@ export default function AdminMemberDetail() {
               <Separator className="my-3" />
               <dl>
                 <Row label="Reference ID" value={p.referenceId} />
+                <Row label="Contact number" value={p.mobile} />
                 <Row label="Created for" value={p.createdFor} />
                 <Row label="Looking for" value={p.lookingFor} />
                 <Row label="Age / Height" value={[p.age ? `${p.age} yrs` : null, p.height].filter(Boolean).join(" · ")} />
                 <Row label="Marital status" value={p.maritalStatus} />
                 <Row label="Mother tongue" value={p.motherTongue} />
+                <Row label="Caste" value={p.caste} />
+                <Row label="Native place" value={p.nativePlace} />
                 <Row label="Location" value={p.city} />
               </dl>
             </Card>
