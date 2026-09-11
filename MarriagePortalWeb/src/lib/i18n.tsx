@@ -311,7 +311,7 @@ const en: Dict = {
   foot_office: "Contact",
   foot_explore: "Explore",
   foot_copy: "© 2026 CSI Tamil Parish Matrimony Ministry",
-  powered_by: "Powered by",
+  developed_by: "Developed by",
 };
 
 const ta: Dict = {
@@ -607,7 +607,7 @@ const ta: Dict = {
   foot_office: "தொடர்பு",
   foot_explore: "ஆராயுங்கள்",
   foot_copy: "© 2026 CSI தமிழ் திருச்சபை திருமண ஊழியம்",
-  powered_by: "உருவாக்கியவர்",
+  developed_by: "உருவாக்கியவர்",
 };
 
 const DICT: Record<Lang, Dict> = { en, ta };

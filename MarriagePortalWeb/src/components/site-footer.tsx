@@ -47,18 +47,20 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-t border-[#463d37] py-5 text-center text-xs text-[#9a8f84]">
-        <div>{t("foot_copy")}</div>
-        <div className="mt-1.5">
-          {t("powered_by")}{" "}
-          <a
-            href="http://merlinjose.tech"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-[#c9a24b] hover:underline"
-          >
-            Merlin Jose
-          </a>
+      <div className="border-t border-[#463d37] py-5 text-xs text-[#9a8f84]">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-6 text-center sm:text-left">
+          <div>{t("foot_copy")}</div>
+          <div className="ml-auto opacity-40 transition hover:opacity-100">
+            {t("developed_by")}{" "}
+            <a
+              href="http://merlinjose.tech"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#c9a24b] hover:underline"
+            >
+              Merlin Jose
+            </a>
+          </div>
         </div>
       </div>
     </footer>
