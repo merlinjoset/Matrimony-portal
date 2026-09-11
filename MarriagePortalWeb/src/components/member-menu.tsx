@@ -21,7 +21,7 @@ function initials(name: string) {
 
 /** Signed-in member account control: avatar + name button that opens a dropdown. */
 export function MemberMenu() {
-  const { member, signOut } = useMemberShortlist();
+  const { member, signOut, count } = useMemberShortlist();
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [pendingReq, setPendingReq] = useState(0);
@@ -87,6 +87,11 @@ export function MemberMenu() {
               role="menuitem"
             >
               <Heart className="size-4 text-maroon" /> {t("nav_shortlist")}
+              {count > 0 && (
+                <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-gold px-1.5 text-[11px] font-bold text-maroon">
+                  {count}
+                </span>
+              )}
             </Link>
             <Link
               href="/requests"
