@@ -5,10 +5,11 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const body = (await req.json()) as { requesterMemberId?: string };
+  const body = (await req.json()) as { requesterMemberId?: string; type?: "Contact" | "Photo" };
   if (!body.requesterMemberId) return new Response("Please sign in with your membership card to request contact.", { status: 400 });
+  const type = body.type === "Photo" ? "Photo" : "Contact";
   try {
-    const created = await requestContact(id, body.requesterMemberId);
+    const created = await requestContact(id, body.requesterMemberId, type);
     // Notify the profile owner of a fresh pending request (never blocks the response).
     if (created.status === "Pending") {
       try {

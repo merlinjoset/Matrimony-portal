@@ -104,6 +104,9 @@ export default function RequestsPage() {
                           {r.profileName} ({r.profileReferenceId})
                         </Link>
                       </p>
+                      <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${r.requestType === "Photo" ? "bg-maroon/10 text-maroon" : "bg-brand-green/10 text-brand-green"}`}>
+                        {r.requestType === "Photo" ? t("rq_type_photo") : t("rq_type_contact")}
+                      </span>
                     </div>
                     {r.status === "Pending" ? (
                       <div className="flex shrink-0 gap-2">

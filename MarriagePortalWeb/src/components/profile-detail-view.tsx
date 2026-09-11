@@ -100,8 +100,14 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
     if (!member) { openSignIn(); return; }
     setReqBusy(true);
     try {
-      await api.requestContact(p.id, member.memberId);
-      setReveal({ status: "Pending", mobile: null, photoUrl: null, isOwner: false });
+      await api.requestContact(p.id, member.memberId, "Photo");
+      setReveal((r) => ({
+        isOwner: false,
+        mobile: r?.mobile ?? null,
+        mobileStatus: r?.mobileStatus ?? null,
+        photoUrl: null,
+        photoStatus: "Pending",
+      }));
       toast.success(t("photo_requested"));
     } catch {
       toast.error(t("c_req_err"));
@@ -203,9 +209,9 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
           {/* Photo is private - a non-owner requests it and the member approves before it shows. */}
           {!isOwner && hasPhoto && !photoUrl && (
             <div className="mt-2">
-              {reveal?.status === "Pending" ? (
+              {reveal?.photoStatus === "Pending" ? (
                 <p className="text-sm font-medium text-amber-700">{t("photo_pending")}</p>
-              ) : reveal?.status === "Declined" ? (
+              ) : reveal?.photoStatus === "Declined" ? (
                 <p className="text-sm text-muted-foreground">{t("photo_declined")}</p>
               ) : (
                 <Button

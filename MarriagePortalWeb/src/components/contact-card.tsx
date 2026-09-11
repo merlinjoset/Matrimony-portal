@@ -34,8 +34,14 @@ export function ContactCard({ profileId }: { profileId: string }) {
     if (!member) { openSignIn(); return; }
     setBusy(true);
     try {
-      await api.requestContact(profileId, member.memberId);
-      setReveal({ status: "Pending", mobile: null, photoUrl: null, isOwner: false });
+      await api.requestContact(profileId, member.memberId, "Contact");
+      setReveal((r) => ({
+        isOwner: false,
+        mobile: null,
+        mobileStatus: "Pending",
+        photoUrl: r?.photoUrl ?? null,
+        photoStatus: r?.photoStatus ?? null,
+      }));
       toast.success(t("c_req_sent"));
     } catch {
       toast.error(t("c_req_err"));
@@ -59,9 +65,9 @@ export function ContactCard({ profileId }: { profileId: string }) {
           </a>
           {reveal.isOwner && <p className="mt-1 text-sm text-muted-foreground">{t("c_owner_note")}</p>}
         </div>
-      ) : reveal?.status === "Pending" ? (
+      ) : reveal?.mobileStatus === "Pending" ? (
         <p className="text-sm font-medium text-amber-700">{t("c_pending")}</p>
-      ) : reveal?.status === "Declined" ? (
+      ) : reveal?.mobileStatus === "Declined" ? (
         <p className="text-sm text-muted-foreground">{t("c_declined")}</p>
       ) : (
         // Not requested yet - or not signed in.

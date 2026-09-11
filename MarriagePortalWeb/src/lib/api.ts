@@ -376,10 +376,10 @@ export const api = {
     return http<ContactReveal>(`/profiles/${profileId}/contact?viewerMemberId=${encodeURIComponent(viewerMemberId)}`);
   },
 
-  requestContact(profileId: string, requesterMemberId: string): Promise<ContactRequest> {
+  requestContact(profileId: string, requesterMemberId: string, type: "Contact" | "Photo" = "Contact"): Promise<ContactRequest> {
     return http<ContactRequest>(`/profiles/${profileId}/contact-requests`, {
       method: "POST",
-      body: JSON.stringify({ requesterMemberId }),
+      body: JSON.stringify({ requesterMemberId, type }),
     });
   },
 

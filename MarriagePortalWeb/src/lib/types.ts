@@ -270,6 +270,8 @@ export interface CreateInterestInput {
 
 // ---- Contact-reveal requests ----
 export type ContactRequestStatus = "Pending" | "Approved" | "Declined";
+/** Contact number and photo are requested and approved independently. */
+export type RequestType = "Contact" | "Photo";
 
 export interface ContactRequest {
   id: string;
@@ -279,14 +281,17 @@ export interface ContactRequest {
   requesterMemberId: string;
   requesterName: string;
   requesterCongregation: string | null;
+  requestType: RequestType;
   status: ContactRequestStatus;
   createdAt: string;
 }
 
-/** What the signed-in viewer may see of a profile's contact number. */
+/** What the signed-in viewer may see of a profile - the contact number and the photo are
+ *  gated by separate requests, so each has its own status and is revealed independently. */
 export interface ContactReveal {
-  status: ContactRequestStatus | null; // null = not requested yet
-  mobile: string | null; // set only when owner or approved
-  photoUrl: string | null; // set only when owner or approved (photo is private until approved)
   isOwner: boolean;
+  mobile: string | null; // set only when owner or the Contact request is approved
+  mobileStatus: ContactRequestStatus | null; // null = not requested yet
+  photoUrl: string | null; // set only when owner or the Photo request is approved
+  photoStatus: ContactRequestStatus | null; // null = not requested yet
 }

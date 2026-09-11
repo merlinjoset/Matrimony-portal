@@ -130,20 +130,22 @@ export async function notifyProfileVerified(profile: ProfileDetail, to: string):
   }
 }
 
-/** Tell the profile owner that someone has requested to view their contact and photo. Never throws. */
+/** Tell the profile owner that someone has requested to view their contact number OR photo. Never throws. */
 export async function notifyContactRequested(req: ContactRequest, to: string): Promise<void> {
   try {
     const cfg = await getEmailSettings();
     const baseUrl = cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com";
     const from = req.requesterCongregation ? `${req.requesterName} (${req.requesterCongregation})` : req.requesterName;
+    const what = req.requestType === "Photo" ? "view the photo" : "see the contact number";
+    const subjectWhat = req.requestType === "Photo" ? "photo request" : "contact request";
     const html = `
       <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#2c2522;">
         <h2 style="color:#8a2a38;margin:0 0 6px;">New request to connect</h2>
-        <p style="color:#6b6b6b;margin:0 0 16px;"><strong>${from}</strong> has requested to view the contact details and photo for your listing <strong>${req.profileName}</strong> (${req.profileReferenceId}). Please review the request and approve or decline it.</p>
+        <p style="color:#6b6b6b;margin:0 0 16px;"><strong>${from}</strong> has requested to ${what} for your listing <strong>${req.profileName}</strong> (${req.profileReferenceId}). Please review the request and approve or decline it.</p>
         <a href="${baseUrl}/requests" style="display:inline-block;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Open your requests</a>
-        <p style="color:#9a8f84;font-size:12px;margin-top:22px;">CSI Holy Matrimony - CSI Tamil Parish, Dubai. Your details are shared only after you approve.</p>
+        <p style="color:#9a8f84;font-size:12px;margin-top:22px;">CSI Holy Matrimony - CSI Tamil Parish, Dubai. It is shared only after you approve.</p>
       </div>`;
-    await sendMail({ to, subject: `New contact request for ${req.profileName}`, html });
+    await sendMail({ to, subject: `New ${subjectWhat} for ${req.profileName}`, html });
   } catch (err) {
     console.error("[notifications] notifyContactRequested failed:", err);
   }

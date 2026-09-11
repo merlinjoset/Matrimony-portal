@@ -9,8 +9,10 @@ import type {
   CreateUserInput,
   Interest,
   ContactRequest,
+  ContactRequestStatus,
   ContactReveal,
   MemberValidation,
+  RequestType,
   PagedResult,
   ProfileDetail,
   ProfileListItem,
@@ -529,18 +531,20 @@ function toContactRequest(r: Row): ContactRequest {
     requesterMemberId: r.RequesterMemberId as string,
     requesterName: r.RequesterName as string,
     requesterCongregation: s(r.RequesterCongregation),
+    requestType: ((r.RequestType as RequestType) ?? "Contact"),
     status: r.Status as ContactRequest["status"],
     createdAt: new Date(r.CreatedAt as string).toISOString(),
   };
 }
 
-export async function requestContact(profileId: string, requesterMemberId: string): Promise<ContactRequest> {
+/** Create a request to reveal a profile's contact number OR photo (independent approvals). */
+export async function requestContact(profileId: string, requesterMemberId: string, type: RequestType = "Contact"): Promise<ContactRequest> {
   const p = (await sql`SELECT "Id","FullName","ReferenceId","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
   if (!p) throw Object.assign(new Error("Profile not found."), { status: 404 });
-  if (!p.OwnerMemberId) throw Object.assign(new Error("This profile is not yet linked to a member account, so contact cannot be requested."), { status: 400 });
+  if (!p.OwnerMemberId) throw Object.assign(new Error("This profile is not yet linked to a member account, so it cannot be requested."), { status: 400 });
   if (p.OwnerMemberId === requesterMemberId) throw Object.assign(new Error("This is your own profile."), { status: 400 });
 
-  const existing = (await sql`SELECT * FROM "TblContactRequests" WHERE "RequesterMemberId" = ${requesterMemberId} AND "ProfileId" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
+  const existing = (await sql`SELECT * FROM "TblContactRequests" WHERE "RequesterMemberId" = ${requesterMemberId} AND "ProfileId" = ${profileId} AND "RequestType" = ${type} AND "IsDeleted" = false LIMIT 1`)[0];
   if (existing) return toContactRequest(existing as Row);
 
   const requester = await findMemberById(requesterMemberId);
@@ -549,26 +553,37 @@ export async function requestContact(profileId: string, requesterMemberId: strin
   const id = crypto.randomUUID();
   const inserted = await sql`
     INSERT INTO "TblContactRequests"
-      ("Id","ProfileId","OwnerMemberId","RequesterMemberId","RequesterName","RequesterCongregation","ProfileName","ProfileReferenceId","Status","CreatedAt","IsDeleted")
+      ("Id","ProfileId","OwnerMemberId","RequesterMemberId","RequesterName","RequesterCongregation","ProfileName","ProfileReferenceId","RequestType","Status","CreatedAt","IsDeleted")
     VALUES
-      (${id}, ${profileId}, ${p.OwnerMemberId as string}, ${requesterMemberId}, ${requester.name}, ${requester.congregation}, ${p.FullName as string}, ${p.ReferenceId as string}, 'Pending', now(), false)
+      (${id}, ${profileId}, ${p.OwnerMemberId as string}, ${requesterMemberId}, ${requester.name}, ${requester.congregation}, ${p.FullName as string}, ${p.ReferenceId as string}, ${type}, 'Pending', now(), false)
     RETURNING *`;
   return toContactRequest(inserted[0] as Row);
 }
 
 export async function getContactReveal(profileId: string, viewerMemberId: string): Promise<ContactReveal> {
   const p = (await sql`SELECT "Mobile","MainPhotoUrl","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
-  if (!p) return { status: null, mobile: null, photoUrl: null, isOwner: false };
+  if (!p) return { isOwner: false, mobile: null, mobileStatus: null, photoUrl: null, photoStatus: null };
   const photo = (p.MainPhotoUrl as string) ?? null;
+  const mobile = (p.Mobile as string) ?? null;
+  // The owner always sees both.
   if (p.OwnerMemberId && p.OwnerMemberId === viewerMemberId) {
-    return { status: "Approved", mobile: (p.Mobile as string) ?? null, photoUrl: photo, isOwner: true };
+    return { isOwner: true, mobile, mobileStatus: "Approved", photoUrl: photo, photoStatus: "Approved" };
   }
-  const req = (await sql`SELECT "Status" FROM "TblContactRequests" WHERE "RequesterMemberId" = ${viewerMemberId} AND "ProfileId" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
-  if (!req) return { status: null, mobile: null, photoUrl: null, isOwner: false };
-  const status = req.Status as ContactReveal["status"];
-  const approved = status === "Approved";
-  // One approval reveals both the contact number and the photo.
-  return { status, mobile: approved ? ((p.Mobile as string) ?? null) : null, photoUrl: approved ? photo : null, isOwner: false };
+  // Otherwise the contact number and photo are gated by their own separate requests.
+  const reqs = await sql`SELECT "RequestType","Status" FROM "TblContactRequests" WHERE "RequesterMemberId" = ${viewerMemberId} AND "ProfileId" = ${profileId} AND "IsDeleted" = false`;
+  const statusFor = (type: RequestType): ContactRequestStatus | null => {
+    const r = reqs.find((x) => (x.RequestType as string) === type);
+    return r ? (r.Status as ContactRequestStatus) : null;
+  };
+  const mobileStatus = statusFor("Contact");
+  const photoStatus = statusFor("Photo");
+  return {
+    isOwner: false,
+    mobile: mobileStatus === "Approved" ? mobile : null,
+    mobileStatus,
+    photoUrl: photoStatus === "Approved" ? photo : null,
+    photoStatus,
+  };
 }
 
 export async function listIncomingContactRequests(ownerMemberId: string): Promise<ContactRequest[]> {

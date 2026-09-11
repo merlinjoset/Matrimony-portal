@@ -186,8 +186,8 @@ const en: Dict = {
 
   // contact requests page
   nav_requests: "Requests",
-  rq_h: "Contact requests",
-  rq_sub: "Approve or decline members asking to see your contact number.",
+  rq_h: "Requests",
+  rq_sub: "Approve or decline members asking to see your contact number or photo.",
   rq_incoming: "Requests to you",
   rq_outgoing: "Your requests",
   rq_empty_in: "No one has requested your contact number yet.",
@@ -201,7 +201,9 @@ const en: Dict = {
   rq_decline_ok: "Request declined.",
   rq_action_err: "Action failed. Is the API running?",
   rq_signin: "Sign in with your membership card to see your contact requests.",
-  rq_wants: "asks to see the contact for",
+  rq_wants: "has a request for",
+  rq_type_contact: "📞 Contact number",
+  rq_type_photo: "📷 Photo",
   rq_youasked: "You asked to see the contact for",
   rq_youasked_line: "You requested their contact number",
 
@@ -485,8 +487,8 @@ const ta: Dict = {
 
   // contact requests page
   nav_requests: "கோரிக்கைகள்",
-  rq_h: "தொடர்பு கோரிக்கைகள்",
-  rq_sub: "உங்கள் தொடர்பு எண்ணைப் பார்க்கக் கோரும் உறுப்பினர்களை அங்கீகரிக்க அல்லது மறுக்கவும்.",
+  rq_h: "கோரிக்கைகள்",
+  rq_sub: "உங்கள் தொடர்பு எண் அல்லது புகைப்படத்தைப் பார்க்கக் கோரும் உறுப்பினர்களை அங்கீகரிக்க அல்லது மறுக்கவும்.",
   rq_incoming: "உங்களுக்கான கோரிக்கைகள்",
   rq_outgoing: "உங்கள் கோரிக்கைகள்",
   rq_empty_in: "இதுவரை யாரும் உங்கள் தொடர்பு எண்ணைக் கோரவில்லை.",
@@ -500,7 +502,9 @@ const ta: Dict = {
   rq_decline_ok: "கோரிக்கை மறுக்கப்பட்டது.",
   rq_action_err: "செயல் தோல்வியடைந்தது. API இயங்குகிறதா?",
   rq_signin: "உங்கள் தொடர்பு கோரிக்கைகளைப் பார்க்க உறுப்பினர் அட்டையுடன் உள்நுழையவும்.",
-  rq_wants: "தொடர்பைப் பார்க்கக் கோருகிறார்:",
+  rq_wants: "கோரிக்கை:",
+  rq_type_contact: "📞 தொடர்பு எண்",
+  rq_type_photo: "📷 புகைப்படம்",
   rq_youasked: "நீங்கள் தொடர்பைப் பார்க்கக் கோரியது:",
   rq_youasked_line: "அவர்களின் தொடர்பு எண்ணைக் கோரியுள்ளீர்கள்",
 
