@@ -102,10 +102,18 @@ export default function RegisterPage() {
   const [emailToken, setEmailToken] = useState<string | null>(null);
   const identityOk = authMode === "card" ? !!membership?.valid : !!emailToken;
 
+  // Required national-number length by country: UAE 9 digits, India 10; others unrestricted (0).
+  function phoneMax(code: string): number {
+    return code === "+971" ? 9 : code === "+91" ? 10 : 0;
+  }
+
   function updateMobile(code: string, num: string) {
+    const max = phoneMax(code);
+    let digits = num.replace(/\D/g, "");
+    if (max > 0) digits = digits.slice(0, max);
     setDialCode(code);
-    setPhone(num);
-    set("mobile", num.trim() ? `${code} ${num.trim()}` : "");
+    setPhone(digits);
+    set("mobile", digits ? `${code} ${digits}` : "");
   }
 
   async function validateCard() {
@@ -184,6 +192,10 @@ export default function RegisterPage() {
     if (!form.fullName.trim()) return toast.error(t("toast_name"));
     if (!form.dateOfBirth) return toast.error(t("dob_req"));
     if ((ageOf(form.dateOfBirth) ?? 0) < MIN_AGE) return toast.error(t("dob_min"));
+    if (!form.caste?.trim()) return toast.error(t("caste_req"));
+    if (!form.nativePlace?.trim()) return toast.error(t("native_req"));
+    const pmax = phoneMax(dialCode);
+    if (pmax > 0 && phone.length !== pmax) return toast.error(t("mobile_len"));
     if (!agree) return toast.error(t("tc_req"));
     // Guests choose a username + password: this creates their member login (admin activates it).
     if (!member && (!username.trim() || password.length < 6)) return toast.error(t("acc_hint"));
@@ -430,10 +442,12 @@ export default function RegisterPage() {
                   </Select>
                   <Input
                     type="tel"
+                    inputMode="numeric"
+                    maxLength={phoneMax(dialCode) || undefined}
                     className="flex-1"
                     value={phone}
                     onChange={(e) => updateMobile(dialCode, e.target.value)}
-                    placeholder="50 123 4567"
+                    placeholder={dialCode === "+91" ? "9876543210" : "501234567"}
                     required
                   />
                 </div>
@@ -491,10 +505,24 @@ export default function RegisterPage() {
               <Field label={t("l_city")}>
                 <Input value={form.city ?? ""} onChange={(e) => set("city", e.target.value)} placeholder="e.g. Dubai, UAE" />
               </Field>
-              <Field label={t("l_caste")}>
-                <Input value={form.caste ?? ""} onChange={(e) => set("caste", e.target.value)} placeholder={t("ph_caste")} />
+              <Field label={`${t("l_caste")} *`}>
+                <Input
+                  value={form.caste === "Caste No Bar" ? "" : (form.caste ?? "")}
+                  disabled={form.caste === "Caste No Bar"}
+                  onChange={(e) => set("caste", e.target.value)}
+                  placeholder={t("ph_caste")}
+                />
+                <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-[12.5px] text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={form.caste === "Caste No Bar"}
+                    onChange={(e) => set("caste", e.target.checked ? "Caste No Bar" : "")}
+                    className="size-3.5 accent-[maroon]"
+                  />
+                  {t("caste_no_bar")}
+                </label>
               </Field>
-              <Field label={t("l_native")}>
+              <Field label={`${t("l_native")} *`}>
                 <Input value={form.nativePlace ?? ""} onChange={(e) => set("nativePlace", e.target.value)} placeholder={t("ph_native")} />
               </Field>
             </div>

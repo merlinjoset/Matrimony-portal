@@ -39,6 +39,9 @@ export async function POST(req: NextRequest) {
   if (mm < 0 || (mm === 0 && now.getDate() < dob.getDate())) age--;
   if (age < 21) return new Response("The person must be at least 21 years old.", { status: 400 });
 
+  if (!dto.caste || !dto.caste.trim()) return new Response("Caste is required (or choose 'Caste no bar').", { status: 400 });
+  if (!dto.nativePlace || !dto.nativePlace.trim()) return new Response("Native place is required.", { status: 400 });
+
   // Identity is proven by EITHER a valid parish membership card OR a verified-email token (non-members).
   let ownerMemberId: string | null;
   if (dto.emailToken) {
