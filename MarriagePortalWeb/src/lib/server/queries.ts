@@ -65,6 +65,8 @@ function toDetail(r: Row): ProfileDetail {
     caste: s(r.Caste),
     nativePlace: s(r.NativePlace),
     homeParish: r.HomeParish as string,
+    presbyterName: s(r.PresbyterName),
+    presbyterContact: s(r.PresbyterContact),
     aboutFaith: s(r.AboutFaith),
     expectations: s(r.Expectations),
     fatherOccupation: s(r.FatherOccupation),
@@ -75,7 +77,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","AboutFaith","Expectations","Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","AboutFaith","Expectations","Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {

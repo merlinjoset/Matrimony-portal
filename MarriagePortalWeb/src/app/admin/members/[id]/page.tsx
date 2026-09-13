@@ -188,6 +188,13 @@ export default function AdminMemberDetail() {
                 <Row label="Denomination" value={p.denomination} />
                 <Row label="Home parish" value={p.homeParish} />
                 <Row label="Congregation" value={p.congregation} />
+                {/* For non-UAE congregations, surface the presbyter so the team can verify by contacting them. */}
+                {(p.congregation === "India" || p.congregation === "Other") && (
+                  <>
+                    <Row label="Presbyter name" value={p.presbyterName} />
+                    <Row label="Presbyter contact" value={p.presbyterContact} />
+                  </>
+                )}
                 <Row label="Walk of faith" value={p.aboutFaith} />
               </dl>
             </Card>

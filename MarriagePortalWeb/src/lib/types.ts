@@ -30,6 +30,8 @@ export interface ProfileDetail extends ProfileListItem {
   caste: string | null;
   nativePlace: string | null;
   homeParish: string;
+  presbyterName: string | null; // admin-only; stripped from member-facing payloads
+  presbyterContact: string | null; // admin-only; stripped from member-facing payloads
   aboutFaith: string | null;
   expectations: string | null;
   fatherOccupation: string | null;

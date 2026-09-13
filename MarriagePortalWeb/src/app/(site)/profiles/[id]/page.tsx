@@ -11,7 +11,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   // The photo is private: never send the URL in the page payload. The client reveals it
   // through the contact/photo request flow (getContact) once the owner approves.
   const hasPhoto = !!p.mainPhotoUrl;
-  // Photo and contact number are private on the member-facing page - revealed only via the
-  // approval flow, so never ship them in the initial payload.
-  return <ProfileDetailView p={{ ...p, mainPhotoUrl: null, mobile: null }} hasPhoto={hasPhoto} />;
+  // Photo, contact number and presbyter details are private on the member-facing page - never
+  // ship them in the payload (the photo/number are revealed only via the approval flow).
+  return <ProfileDetailView p={{ ...p, mainPhotoUrl: null, mobile: null, presbyterName: null, presbyterContact: null }} hasPhoto={hasPhoto} />;
 }

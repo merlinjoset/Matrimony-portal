@@ -557,7 +557,7 @@ export default function RegisterPage() {
                   </SelectContent>
                 </Select>
               </Field>
-              {form.congregation === "Other" && (
+              {(form.congregation === "India" || form.congregation === "Other") && (
                 <>
                   <Field label={t("l_presbyter_name")}>
                     <Input value={form.presbyterName ?? ""} onChange={(e) => set("presbyterName", e.target.value)} placeholder={t("ph_presbyter_name")} />

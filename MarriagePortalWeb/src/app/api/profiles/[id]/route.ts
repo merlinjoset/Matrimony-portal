@@ -7,7 +7,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const profile = await getProfile(id);
   if (!profile) return new Response("Profile not found.", { status: 404 });
-  // The contact number is admin-only here; members see it only through the approval flow.
+  // Contact number and presbyter details are admin-only here; members see the number only
+  // through the approval flow and never see the presbyter contact.
   const isAdmin = (await requireAdmin()).ok;
-  return Response.json(isAdmin ? profile : { ...profile, mobile: null });
+  return Response.json(isAdmin ? profile : { ...profile, mobile: null, presbyterName: null, presbyterContact: null });
 }
