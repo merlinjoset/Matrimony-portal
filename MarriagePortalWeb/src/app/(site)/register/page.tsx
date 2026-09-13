@@ -89,6 +89,12 @@ export default function RegisterPage() {
   const { t } = useT();
   const { member } = useMemberShortlist();
   const [form, setForm] = useState<CreateProfileInput>(empty);
+  // Siblings are a repeatable list; serialized to JSON into siblingsDetails on submit.
+  const [siblings, setSiblings] = useState<Array<{ name: string; status: string; occupation: string }>>([]);
+  const addSibling = () => setSiblings((s) => [...s, { name: "", status: "Unmarried", occupation: "" }]);
+  const updateSibling = (i: number, field: "name" | "status" | "occupation", val: string) =>
+    setSiblings((s) => s.map((x, k) => (k === i ? { ...x, [field]: val } : x)));
+  const removeSibling = (i: number) => setSiblings((s) => s.filter((_, k) => k !== i));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -226,10 +232,12 @@ export default function RegisterPage() {
       }
       // "Looking for" is derived from the profile's gender (a groom seeks a bride and vice versa).
       const lookingFor = form.gender === "Male" ? "Bride" : "Groom";
+      const cleanSiblings = siblings.filter((s) => s.name.trim() || s.occupation.trim());
       const created = await api.createProfile({
         ...form,
         lookingFor,
         dateOfBirth: form.dateOfBirth || null,
+        siblingsDetails: cleanSiblings.length ? JSON.stringify(cleanSiblings) : null,
         emailToken: authMode === "email" ? emailToken ?? undefined : undefined,
       });
       toast.success(t("toast_ok"));
@@ -621,9 +629,33 @@ export default function RegisterPage() {
                 <Input value={form.motherOccupation ?? ""} onChange={(e) => set("motherOccupation", e.target.value)} />
               </Field>
             </div>
-            <Field label={t("l_siblings")}>
-              <Textarea rows={2} value={form.siblingsDetails ?? ""} onChange={(e) => set("siblingsDetails", e.target.value)} placeholder={t("ph_siblings")} />
-            </Field>
+            <div className="space-y-2">
+              <Label className="text-[12.5px]">{t("l_siblings")}</Label>
+              {siblings.map((s, i) => (
+                <div key={i} className="grid gap-2 sm:grid-cols-[1fr_150px_1fr_auto]">
+                  <Input placeholder={t("l_sib_name")} value={s.name} onChange={(e) => updateSibling(i, "name", e.target.value)} />
+                  <Select value={s.status} onValueChange={(v) => updateSibling(i, "status", v ?? "Unmarried")}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Unmarried">{t("o_unmarried")}</SelectItem>
+                      <SelectItem value="Married">{t("o_married")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder={t("l_sib_occ")} value={s.occupation} onChange={(e) => updateSibling(i, "occupation", e.target.value)} />
+                  <button
+                    type="button"
+                    onClick={() => removeSibling(i)}
+                    className="inline-flex h-9 items-center rounded-lg border border-destructive/40 px-3 text-[13px] font-medium text-destructive hover:bg-destructive/5"
+                    aria-label={t("remove_sibling")}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={addSibling}>
+                {t("add_sibling")}
+              </Button>
+            </div>
           </fieldset>
 
           <fieldset className="space-y-3">

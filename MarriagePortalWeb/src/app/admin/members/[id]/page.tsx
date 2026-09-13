@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { AdminHeader, Pill, statusTone } from "@/components/admin/admin-ui";
 import { api } from "@/lib/api";
+import { parseSiblings } from "@/lib/siblings";
 import type { ProfileDetail, ProfileStatus } from "@/lib/types";
 
 const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -29,6 +30,28 @@ function Row({ label, value }: { label: string; value?: string | number | null }
     <div className="grid grid-cols-[160px_1fr] gap-3 py-1.5">
       <dt className="text-sm font-semibold text-muted-foreground">{label}</dt>
       <dd className="text-[15px]">{value}</dd>
+    </div>
+  );
+}
+
+function SiblingsRow({ raw }: { raw?: string | null }) {
+  const parsed = parseSiblings(raw);
+  if (!parsed) return null;
+  if (typeof parsed === "string") return <Row label="Siblings" value={parsed} />;
+  return (
+    <div className="grid grid-cols-[160px_1fr] gap-3 py-1.5">
+      <dt className="text-sm font-semibold text-muted-foreground">Siblings</dt>
+      <dd className="text-[15px]">
+        <ul className="space-y-0.5">
+          {parsed.map((s, i) => (
+            <li key={i}>
+              {s.name}
+              {s.status ? ` (${s.status})` : ""}
+              {s.occupation ? ` - ${s.occupation}` : ""}
+            </li>
+          ))}
+        </ul>
+      </dd>
     </div>
   );
 }
@@ -222,7 +245,7 @@ export default function AdminMemberDetail() {
                   <Row label="Father's occupation" value={p.fatherOccupation} />
                   <Row label="Mother's name" value={p.motherName} />
                   <Row label="Mother's occupation" value={p.motherOccupation} />
-                  <Row label="Siblings" value={p.siblingsDetails} />
+                  <SiblingsRow raw={p.siblingsDetails} />
                 </dl>
               </Card>
             )}

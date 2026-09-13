@@ -23,6 +23,7 @@ import { ContactCard } from "@/components/contact-card";
 import { MemberGate } from "@/components/member-gate";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
+import { parseSiblings } from "@/lib/siblings";
 import { api } from "@/lib/api";
 import { REPORT_REASONS, type ContactReveal, type ProfileDetail } from "@/lib/types";
 import {
@@ -396,7 +397,27 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
                 <Row label={t("l_father_occ")} value={p.fatherOccupation} />
                 <Row label={t("l_mother_name")} value={p.motherName} />
                 <Row label={t("l_mother_occ")} value={p.motherOccupation} />
-                <Row label={t("l_siblings")} value={p.siblingsDetails} />
+                {(() => {
+                  const parsed = parseSiblings(p.siblingsDetails);
+                  if (!parsed) return null;
+                  if (typeof parsed === "string") return <Row label={t("l_siblings")} value={parsed} />;
+                  return (
+                    <div className="grid grid-cols-[150px_1fr] gap-3 py-1.5">
+                      <dt className="text-sm font-semibold text-muted-foreground">{t("l_siblings")}</dt>
+                      <dd className="text-[15px]">
+                        <ul className="space-y-0.5">
+                          {parsed.map((s, i) => (
+                            <li key={i}>
+                              {s.name}
+                              {s.status ? ` (${s.status === "Married" ? t("o_married") : t("o_unmarried")})` : ""}
+                              {s.occupation ? ` - ${s.occupation}` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                  );
+                })()}
               </dl>
             </Card>
           )}
