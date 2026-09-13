@@ -170,6 +170,7 @@ export default function AdminMemberDetail() {
               <dl>
                 <Row label="Reference ID" value={p.referenceId} />
                 <Row label="Contact number" value={p.mobile} />
+                <Row label="Email" value={p.email} />
                 <Row label="Created for" value={p.createdFor} />
                 <Row label="Looking for" value={p.lookingFor} />
                 <Row label="Age / Height" value={[p.age ? `${p.age} yrs` : null, p.height].filter(Boolean).join(" · ")} />
@@ -196,6 +197,7 @@ export default function AdminMemberDetail() {
                   </>
                 )}
                 <Row label="Walk of faith" value={p.aboutFaith} />
+                <Row label="Partner expectations" value={p.expectations} />
               </dl>
             </Card>
 
