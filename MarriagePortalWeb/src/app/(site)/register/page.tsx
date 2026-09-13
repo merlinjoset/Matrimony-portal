@@ -44,8 +44,14 @@ const empty: CreateProfileInput = {
   education: "",
   profession: "",
   city: "",
+  salary: "",
+  company: "",
+  workLocation: "",
+  fatherName: "",
   fatherOccupation: "",
+  motherName: "",
   motherOccupation: "",
+  siblingsDetails: "",
   mainPhotoUrl: null,
 };
 
@@ -426,7 +432,9 @@ export default function RegisterPage() {
                     <SelectItem value="Self">{t("o_self")}</SelectItem>
                     <SelectItem value="Son">{t("o_son")}</SelectItem>
                     <SelectItem value="Daughter">{t("o_daughter")}</SelectItem>
-                    <SelectItem value="Ward">{t("o_ward")}</SelectItem>
+                    <SelectItem value="Brother">{t("o_brother")}</SelectItem>
+                    <SelectItem value="Sister">{t("o_sister")}</SelectItem>
+                    <SelectItem value="Other">{t("o_other")}</SelectItem>
                   </SelectContent>
                 </Select>
               </Field>
@@ -585,7 +593,37 @@ export default function RegisterPage() {
               <Field label={t("l_prof")}>
                 <Input value={form.profession ?? ""} onChange={(e) => set("profession", e.target.value)} placeholder="e.g. Nurse, Engineer" />
               </Field>
+              <Field label={t("l_company")}>
+                <Input value={form.company ?? ""} onChange={(e) => set("company", e.target.value)} placeholder={t("ph_company")} />
+              </Field>
+              <Field label={t("l_worklocation")}>
+                <Input value={form.workLocation ?? ""} onChange={(e) => set("workLocation", e.target.value)} placeholder={t("ph_worklocation")} />
+              </Field>
+              <Field label={t("l_salary")}>
+                <Input value={form.salary ?? ""} onChange={(e) => set("salary", e.target.value)} placeholder={t("ph_salary")} />
+              </Field>
             </div>
+          </fieldset>
+
+          <fieldset className="space-y-4">
+            <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_family")}</legend>
+            <div className="grid gap-3.5 md:grid-cols-2">
+              <Field label={t("l_father_name")}>
+                <Input value={form.fatherName ?? ""} onChange={(e) => set("fatherName", e.target.value)} />
+              </Field>
+              <Field label={t("l_father_occ")}>
+                <Input value={form.fatherOccupation ?? ""} onChange={(e) => set("fatherOccupation", e.target.value)} />
+              </Field>
+              <Field label={t("l_mother_name")}>
+                <Input value={form.motherName ?? ""} onChange={(e) => set("motherName", e.target.value)} />
+              </Field>
+              <Field label={t("l_mother_occ")}>
+                <Input value={form.motherOccupation ?? ""} onChange={(e) => set("motherOccupation", e.target.value)} />
+              </Field>
+            </div>
+            <Field label={t("l_siblings")}>
+              <Textarea rows={2} value={form.siblingsDetails ?? ""} onChange={(e) => set("siblingsDetails", e.target.value)} placeholder={t("ph_siblings")} />
+            </Field>
           </fieldset>
 
           <fieldset className="space-y-3">

@@ -34,8 +34,14 @@ export interface ProfileDetail extends ProfileListItem {
   presbyterContact: string | null; // admin-only; stripped from member-facing payloads
   aboutFaith: string | null;
   expectations: string | null;
+  salary: string | null;
+  company: string | null;
+  workLocation: string | null;
+  fatherName: string | null;
   fatherOccupation: string | null;
+  motherName: string | null;
   motherOccupation: string | null;
+  siblingsDetails: string | null;
   statusNote: string | null;
   createdAt: string;
 }
@@ -159,8 +165,14 @@ export interface CreateProfileInput {
   education?: string | null;
   profession?: string | null;
   city?: string | null;
+  salary?: string | null;
+  company?: string | null;
+  workLocation?: string | null;
+  fatherName?: string | null;
   fatherOccupation?: string | null;
+  motherName?: string | null;
   motherOccupation?: string | null;
+  siblingsDetails?: string | null;
   mainPhotoUrl?: string | null;
   /** Verified-email token (for non-members registering via email OTP instead of a card). */
   emailToken?: string;

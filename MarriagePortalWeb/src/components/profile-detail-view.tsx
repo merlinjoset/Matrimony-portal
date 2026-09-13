@@ -381,16 +381,22 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
             <dl>
               <Row label={t("d_education")} value={p.education} />
               <Row label={t("d_profession")} value={p.profession} />
+              <Row label={t("l_company")} value={p.company} />
+              <Row label={t("l_worklocation")} value={p.workLocation} />
+              <Row label={t("l_salary")} value={p.salary} />
             </dl>
           </Card>
 
-          {(p.fatherOccupation || p.motherOccupation) && (
+          {(p.fatherName || p.fatherOccupation || p.motherName || p.motherOccupation || p.siblingsDetails) && (
             <Card className="p-6">
               <h3 className="text-lg font-semibold text-maroon">{t("d_family")}</h3>
               <Separator className="my-3" />
               <dl>
-                <Row label={t("d_father")} value={p.fatherOccupation} />
-                <Row label={t("d_mother")} value={p.motherOccupation} />
+                <Row label={t("l_father_name")} value={p.fatherName} />
+                <Row label={t("l_father_occ")} value={p.fatherOccupation} />
+                <Row label={t("l_mother_name")} value={p.motherName} />
+                <Row label={t("l_mother_occ")} value={p.motherOccupation} />
+                <Row label={t("l_siblings")} value={p.siblingsDetails} />
               </dl>
             </Card>
           )}

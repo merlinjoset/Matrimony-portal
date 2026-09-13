@@ -69,15 +69,21 @@ function toDetail(r: Row): ProfileDetail {
     presbyterContact: s(r.PresbyterContact),
     aboutFaith: s(r.AboutFaith),
     expectations: s(r.Expectations),
+    salary: s(r.Salary),
+    company: s(r.Company),
+    workLocation: s(r.WorkLocation),
+    fatherName: s(r.FatherName),
     fatherOccupation: s(r.FatherOccupation),
+    motherName: s(r.MotherName),
     motherOccupation: s(r.MotherOccupation),
+    siblingsDetails: s(r.SiblingsDetails),
     statusNote: s(r.StatusNote),
     createdAt: new Date(r.CreatedAt as string).toISOString(),
   };
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","AboutFaith","Expectations","Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -157,15 +163,16 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
     INSERT INTO "TblProfiles"
       ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender",
        "DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","AboutFaith","Expectations",
-       "Education","Profession","City","FatherOccupation","MotherOccupation","MainPhotoUrl","Status","CreatedAt","IsDeleted")
+       "Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${referenceId}, ${dto.membershipNo ?? null}, ${ownerMemberId}, ${dto.createdFor ?? "Self"},
        ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
        ${dto.dateOfBirth ?? null}, ${dto.height ?? null}, ${dto.maritalStatus ?? "Never married"},
        ${dto.motherTongue ?? "Tamil"}, ${dto.caste ?? null}, ${dto.nativePlace ?? null}, ${dto.denomination ?? "CSI"}, ${dto.homeParish ?? ""},
        ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null}, ${dto.education ?? null},
-       ${dto.profession ?? null}, ${dto.city ?? null}, ${dto.fatherOccupation ?? null},
-       ${dto.motherOccupation ?? null}, ${dto.mainPhotoUrl ?? null}, 'Pending', now(), false)`;
+       ${dto.profession ?? null}, ${dto.city ?? null}, ${dto.salary ?? null}, ${dto.company ?? null}, ${dto.workLocation ?? null},
+       ${dto.fatherName ?? null}, ${dto.fatherOccupation ?? null}, ${dto.motherName ?? null}, ${dto.motherOccupation ?? null}, ${dto.siblingsDetails ?? null},
+       ${dto.mainPhotoUrl ?? null}, 'Pending', now(), false)`;
 
   return (await getProfile(id))!;
 }

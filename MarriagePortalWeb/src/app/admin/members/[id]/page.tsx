@@ -207,16 +207,22 @@ export default function AdminMemberDetail() {
               <dl>
                 <Row label="Education" value={p.education} />
                 <Row label="Profession" value={p.profession} />
+                <Row label="Company" value={p.company} />
+                <Row label="Present working place" value={p.workLocation} />
+                <Row label="Salary" value={p.salary} />
               </dl>
             </Card>
 
-            {(p.fatherOccupation || p.motherOccupation) && (
+            {(p.fatherName || p.fatherOccupation || p.motherName || p.motherOccupation || p.siblingsDetails) && (
               <Card className="p-6">
                 <h3 className="text-lg font-semibold text-maroon">Family</h3>
                 <Separator className="my-3" />
                 <dl>
-                  <Row label="Father" value={p.fatherOccupation} />
-                  <Row label="Mother" value={p.motherOccupation} />
+                  <Row label="Father's name" value={p.fatherName} />
+                  <Row label="Father's occupation" value={p.fatherOccupation} />
+                  <Row label="Mother's name" value={p.motherName} />
+                  <Row label="Mother's occupation" value={p.motherOccupation} />
+                  <Row label="Siblings" value={p.siblingsDetails} />
                 </dl>
               </Card>
             )}
