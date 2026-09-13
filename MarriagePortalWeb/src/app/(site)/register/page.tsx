@@ -23,7 +23,7 @@ import { CONGREGATIONS, COUNTRY_CODES, DENOMINATIONS, type CreateProfileInput, t
 const empty: CreateProfileInput = {
   membershipNo: "",
   createdFor: "Son",
-  lookingFor: "Bride",
+  lookingFor: "Groom",
   mobile: "",
   email: "",
   fullName: "",
@@ -479,7 +479,14 @@ export default function RegisterPage() {
                 />
               </Field>
               <Field label={t("l_gender")}>
-                <Select value={form.gender} onValueChange={(v) => set("gender", (v ?? "Female") as Gender)}>
+                <Select
+                  value={form.gender}
+                  onValueChange={(v) => {
+                    const g = (v ?? "Female") as Gender;
+                    // Auto-select who they're looking for: Male -> Bride, Female -> Groom.
+                    setForm((f) => ({ ...f, gender: g, lookingFor: g === "Male" ? "Bride" : "Groom" }));
+                  }}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue>{(v) => (v === "Male" ? t("g_male") : t("g_female"))}</SelectValue>
                   </SelectTrigger>
