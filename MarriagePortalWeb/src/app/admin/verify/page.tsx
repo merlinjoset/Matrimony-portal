@@ -130,12 +130,31 @@ export default function VerifyQueue() {
                 <Card key={m.id} className="p-5">
                   <div className="flex flex-wrap items-center gap-3">
                     <Avatar name={m.fullName} photo={m.mainPhotoUrl} i={i} />
-                    <div className="min-w-0 flex-1">
+                    <div className="group relative min-w-0 flex-1">
                       <Link href={`/admin/members/${m.id}`} className="text-[15px] font-semibold hover:text-maroon hover:underline">
                         {m.fullName} {m.mainPhotoUrl && <span title="Has photo">📷</span>}
                       </Link>
                       <div className="text-[12.5px] text-muted-foreground">
                         {m.referenceId} · {m.gender === "Female" ? "Bride" : "Groom"} · {m.denomination} · {m.congregation}
+                        <span className="ml-1.5 cursor-help text-maroon/70" title="Hover for contact details">📞</span>
+                      </div>
+                      {/* Hover to reveal contact details for the checklist review */}
+                      <div className="absolute left-0 top-full z-30 hidden w-72 rounded-lg border border-border bg-white p-3 text-[12.5px] shadow-xl group-hover:block">
+                        <div className="mb-1.5 font-semibold text-maroon">Contact details</div>
+                        <dl className="grid grid-cols-[84px_1fr] gap-x-2 gap-y-1">
+                          <dt className="text-muted-foreground">Mobile</dt>
+                          <dd className="font-medium">{m.mobile || "-"}</dd>
+                          <dt className="text-muted-foreground">Email</dt>
+                          <dd className="break-all font-medium">{m.email || "-"}</dd>
+                          {(m.congregation === "India" || m.congregation === "Other") && (
+                            <>
+                              <dt className="text-muted-foreground">Presbyter</dt>
+                              <dd className="font-medium">{m.presbyterName || "-"}</dd>
+                              <dt className="text-muted-foreground">Presbyter contact</dt>
+                              <dd className="break-all font-medium">{m.presbyterContact || "-"}</dd>
+                            </>
+                          )}
+                        </dl>
                       </div>
                     </div>
                     <Button

@@ -245,6 +245,11 @@ export interface ApprovalLogEntry {
 export interface VerifyQueueItem extends ProfileListItem {
   approvalLevel: number;
   approvals: ApprovalInfo[];
+  // Admin-only contact details shown to the verifier on hover.
+  mobile: string | null;
+  email: string | null;
+  presbyterName: string | null;
+  presbyterContact: string | null;
 }
 
 export const ADMIN_CONGREGATIONS = [
