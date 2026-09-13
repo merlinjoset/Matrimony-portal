@@ -14,9 +14,11 @@ import type {
   MemberValidation,
   RequestType,
   PagedResult,
+  OwnProfileDetail,
   ProfileDetail,
   ProfileListItem,
   ProfileStats,
+  UpdateProfileInput,
 } from "@/lib/types";
 
 // ---------- helpers ----------
@@ -426,6 +428,80 @@ export async function updateProfilePhoto(profileId: string, ownerMemberId: strin
     WHERE "Id" = ${profileId} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false
     RETURNING "Id"`;
   return rows.length > 0;
+}
+
+/** The owner's own listing, with the contact number, presbyter details and date of birth they may edit. */
+export async function getOwnProfile(profileId: string, ownerMemberId: string): Promise<OwnProfileDetail | null> {
+  const rows = await sql`
+    SELECT ${DETAIL_COLS} FROM "TblProfiles"
+    WHERE "Id" = ${profileId} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false
+    LIMIT 1`;
+  if (!rows.length) return null;
+  const r = rows[0] as Row;
+  const dob = r.DateOfBirth ? new Date(r.DateOfBirth as string).toISOString().slice(0, 10) : null;
+  return { ...toDetail(r), dateOfBirth: dob };
+}
+
+/** Let the owner update their listing. Any edit re-enters the 3-level verification queue so the
+ *  parish re-checks the changed details; suspended/committed listings cannot be self-edited. */
+export async function updateProfile(
+  profileId: string,
+  ownerMemberId: string,
+  dto: UpdateProfileInput,
+): Promise<{ ok: boolean; status: number; message?: string; profile?: ProfileDetail }> {
+  const cur = (await sql`
+    SELECT "Status" FROM "TblProfiles"
+    WHERE "Id" = ${profileId} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false
+    LIMIT 1`)[0];
+  if (!cur) return { ok: false, status: 403, message: "You can only edit your own profile." };
+  if (cur.Status === "Suspended")
+    return { ok: false, status: 409, message: "This profile is suspended. Please contact the parish office to update it." };
+  if (cur.Status === "Committed")
+    return { ok: false, status: 409, message: "This profile is marked as committed and can no longer be edited." };
+
+  await sql`
+    UPDATE "TblProfiles" SET
+      "CreatedFor" = ${dto.createdFor ?? "Self"},
+      "LookingFor" = ${dto.lookingFor ?? "Bride"},
+      "Mobile" = ${dto.mobile ?? ""},
+      "Email" = ${dto.email ?? null},
+      "FullName" = ${dto.fullName},
+      "Gender" = ${dto.gender},
+      "DateOfBirth" = ${dto.dateOfBirth ?? null},
+      "Height" = ${dto.height ?? null},
+      "MaritalStatus" = ${dto.maritalStatus ?? "Never married"},
+      "MotherTongue" = ${dto.motherTongue ?? "Tamil"},
+      "Caste" = ${dto.caste ?? null},
+      "NativePlace" = ${dto.nativePlace ?? null},
+      "Denomination" = ${dto.denomination ?? "CSI"},
+      "HomeParish" = ${dto.homeParish ?? ""},
+      "Congregation" = ${dto.congregation ?? "Dubai"},
+      "PresbyterName" = ${dto.presbyterName ?? null},
+      "PresbyterContact" = ${dto.presbyterContact ?? null},
+      "AboutFaith" = ${dto.aboutFaith ?? null},
+      "Expectations" = ${dto.expectations ?? null},
+      "Education" = ${dto.education ?? null},
+      "Profession" = ${dto.profession ?? null},
+      "City" = ${dto.city ?? null},
+      "Salary" = ${dto.salary ?? null},
+      "Company" = ${dto.company ?? null},
+      "WorkLocation" = ${dto.workLocation ?? null},
+      "FatherName" = ${dto.fatherName ?? null},
+      "FatherOccupation" = ${dto.fatherOccupation ?? null},
+      "MotherName" = ${dto.motherName ?? null},
+      "MotherOccupation" = ${dto.motherOccupation ?? null},
+      "SiblingsDetails" = ${dto.siblingsDetails ?? null},
+      "MainPhotoUrl" = ${dto.mainPhotoUrl ?? null},
+      "Status" = 'Pending',
+      "ApprovalLevel" = 0,
+      "StatusNote" = NULL,
+      "UpdatedAt" = now()
+    WHERE "Id" = ${profileId} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false`;
+  // Clear prior level approvals so the re-verification restarts cleanly (each level needs a fresh sign-off).
+  await sql`DELETE FROM "TblProfileApprovals" WHERE "ProfileId" = ${profileId}`;
+
+  const profile = await getProfile(profileId);
+  return { ok: true, status: 200, profile: profile ?? undefined };
 }
 
 // ---------- periodic re-verification ----------

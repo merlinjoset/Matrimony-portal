@@ -322,7 +322,7 @@ const en: Dict = {
   remove_sibling: "Remove sibling",
   ph_company: "e.g. Emirates NBD",
   ph_worklocation: "e.g. Dubai, UAE",
-  ph_salary: "e.g. AED 12,000 / month",
+  ph_salary: "e.g. 12,000 / month",
   ph_siblings: "e.g. 1 brother (married), 1 sister (studying)",
   g_female: "Female",
   g_male: "Male",
@@ -335,6 +335,19 @@ const en: Dict = {
   toast_ok: "Profile submitted for parish verification.",
   toast_name: "Please enter the full name.",
   toast_err: "Could not submit. Is the API running at http://localhost:5117?",
+
+  // edit / update profile
+  edit_profile_btn: "Edit profile details",
+  edit_h: "Edit your profile",
+  edit_sub: "Update your details below and save.",
+  edit_reverify_note: "Any change re-enters the parish verification queue, so your listing is re-checked before it appears publicly again.",
+  edit_save: "Save changes",
+  edit_saving: "Saving…",
+  edit_cancel: "Cancel",
+  edit_loading: "Loading your profile…",
+  edit_denied: "This profile could not be loaded for editing. It may not be yours, or your session has expired.",
+  edit_signin: "Please sign in to edit your profile.",
+  edit_saved: "Profile updated and resubmitted for verification.",
 
   // footer
   foot_about: "A faith-centred matrimony ministry serving the CSI Tamil parish community. One body in Christ.",
@@ -651,7 +664,7 @@ const ta: Dict = {
   remove_sibling: "நீக்கு",
   ph_company: "எ.கா. எமிரேட்ஸ் NBD",
   ph_worklocation: "எ.கா. துபாய், ஐ.அ.எ.",
-  ph_salary: "எ.கா. AED 12,000 / மாதம்",
+  ph_salary: "எ.கா. 12,000 / மாதம்",
   ph_siblings: "எ.கா. 1 சகோதரன் (திருமணமானவர்), 1 சகோதரி (படிப்பு)",
   g_female: "பெண்",
   g_male: "ஆண்",
@@ -664,6 +677,19 @@ const ta: Dict = {
   toast_ok: "சுயவிவரம் திருச்சபை சரிபார்ப்புக்கு சமர்ப்பிக்கப்பட்டது.",
   toast_name: "முழுப் பெயரை உள்ளிடவும்.",
   toast_err: "சமர்ப்பிக்க முடியவில்லை. API http://localhost:5117 இல் இயங்குகிறதா?",
+
+  // edit / update profile
+  edit_profile_btn: "சுயவிவரத்தைத் திருத்து",
+  edit_h: "உங்கள் சுயவிவரத்தைத் திருத்தவும்",
+  edit_sub: "உங்கள் விவரங்களைப் புதுப்பித்து சேமிக்கவும்.",
+  edit_reverify_note: "எந்த மாற்றமும் திருச்சபை சரிபார்ப்பு வரிசைக்கு மீண்டும் செல்லும், எனவே பொதுவில் தோன்றும் முன் உங்கள் பட்டியல் மீண்டும் சரிபார்க்கப்படும்.",
+  edit_save: "மாற்றங்களைச் சேமி",
+  edit_saving: "சேமிக்கிறது…",
+  edit_cancel: "ரத்து",
+  edit_loading: "உங்கள் சுயவிவரம் ஏற்றப்படுகிறது…",
+  edit_denied: "இந்த சுயவிவரத்தைத் திருத்த ஏற்ற முடியவில்லை. இது உங்களுடையதாக இல்லாமல் இருக்கலாம், அல்லது உங்கள் அமர்வு காலாவதியாகிவிட்டது.",
+  edit_signin: "உங்கள் சுயவிவரத்தைத் திருத்த உள்நுழையவும்.",
+  edit_saved: "சுயவிவரம் புதுப்பிக்கப்பட்டு சரிபார்ப்புக்கு மீண்டும் சமர்ப்பிக்கப்பட்டது.",
 
   foot_about: "CSI தமிழ் திருச்சபை சமூகத்திற்கு சேவை செய்யும் விசுவாச மைய திருமண ஊழியம். கிறிஸ்துவில் ஒரே சரீரம்.",
   foot_heritage:

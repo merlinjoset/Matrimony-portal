@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,13 +19,21 @@ import {
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
-import { joinSalary } from "@/lib/salary";
-import { CONGREGATIONS, COUNTRY_CODES, CURRENCIES, DENOMINATIONS, type CreateProfileInput, type Gender, type MemberValidation } from "@/lib/types";
+import { parseSiblings } from "@/lib/siblings";
+import { joinSalary, splitSalary } from "@/lib/salary";
+import {
+  CONGREGATIONS,
+  COUNTRY_CODES,
+  CURRENCIES,
+  DENOMINATIONS,
+  type Gender,
+  type OwnProfileDetail,
+  type UpdateProfileInput,
+} from "@/lib/types";
 
-const empty: CreateProfileInput = {
-  membershipNo: "",
-  createdFor: "Son",
-  lookingFor: "Groom",
+const empty: UpdateProfileInput = {
+  createdFor: "Self",
+  lookingFor: "Bride",
   mobile: "",
   email: "",
   fullName: "",
@@ -56,9 +65,11 @@ const empty: CreateProfileInput = {
   mainPhotoUrl: null,
 };
 
-const MIN_AGE = 21;
+type SiblingRow = { name: string; status: string; occupation: string };
 
-/** Whole-years age for a YYYY-MM-DD string, or null if unparseable. */
+const MIN_AGE = 21;
+const KNOWN_CODES = COUNTRY_CODES.map((c) => c.code) as readonly string[];
+
 function ageOf(iso: string): number | null {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return null;
@@ -69,11 +80,32 @@ function ageOf(iso: string): number | null {
   return a;
 }
 
-/** ISO date exactly `years` ago from today (for the date input's min/max bounds). */
 function isoYearsAgo(years: number): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() - years);
   return d.toISOString().slice(0, 10);
+}
+
+/** Split a stored "+971 501234567" mobile into a known dial code + national digits. */
+function splitMobile(mobile: string | null): { code: string; phone: string } {
+  const raw = (mobile ?? "").trim();
+  if (!raw) return { code: "+971", phone: "" };
+  const sp = raw.indexOf(" ");
+  if (sp > 0) {
+    const code = raw.slice(0, sp);
+    const phone = raw.slice(sp + 1).replace(/\D/g, "");
+    if (KNOWN_CODES.includes(code)) return { code, phone };
+  }
+  // No recognised code prefix: keep the digits, default the code.
+  return { code: "+971", phone: raw.replace(/\D/g, "") };
+}
+
+/** Seed the sibling rows from the stored value (JSON list, or one row from legacy free text). */
+function siblingsToRows(raw: string | null): SiblingRow[] {
+  const parsed = parseSiblings(raw);
+  if (!parsed) return [];
+  if (typeof parsed === "string") return [{ name: parsed, status: "Unmarried", occupation: "" }];
+  return parsed.map((s) => ({ name: s.name, status: s.status === "Married" ? "Married" : "Unmarried", occupation: s.occupation }));
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -85,46 +117,34 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export default function RegisterPage() {
+export default function EditProfilePage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   const router = useRouter();
   const { t } = useT();
-  const { member } = useMemberShortlist();
-  const [form, setForm] = useState<CreateProfileInput>(empty);
-  // Siblings are a repeatable list; serialized to JSON into siblingsDetails on submit.
-  const [siblings, setSiblings] = useState<Array<{ name: string; status: string; occupation: string }>>([]);
-  const addSibling = () => setSiblings((s) => [...s, { name: "", status: "Unmarried", occupation: "" }]);
-  const updateSibling = (i: number, field: "name" | "status" | "occupation", val: string) =>
-    setSiblings((s) => s.map((x, k) => (k === i ? { ...x, [field]: val } : x)));
-  const removeSibling = (i: number) => setSiblings((s) => s.filter((_, k) => k !== i));
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [checking, setChecking] = useState(false);
-  const [membership, setMembership] = useState<MemberValidation | null>(null);
+  const { member, ready, openSignIn } = useMemberShortlist();
+
+  const [form, setForm] = useState<UpdateProfileInput>(empty);
+  const [siblings, setSiblings] = useState<SiblingRow[]>([]);
   const [dialCode, setDialCode] = useState("+971");
   const [phone, setPhone] = useState("");
-  // Salary is entered as a currency + amount, stored combined (e.g. "AED 12,000").
   const [currency, setCurrency] = useState("AED");
   const [salaryAmount, setSalaryAmount] = useState("");
-  function updateSalary(cur: string, amt: string) {
-    const clean = amt.replace(/[^\d.,]/g, "");
-    setCurrency(cur);
-    setSalaryAmount(clean);
-    set("salary", joinSalary(cur, clean));
-  }
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [agree, setAgree] = useState(false);
-  // Non-member email-OTP path (an alternative to the membership card).
-  const [authMode, setAuthMode] = useState<"card" | "email">("card");
-  const [otpEmail, setOtpEmail] = useState("");
-  const [otpCode, setOtpCode] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpSending, setOtpSending] = useState(false);
-  const [otpVerifying, setOtpVerifying] = useState(false);
-  const [emailToken, setEmailToken] = useState<string | null>(null);
-  const identityOk = authMode === "card" ? !!membership?.valid : !!emailToken;
+  const [loading, setLoading] = useState(true);
+  const [denied, setDenied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  // Required national-number length by country: UAE 9 digits, India 10; others unrestricted (0).
+  const addSibling = () => setSiblings((s) => [...s, { name: "", status: "Unmarried", occupation: "" }]);
+  const updateSibling = (i: number, field: keyof SiblingRow, val: string) =>
+    setSiblings((s) => s.map((x, k) => (k === i ? { ...x, [field]: val } : x)));
+  const removeSibling = (i: number) => setSiblings((s) => s.filter((_, k) => k !== i));
+
+  function set<K extends keyof UpdateProfileInput>(key: K, value: UpdateProfileInput[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+  const setStr = (key: keyof UpdateProfileInput) => (v: string | null) => set(key, (v ?? "") as never);
+
   function phoneMax(code: string): number {
     return code === "+971" ? 9 : code === "+91" ? 10 : 0;
   }
@@ -138,53 +158,67 @@ export default function RegisterPage() {
     set("mobile", digits ? `${code} ${digits}` : "");
   }
 
-  async function validateCard() {
-    const card = form.membershipNo.trim();
-    if (!card) return;
-    setChecking(true);
-    try {
-      setMembership(await api.validateMembership(card));
-    } catch {
-      setMembership({ valid: false, memberId: null, name: null, congregation: null, message: t("ei_err") });
-    } finally {
-      setChecking(false);
-    }
+  function updateSalary(cur: string, amt: string) {
+    const clean = amt.replace(/[^\d.,]/g, "");
+    setCurrency(cur);
+    setSalaryAmount(clean);
+    set("salary", joinSalary(cur, clean));
   }
 
-  async function sendOtp() {
-    const email = otpEmail.trim();
-    if (!email) return;
-    setOtpSending(true);
-    try {
-      const res = await api.sendEmailOtp(email);
-      setOtpSent(true);
-      setEmailToken(null);
-      toast.success(res.message);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("toast_err"));
-    } finally {
-      setOtpSending(false);
-    }
-  }
+  const hydrate = useCallback((p: OwnProfileDetail) => {
+    const { code, phone: ph } = splitMobile(p.mobile);
+    setDialCode(code);
+    setPhone(ph);
+    const sal = splitSalary(p.salary);
+    setCurrency(sal.currency);
+    setSalaryAmount(sal.amount);
+    setSiblings(siblingsToRows(p.siblingsDetails));
+    setForm({
+      createdFor: p.createdFor || "Self",
+      lookingFor: p.lookingFor || (p.gender === "Male" ? "Bride" : "Groom"),
+      mobile: p.mobile ?? "",
+      email: p.email ?? "",
+      fullName: p.fullName,
+      gender: p.gender,
+      dateOfBirth: p.dateOfBirth ?? null,
+      height: p.height ?? "",
+      maritalStatus: p.maritalStatus || "Never married",
+      motherTongue: p.motherTongue || "Tamil",
+      caste: p.caste ?? "",
+      nativePlace: p.nativePlace ?? "",
+      denomination: p.denomination || "CSI",
+      homeParish: p.homeParish ?? "",
+      congregation: p.congregation || "Dubai",
+      presbyterName: p.presbyterName ?? "",
+      presbyterContact: p.presbyterContact ?? "",
+      aboutFaith: p.aboutFaith ?? "",
+      expectations: p.expectations ?? "",
+      education: p.education ?? "",
+      profession: p.profession ?? "",
+      city: p.city ?? "",
+      salary: p.salary ?? "",
+      company: p.company ?? "",
+      workLocation: p.workLocation ?? "",
+      fatherName: p.fatherName ?? "",
+      fatherOccupation: p.fatherOccupation ?? "",
+      motherName: p.motherName ?? "",
+      motherOccupation: p.motherOccupation ?? "",
+      siblingsDetails: p.siblingsDetails ?? "",
+      mainPhotoUrl: p.mainPhotoUrl ?? null,
+    });
+  }, []);
 
-  async function verifyOtp() {
-    const email = otpEmail.trim();
-    const code = otpCode.trim();
-    if (!email || code.length !== 6) return;
-    setOtpVerifying(true);
-    try {
-      const res = await api.verifyEmailOtp(email, code);
-      setEmailToken(res.token);
-      // Prefill the profile's contact email with the just-verified address (unless one is already typed).
-      if (!form.email?.trim()) set("email", email);
-      toast.success(res.message);
-    } catch (err) {
-      setEmailToken(null);
-      toast.error(err instanceof Error ? err.message : t("toast_err"));
-    } finally {
-      setOtpVerifying(false);
-    }
-  }
+  useEffect(() => {
+    if (!ready) return;
+    if (!member) { setLoading(false); setDenied(true); return; }
+    let alive = true;
+    setLoading(true);
+    api.getOwnProfile(id, member.memberId)
+      .then((p) => { if (alive) { hydrate(p); setDenied(false); } })
+      .catch(() => { if (alive) setDenied(true); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [ready, member, id, hydrate]);
 
   async function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -203,14 +237,9 @@ export default function RegisterPage() {
     }
   }
 
-  function set<K extends keyof CreateProfileInput>(key: K, value: CreateProfileInput[K]) {
-    setForm((f) => ({ ...f, [key]: value }));
-  }
-  const setStr = (key: keyof CreateProfileInput) => (v: string | null) => set(key, (v ?? "") as never);
-
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!identityOk) return toast.error(authMode === "card" ? t("m_required") : t("otp_required"));
+    if (!member) return;
     if (!form.fullName.trim()) return toast.error(t("toast_name"));
     if (!form.dateOfBirth) return toast.error(t("dob_req"));
     if ((ageOf(form.dateOfBirth) ?? 0) < MIN_AGE) return toast.error(t("dob_min"));
@@ -218,192 +247,57 @@ export default function RegisterPage() {
     if (!form.nativePlace?.trim()) return toast.error(t("native_req"));
     const pmax = phoneMax(dialCode);
     if (pmax > 0 && phone.length !== pmax) return toast.error(t("mobile_len"));
-    if (!agree) return toast.error(t("tc_req"));
-    // Guests choose a username + password: this creates their member login (admin activates it).
-    if (!member && (!username.trim() || password.length < 6)) return toast.error(t("acc_hint"));
     setSaving(true);
     try {
-      if (!member) {
-        try {
-          const res =
-            authMode === "email"
-              ? await api.signupGuest(otpEmail.trim(), emailToken!, username.trim(), password, form.fullName.trim())
-              : await api.signup(form.membershipNo.trim(), username.trim(), password);
-          toast.success(res.message ?? t("su_ok"));
-        } catch (err) {
-          // An existing account for this card is fine - the profile can still be registered.
-          const msg = err instanceof Error ? err.message : "";
-          if (!msg.toLowerCase().includes("already exists")) {
-            toast.error(msg || t("toast_err"));
-            setSaving(false);
-            return;
-          }
-        }
-      }
-      // "Looking for" is derived from the profile's gender (a groom seeks a bride and vice versa).
       const lookingFor = form.gender === "Male" ? "Bride" : "Groom";
       const cleanSiblings = siblings.filter((s) => s.name.trim() || s.occupation.trim());
-      const created = await api.createProfile({
+      await api.updateProfile(id, member.memberId, {
         ...form,
         lookingFor,
         dateOfBirth: form.dateOfBirth || null,
         siblingsDetails: cleanSiblings.length ? JSON.stringify(cleanSiblings) : null,
-        emailToken: authMode === "email" ? emailToken ?? undefined : undefined,
       });
-      toast.success(t("toast_ok"));
-      router.push(`/profiles/${created.id}`);
-    } catch {
-      toast.error(t("toast_err"));
+      toast.success(t("edit_saved"));
+      router.push(`/profiles/${id}`);
+    } catch (err) {
+      toast.error(err instanceof Error && err.message ? err.message : t("toast_err"));
     } finally {
       setSaving(false);
     }
   }
 
+  if (loading) {
+    return (
+      <section className="mx-auto max-w-3xl px-5 py-12">
+        <Card className="p-8 text-muted-foreground">{t("edit_loading")}</Card>
+      </section>
+    );
+  }
+
+  if (denied) {
+    return (
+      <section className="mx-auto max-w-3xl px-5 py-12">
+        <Card className="space-y-4 p-8">
+          <p className="text-muted-foreground">{member ? t("edit_denied") : t("edit_signin")}</p>
+          <div className="flex gap-3">
+            {!member && <Button onClick={openSignIn} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">{t("signin_btn")}</Button>}
+            <Button variant="outline" render={<Link href={`/profiles/${id}`} />} nativeButton={false}>{t("edit_cancel")}</Button>
+          </div>
+        </Card>
+      </section>
+    );
+  }
+
   return (
     <section className="mx-auto max-w-3xl px-5 py-12">
       <Card className="p-8">
-        <h2 className="text-2xl font-bold">{t("reg_h")}</h2>
-        <p className="mb-5 text-muted-foreground">{t("reg_sub")}</p>
-        <div className="mb-4 rounded-lg border border-brand-green/25 bg-brand-green/10 px-3.5 py-3 text-sm text-brand-green">
-          {t("reg_note")}
-        </div>
-
-        <div className="mb-6 rounded-xl border border-maroon/20 bg-maroon/5 p-4">
-          <div className="mb-2 text-[13px] font-bold uppercase tracking-wide text-maroon">{t("reg_how_h")}</div>
-          <ul className="space-y-1.5 text-sm text-foreground/80">
-            <li className="flex gap-2"><span>📝</span><span>{t("how_1")}</span></li>
-            <li className="flex gap-2"><span>🛡️</span><span>{t("how_2")}</span></li>
-            <li className="flex gap-2"><span>🔒</span><span>{t("how_3")}</span></li>
-          </ul>
+        <h2 className="text-2xl font-bold">{t("edit_h")}</h2>
+        <p className="mb-4 text-muted-foreground">{t("edit_sub")}</p>
+        <div className="mb-6 rounded-lg border border-maroon/20 bg-maroon/5 px-3.5 py-3 text-sm text-maroon">
+          {t("edit_reverify_note")}
         </div>
 
         <form onSubmit={onSubmit} className="space-y-7">
-          <fieldset className="space-y-3">
-            <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_membership")}</legend>
-
-            {/* Member (card) vs non-member (email OTP) */}
-            <div className="inline-flex rounded-lg border border-border p-0.5 text-[13px] font-medium">
-              <button
-                type="button"
-                onClick={() => setAuthMode("card")}
-                className={`rounded-md px-3 py-1.5 transition ${authMode === "card" ? "bg-maroon text-white" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                {t("reg_mode_member")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setAuthMode("email")}
-                className={`rounded-md px-3 py-1.5 transition ${authMode === "email" ? "bg-maroon text-white" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                {t("reg_mode_guest")}
-              </button>
-            </div>
-
-            {authMode === "card" ? (
-              <>
-                <p className="text-[12.5px] text-muted-foreground">{t("m_hint")}</p>
-                <div className="flex flex-wrap items-end gap-3">
-                  <div className="flex-1 space-y-1.5" style={{ minWidth: 220 }}>
-                    <Label className="text-[12.5px]">{t("l_membership")}</Label>
-                    <Input
-                      value={form.membershipNo}
-                      onChange={(e) => { set("membershipNo", e.target.value); setMembership(null); }}
-                      onBlur={validateCard}
-                      placeholder={t("ph_membership")}
-                      className={membership?.valid ? "border-brand-green" : membership && !membership.valid ? "border-destructive" : ""}
-                    />
-                  </div>
-                  <Button type="button" variant="outline" disabled={checking || !form.membershipNo.trim()} onClick={validateCard}>
-                    {checking ? t("m_validating") : t("m_validate")}
-                  </Button>
-                </div>
-                {membership?.valid ? (
-                  <div className="rounded-lg border border-brand-green/30 bg-brand-green/10 px-3.5 py-2.5 text-sm text-brand-green">
-                    {t("m_valid")} - {membership.name}{membership.congregation ? `, ${membership.congregation}` : ""}
-                  </div>
-                ) : membership && !membership.valid ? (
-                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-2.5 text-sm text-destructive">
-                    {membership.message}
-                  </div>
-                ) : null}
-              </>
-            ) : (
-              <>
-                <p className="text-[12.5px] text-muted-foreground">{t("otp_hint")}</p>
-                <div className="flex flex-wrap items-end gap-3">
-                  <div className="flex-1 space-y-1.5" style={{ minWidth: 220 }}>
-                    <Label className="text-[12.5px]">{t("l_otp_email")}</Label>
-                    <Input
-                      type="email"
-                      value={otpEmail}
-                      disabled={!!emailToken}
-                      onChange={(e) => { setOtpEmail(e.target.value); setEmailToken(null); setOtpSent(false); }}
-                      placeholder={t("ph_otp_email")}
-                      className={emailToken ? "border-brand-green" : ""}
-                    />
-                  </div>
-                  <Button type="button" variant="outline" disabled={otpSending || !otpEmail.trim() || !!emailToken} onClick={sendOtp}>
-                    {otpSending ? t("otp_sending") : otpSent ? t("otp_resend") : t("otp_send")}
-                  </Button>
-                </div>
-                {otpSent && !emailToken && (
-                  <>
-                    <p className="text-[12.5px] text-muted-foreground">{t("otp_sent")}</p>
-                    <div className="flex flex-wrap items-end gap-3">
-                      <div className="flex-1 space-y-1.5" style={{ minWidth: 180 }}>
-                        <Label className="text-[12.5px]">{t("l_otp_code")}</Label>
-                        <Input
-                          inputMode="numeric"
-                          value={otpCode}
-                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                          placeholder="000000"
-                        />
-                      </div>
-                      <Button type="button" variant="outline" disabled={otpVerifying || otpCode.length !== 6} onClick={verifyOtp}>
-                        {otpVerifying ? t("otp_verifying") : t("otp_verify")}
-                      </Button>
-                    </div>
-                  </>
-                )}
-                {emailToken && (
-                  <div className="rounded-lg border border-brand-green/30 bg-brand-green/10 px-3.5 py-2.5 text-sm text-brand-green">
-                    {t("otp_verified")} - {otpEmail.trim()}
-                  </div>
-                )}
-              </>
-            )}
-          </fieldset>
-
-          {!member && (
-            <fieldset className="space-y-4">
-              <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_account")}</legend>
-              <p className="text-[12.5px] text-muted-foreground">{t("acc_hint")}</p>
-              <div className="grid gap-3.5 md:grid-cols-2">
-                <Field label={t("l_username")}>
-                  <Input
-                    value={username}
-                    autoComplete="username"
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder={t("ph_username")}
-                  />
-                </Field>
-                <Field label={t("l_password")}>
-                  <Input
-                    type="password"
-                    value={password}
-                    autoComplete="new-password"
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </Field>
-              </div>
-            </fieldset>
-          )}
-
-          <div className="rounded-lg border border-maroon/15 bg-maroon/5 px-4 py-3">
-            <div className="text-[13px] font-bold uppercase tracking-wide text-maroon">{t("about_profile_h")}</div>
-            <p className="text-[12.5px] text-muted-foreground">{t("about_profile_sub")}</p>
-          </div>
-
           <fieldset className="space-y-4">
             <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_photo")}</legend>
             <div className="flex flex-wrap items-center gap-5">
@@ -509,7 +403,6 @@ export default function RegisterPage() {
                   value={form.gender}
                   onValueChange={(v) => {
                     const g = (v ?? "Female") as Gender;
-                    // Auto-select who they're looking for: Male -> Bride, Female -> Groom.
                     setForm((f) => ({ ...f, gender: g, lookingFor: g === "Male" ? "Bride" : "Groom" }));
                   }}
                 >
@@ -676,55 +569,16 @@ export default function RegisterPage() {
             </div>
           </fieldset>
 
-          <fieldset className="space-y-3">
-            <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("tc_h")}</legend>
-            <div className="max-h-52 space-y-2 overflow-y-auto rounded-lg border border-border bg-muted/30 p-4 text-[12.5px] leading-relaxed text-muted-foreground">
-              <p className="font-semibold text-foreground">Church Matrimonial Portal Disclaimer</p>
-              <p>
-                This Matrimonial Portal is provided solely as a facilitation service for members seeking suitable
-                matrimonial alliances. The Church acts only as a platform provider in listing.
-              </p>
-              <p>
-                The Church does not guarantee the accuracy, completeness, character, compatibility, suitability, financial
-                status, educational qualifications, family background, or intentions of any individual registered on the
-                portal.
-              </p>
-              <p>
-                Any communication, meeting, engagement, marriage proposal, or matrimonial decision arising from
-                interactions on this portal is entirely the responsibility of the individuals and families involved.
-              </p>
-              <p>Users are advised to independently verify all information before making any commitment or decision.</p>
-              <p>
-                The Church, its Chairman, staff, committee members, and volunteers shall not be held liable for any
-                disputes, misunderstandings, financial loss, emotional distress, legal claims, or consequences arising from
-                the use of this service.
-              </p>
-              <p>
-                By registering on this portal, users acknowledge and agree that all matrimonial decisions are made
-                voluntarily and independently by the concerned parties.
-              </p>
-            </div>
-            <label className="flex cursor-pointer items-start gap-2.5 text-sm">
-              <input
-                type="checkbox"
-                checked={agree}
-                onChange={(e) => setAgree(e.target.checked)}
-                className="mt-0.5 size-4 accent-[maroon]"
-              />
-              <span>{t("tc_agree")}</span>
-            </label>
-          </fieldset>
-
           <div className="flex flex-wrap gap-3">
             <Button
               type="submit"
-              disabled={saving || !identityOk || !agree}
+              disabled={saving}
               className="bg-gold text-maroon hover:bg-gold! hover:brightness-105"
             >
-              {saving ? t("submitting") : t("submit_btn")}
+              {saving ? t("edit_saving") : t("edit_save")}
             </Button>
-            <Button type="button" variant="outline" onClick={() => { setForm(empty); setSalaryAmount(""); setCurrency("AED"); setSiblings([]); }}>
-              {t("reset_btn")}
+            <Button type="button" variant="outline" render={<Link href={`/profiles/${id}`} />} nativeButton={false}>
+              {t("edit_cancel")}
             </Button>
           </div>
         </form>

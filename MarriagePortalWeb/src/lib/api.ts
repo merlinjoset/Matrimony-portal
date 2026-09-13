@@ -15,12 +15,14 @@ import type {
   InterestStatus,
   LoginLog,
   MemberValidation,
+  OwnProfileDetail,
   Report,
   PagedResult,
   ProfileDetail,
   ProfileListItem,
   ProfileStats,
   ProfileStatus,
+  UpdateProfileInput,
 } from "./types";
 
 // The API now lives inside this same Next.js app under /api (same origin).
@@ -125,6 +127,18 @@ export const api = {
     return http<ProfileDetail>(`/profiles`, {
       method: "POST",
       body: JSON.stringify(input),
+    });
+  },
+
+  // Load the owner's own listing for editing (includes the contact number the public view hides).
+  getOwnProfile(id: string, memberId: string): Promise<OwnProfileDetail> {
+    return http<OwnProfileDetail>(`/profiles/${id}/edit?memberId=${encodeURIComponent(memberId)}`);
+  },
+
+  updateProfile(id: string, memberId: string, input: UpdateProfileInput): Promise<ProfileDetail> {
+    return http<ProfileDetail>(`/profiles/${id}/edit`, {
+      method: "PATCH",
+      body: JSON.stringify({ memberId, ...input }),
     });
   },
 

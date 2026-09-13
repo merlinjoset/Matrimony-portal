@@ -244,6 +244,12 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
                   Remove
                 </button>
               )}
+              <Link
+                href={`/profiles/${p.id}/edit`}
+                className="inline-flex h-8 items-center rounded-lg border border-maroon/40 px-3 text-[13px] font-medium text-maroon hover:bg-maroon/5"
+              >
+                ✏️ {t("edit_profile_btn")}
+              </Link>
               <span className="text-[11.5px] text-muted-foreground">This is your profile</span>
             </div>
           )}

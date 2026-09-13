@@ -178,6 +178,15 @@ export interface CreateProfileInput {
   emailToken?: string;
 }
 
+/** Fields an owner may change on their own listing. Membership/identity is fixed at creation. */
+export type UpdateProfileInput = Omit<CreateProfileInput, "membershipNo" | "emailToken">;
+
+/** The owner's own listing for editing - adds the raw date of birth the public detail hides (it shows age only). */
+export type OwnProfileDetail = ProfileDetail & { dateOfBirth: string | null };
+
+/** Currencies for the salary field (code stored as a prefix, e.g. "AED 12,000"). */
+export const CURRENCIES = ["AED", "INR", "USD", "SAR", "QAR", "BHD", "OMR", "KWD", "GBP", "EUR"] as const;
+
 export const CONGREGATIONS = ["Dubai", "Fujairah", "Ras Al Khaimah", "India", "Other"] as const;
 export const DENOMINATIONS = ["CSI", "Pentecostal", "Full Gospel/AG", "Lutheran", "Roman Catholic", "Other Christian"] as const;
 
