@@ -142,6 +142,18 @@ export const api = {
     });
   },
 
+  // Admin: load any profile for editing (includes DOB) and save without ownership checks.
+  adminGetProfileForEdit(id: string): Promise<OwnProfileDetail> {
+    return http<OwnProfileDetail>(`/admin/members/${id}`);
+  },
+
+  adminUpdateProfile(id: string, input: UpdateProfileInput): Promise<ProfileDetail> {
+    return http<ProfileDetail>(`/admin/members/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
   validateMembership(membershipNo: string): Promise<MemberValidation> {
     return http<MemberValidation>(`/members/validate?membershipNo=${encodeURIComponent(membershipNo)}`);
   },
@@ -192,6 +204,13 @@ export const api = {
   createUser(input: CreateUserInput): Promise<AdminUser> {
     return http<AdminUser>(`/admin/users`, {
       method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  updateUser(id: string, input: CreateUserInput): Promise<AdminUser> {
+    return http<AdminUser>(`/admin/users/${id}`, {
+      method: "PATCH",
       body: JSON.stringify(input),
     });
   },

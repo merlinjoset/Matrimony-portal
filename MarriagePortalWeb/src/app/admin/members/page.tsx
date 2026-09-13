@@ -134,6 +134,9 @@ export default function MembersPage() {
                         <Button render={<Link href={`/admin/members/${m.id}`} />} nativeButton={false} size="sm" variant="ghost">
                           View
                         </Button>
+                        <Button render={<Link href={`/admin/members/${m.id}/edit`} />} nativeButton={false} size="sm" variant="ghost">
+                          Edit
+                        </Button>
                         {m.status === "Suspended" || m.status === "Committed" ? (
                           <Button size="sm" variant="outline" disabled={busy === m.id} onClick={() => setStatus(m.id, "Verified", m.fullName)}>
                             Reactivate

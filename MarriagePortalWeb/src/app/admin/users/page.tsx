@@ -44,6 +44,9 @@ export default function UsersPage() {
   const [pwUser, setPwUser] = useState<AdminUser | null>(null);
   const [pwValue, setPwValue] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
+  const [editUser, setEditUser] = useState<AdminUser | null>(null);
+  const [editForm, setEditForm] = useState<CreateUserInput>(emptyUser);
+  const [editSaving, setEditSaving] = useState(false);
 
   const load = useCallback(() => {
     api.getUsers().then(setUsers).catch(() => setUsers([]));
@@ -74,6 +77,28 @@ export default function UsersPage() {
       load();
     } catch {
       toast.error("Could not update status. Is the API running?");
+    }
+  }
+
+  function openEdit(u: AdminUser) {
+    setEditUser(u);
+    setEditForm({ name: u.name, email: u.email, role: u.role, congregation: u.congregation });
+  }
+
+  async function saveEdit() {
+    if (!editUser) return;
+    if (!editForm.name.trim()) return toast.error("Please enter a name.");
+    if (!editForm.email.includes("@")) return toast.error("Please enter a valid email.");
+    setEditSaving(true);
+    try {
+      await api.updateUser(editUser.id, editForm);
+      toast.success(`${editForm.name} updated.`);
+      setEditUser(null);
+      load();
+    } catch (e) {
+      toast.error(String(e).includes("409") ? "A user with that email already exists." : "Could not save changes. Is the API running?");
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -191,6 +216,7 @@ export default function UsersPage() {
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => openEdit(u)}>Edit</Button>
                         <Button size="sm" variant="outline" onClick={() => { setPwUser(u); setPwValue(""); }}>Set password</Button>
                         {u.status === "Active" ? (
                           <Button size="sm" variant="outline" onClick={() => changeStatus(u, "Disabled")}>Disable</Button>
@@ -206,6 +232,51 @@ export default function UsersPage() {
           )}
         </Card>
       </div>
+
+      <Dialog open={!!editUser} onOpenChange={(o) => { if (!o) setEditUser(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit staff user</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>Name *</Label>
+              <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="e.g. Rev. John" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Email *</Label>
+              <Input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} placeholder="name@csitamilparishdubai.com" />
+              <p className="text-[12px] text-muted-foreground">This is the address they sign in with.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Role</Label>
+                <Select value={editForm.role} onValueChange={(v) => setEditForm({ ...editForm, role: v ?? "Moderator" })}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ADMIN_ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Congregation</Label>
+                <Select value={editForm.congregation} onValueChange={(v) => setEditForm({ ...editForm, congregation: v ?? "Dubai (Main)" })}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ADMIN_CONGREGATIONS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditUser(null)}>Cancel</Button>
+            <Button disabled={editSaving} onClick={saveEdit} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
+              {editSaving ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!pwUser} onOpenChange={(o) => { if (!o) { setPwUser(null); setPwValue(""); } }}>
         <DialogContent>

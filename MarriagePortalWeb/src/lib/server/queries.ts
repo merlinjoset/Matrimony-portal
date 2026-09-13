@@ -513,6 +513,64 @@ export async function updateProfile(
   return { ok: true, status: 200, profile: profile ?? undefined };
 }
 
+/** Load any profile for admin editing (includes DOB; no ownership check). */
+export async function adminGetProfileForEdit(profileId: string): Promise<OwnProfileDetail | null> {
+  const rows = await sql`
+    SELECT ${DETAIL_COLS} FROM "TblProfiles"
+    WHERE "Id" = ${profileId} AND "IsDeleted" = false
+    LIMIT 1`;
+  if (!rows.length) return null;
+  const r = rows[0] as Row;
+  const dob = r.DateOfBirth ? new Date(r.DateOfBirth as string).toISOString().slice(0, 10) : null;
+  return { ...toDetail(r), dateOfBirth: dob };
+}
+
+/** Admin edit of any profile. Unlike the owner edit, a staff correction keeps the current
+ *  verification status (it does not push the listing back into the queue). */
+export async function adminUpdateProfile(
+  profileId: string,
+  dto: UpdateProfileInput,
+): Promise<ProfileDetail | null> {
+  const rows = await sql`
+    UPDATE "TblProfiles" SET
+      "CreatedFor" = ${dto.createdFor ?? "Self"},
+      "LookingFor" = ${dto.lookingFor ?? "Bride"},
+      "Mobile" = ${dto.mobile ?? ""},
+      "Email" = ${dto.email ?? null},
+      "FullName" = ${dto.fullName},
+      "Gender" = ${dto.gender},
+      "DateOfBirth" = ${dto.dateOfBirth ?? null},
+      "Height" = ${dto.height ?? null},
+      "MaritalStatus" = ${dto.maritalStatus ?? "Never married"},
+      "MotherTongue" = ${dto.motherTongue ?? "Tamil"},
+      "Caste" = ${dto.caste ?? null},
+      "NativePlace" = ${dto.nativePlace ?? null},
+      "Denomination" = ${dto.denomination ?? "CSI"},
+      "HomeParish" = ${dto.homeParish ?? ""},
+      "Congregation" = ${dto.congregation ?? "Dubai"},
+      "PresbyterName" = ${dto.presbyterName ?? null},
+      "PresbyterContact" = ${dto.presbyterContact ?? null},
+      "AboutFaith" = ${dto.aboutFaith ?? null},
+      "Expectations" = ${dto.expectations ?? null},
+      "Education" = ${dto.education ?? null},
+      "Profession" = ${dto.profession ?? null},
+      "City" = ${dto.city ?? null},
+      "Salary" = ${dto.salary ?? null},
+      "Company" = ${dto.company ?? null},
+      "WorkLocation" = ${dto.workLocation ?? null},
+      "FatherName" = ${dto.fatherName ?? null},
+      "FatherOccupation" = ${dto.fatherOccupation ?? null},
+      "MotherName" = ${dto.motherName ?? null},
+      "MotherOccupation" = ${dto.motherOccupation ?? null},
+      "SiblingsDetails" = ${dto.siblingsDetails ?? null},
+      "MainPhotoUrl" = ${dto.mainPhotoUrl ?? null},
+      "UpdatedAt" = now()
+    WHERE "Id" = ${profileId} AND "IsDeleted" = false
+    RETURNING "Id"`;
+  if (!rows.length) return null;
+  return (await getProfile(profileId)) ?? null;
+}
+
 // ---------- periodic re-verification ----------
 export interface ReverifyDue {
   id: string;
@@ -766,6 +824,24 @@ export async function createAdminUser(dto: CreateUserInput): Promise<AdminUser |
     VALUES (${crypto.randomUUID()}, ${dto.name}, ${dto.email}, ${dto.role}, ${dto.congregation}, 'Invited', now(), false)
     RETURNING *`;
   return toAdminUser(inserted[0] as Row);
+}
+
+/** Edit a staff account's name, email, role and congregation. Returns "conflict" if the email is taken by another user. */
+export async function updateAdminUser(id: string, dto: CreateUserInput): Promise<AdminUser | null | "conflict"> {
+  const clash = await sql`
+    SELECT 1 FROM "TblUsers"
+    WHERE lower("Email") = lower(${dto.email}) AND "Id" <> ${id} AND "IsDeleted" = false LIMIT 1`;
+  if (clash.length) return "conflict";
+  const rows = await sql`
+    UPDATE "TblUsers" SET
+      "Name" = ${dto.name},
+      "Email" = ${dto.email},
+      "Role" = ${dto.role},
+      "Congregation" = ${dto.congregation},
+      "UpdatedAt" = now()
+    WHERE "Id" = ${id} AND "IsDeleted" = false
+    RETURNING *`;
+  return rows.length ? toAdminUser(rows[0] as Row) : null;
 }
 
 export async function setAdminUserStatus(id: string, status: string): Promise<boolean> {

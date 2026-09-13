@@ -159,6 +159,9 @@ export default function AdminMemberDetail() {
             <Card className="mt-4 p-4">
               <div className="mb-2 text-[12.5px] font-semibold uppercase tracking-wide text-muted-foreground">Actions</div>
               <div className="grid gap-2">
+                <Button size="sm" variant="outline" render={<Link href={`/admin/members/${id}/edit`} />} nativeButton={false}>
+                  ✏️ Edit profile
+                </Button>
                 {p.status === "Pending" && (
                   <>
                     <Button size="sm" render={<Link href="/admin/verify" />} nativeButton={false} className="bg-brand-green text-white hover:bg-brand-green/90">
