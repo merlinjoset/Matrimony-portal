@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -123,6 +123,9 @@ export default function RegisterPage() {
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [emailToken, setEmailToken] = useState<string | null>(null);
   const identityOk = authMode === "card" ? !!membership?.valid : !!emailToken;
+  // Distinct castes already on file power the caste autocomplete (members can still type a new one).
+  const [casteList, setCasteList] = useState<string[]>([]);
+  useEffect(() => { api.getCastes().then(setCasteList).catch(() => {}); }, []);
 
   // Required national-number length by country: UAE 9 digits, India 10; others unrestricted (0).
   function phoneMax(code: string): number {
@@ -540,11 +543,15 @@ export default function RegisterPage() {
               </Field>
               <Field label={`${t("l_caste")} *`}>
                 <Input
+                  list="caste-options"
                   value={form.caste === "Caste No Bar" ? "" : (form.caste ?? "")}
                   disabled={form.caste === "Caste No Bar"}
                   onChange={(e) => set("caste", e.target.value)}
                   placeholder={t("ph_caste")}
                 />
+                <datalist id="caste-options">
+                  {casteList.map((c) => <option key={c} value={c} />)}
+                </datalist>
                 <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-[12.5px] text-muted-foreground">
                   <input
                     type="checkbox"

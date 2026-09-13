@@ -173,6 +173,11 @@ export const api = {
     return http<ProfileStats>(`/profiles/stats`);
   },
 
+  // Distinct caste values already on file, for the caste autocomplete.
+  getCastes(): Promise<string[]> {
+    return http<string[]>(`/profiles/castes`);
+  },
+
   setStatus(id: string, status: ProfileStatus, note?: string): Promise<void> {
     return http<void>(`/profiles/${id}/status`, {
       method: "PATCH",

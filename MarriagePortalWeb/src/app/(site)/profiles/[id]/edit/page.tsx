@@ -134,6 +134,8 @@ export default function EditProfilePage() {
   const [denied, setDenied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [casteList, setCasteList] = useState<string[]>([]);
+  useEffect(() => { api.getCastes().then(setCasteList).catch(() => {}); }, []);
 
   const addSibling = () => setSiblings((s) => [...s, { name: "", status: "Unmarried", occupation: "" }]);
   const updateSibling = (i: number, field: keyof SiblingRow, val: string) =>
@@ -433,11 +435,15 @@ export default function EditProfilePage() {
               </Field>
               <Field label={`${t("l_caste")} *`}>
                 <Input
+                  list="caste-options"
                   value={form.caste === "Caste No Bar" ? "" : (form.caste ?? "")}
                   disabled={form.caste === "Caste No Bar"}
                   onChange={(e) => set("caste", e.target.value)}
                   placeholder={t("ph_caste")}
                 />
+                <datalist id="caste-options">
+                  {casteList.map((c) => <option key={c} value={c} />)}
+                </datalist>
                 <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-[12.5px] text-muted-foreground">
                   <input
                     type="checkbox"

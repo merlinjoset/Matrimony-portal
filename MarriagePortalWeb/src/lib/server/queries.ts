@@ -156,6 +156,15 @@ export async function getStats(): Promise<ProfileStats> {
   };
 }
 
+/** Distinct caste values already on file, for the registration/edit autocomplete. */
+export async function getDistinctCastes(): Promise<string[]> {
+  const rows = await sql`
+    SELECT DISTINCT trim("Caste") AS caste FROM "TblProfiles"
+    WHERE "Caste" IS NOT NULL AND trim("Caste") <> '' AND "Caste" <> 'Caste No Bar' AND "IsDeleted" = false
+    ORDER BY caste ASC`;
+  return rows.map((r) => r.caste as string);
+}
+
 export async function createProfile(dto: CreateProfileInput, ownerMemberId: string | null): Promise<ProfileDetail> {
   const countRows = await sql`SELECT count(*)::int AS c FROM "TblProfiles"`;
   const referenceId = `CSI${2000 + Number(countRows[0].c) + 1}`;
