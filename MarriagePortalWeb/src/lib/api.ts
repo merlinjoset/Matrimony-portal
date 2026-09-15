@@ -170,6 +170,11 @@ export const api = {
     return http<{ name: string | null; mobile: string | null }>(`/members/${memberId}/self`);
   },
 
+  // The member's own listing, for the "My profile" menu link. Null if they have not created one.
+  getMyProfile(memberId: string): Promise<{ id: string; referenceId: string; status: string } | null> {
+    return http<{ id: string; referenceId: string; status: string } | null>(`/members/${memberId}/my-profile`);
+  },
+
   addShortlist(memberId: string, profileId: string): Promise<void> {
     return http<void>(`/members/${memberId}/shortlist`, {
       method: "POST",

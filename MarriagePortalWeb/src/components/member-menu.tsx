@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, LogOut, Heart, Inbox } from "lucide-react";
+import { ChevronDown, LogOut, Heart, Inbox, UserCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 import { useT } from "@/lib/i18n";
@@ -25,6 +25,7 @@ export function MemberMenu() {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [pendingReq, setPendingReq] = useState(0);
+  const [myProfileId, setMyProfileId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   // Count of incoming requests still awaiting the member's approval.
@@ -33,6 +34,14 @@ export function MemberMenu() {
     api.getIncomingContactRequests(member.memberId)
       .then((rs) => setPendingReq(rs.filter((r) => r.status === "Pending").length))
       .catch(() => {});
+  }, [member]);
+
+  // The member's own listing, so we can link straight to it (or offer to create one).
+  useEffect(() => {
+    if (!member) { setMyProfileId(null); return; }
+    api.getMyProfile(member.memberId)
+      .then((p) => setMyProfileId(p?.id ?? null))
+      .catch(() => setMyProfileId(null));
   }, [member]);
 
   useEffect(() => {
@@ -80,6 +89,14 @@ export function MemberMenu() {
             <p className="mt-0.5 text-xs text-muted-foreground">{t("l_membership_short")}: {member.membershipNo}</p>
           </div>
           <div className="py-1">
+            <Link
+              href={myProfileId ? `/profiles/${myProfileId}` : "/register"}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-muted"
+              role="menuitem"
+            >
+              <UserCircle className="size-4 text-maroon" /> {myProfileId ? t("nav_my_profile") : t("nav_create_profile")}
+            </Link>
             <Link
               href="/shortlist"
               onClick={() => setOpen(false)}

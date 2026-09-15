@@ -186,6 +186,8 @@ const en: Dict = {
 
   // contact requests page
   nav_requests: "Requests",
+  nav_my_profile: "My profile",
+  nav_create_profile: "Create my profile",
   rq_h: "Requests",
   rq_sub: "Approve or decline members asking to see your contact number or photo.",
   rq_incoming: "Requests to you",
@@ -530,6 +532,8 @@ const ta: Dict = {
 
   // contact requests page
   nav_requests: "கோரிக்கைகள்",
+  nav_my_profile: "எனது சுயவிவரம்",
+  nav_create_profile: "எனது சுயவிவரத்தை உருவாக்கு",
   rq_h: "கோரிக்கைகள்",
   rq_sub: "உங்கள் தொடர்பு எண் அல்லது புகைப்படத்தைப் பார்க்கக் கோரும் உறுப்பினர்களை அங்கீகரிக்க அல்லது மறுக்கவும்.",
   rq_incoming: "உங்களுக்கான கோரிக்கைகள்",
