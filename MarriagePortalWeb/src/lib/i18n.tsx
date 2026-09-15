@@ -80,7 +80,7 @@ const en: Dict = {
   results_found: "profiles found",
   result_found: "profile found",
   no_match: "No profiles match these filters.",
-  api_down: "Could not reach the API. Make sure the backend is running at http://localhost:5117.",
+  api_down: "Could not reach the server. Please check your connection and try again.",
 
   // card / common
   yrs: "yrs",
@@ -263,7 +263,7 @@ const en: Dict = {
   ph_uploading: "Uploading…",
   ph_err_type: "Please choose an image file (JPG or PNG).",
   ph_err_size: "Image is too large. Please choose a file under 5 MB.",
-  ph_err_upload: "Upload failed. Is the API running at http://localhost:5117?",
+  ph_err_upload: "Upload failed. Please check your connection and try again.",
   lg_createdby: "Profile created by",
   l_createdfor: "Created for *",
   l_lookingfor: "Looking for *",
@@ -342,7 +342,7 @@ const en: Dict = {
   reset_btn: "Reset",
   toast_ok: "Profile submitted for parish verification.",
   toast_name: "Please enter the full name.",
-  toast_err: "Could not submit. Is the API running at http://localhost:5117?",
+  toast_err: "Could not submit. Please check your connection and try again.",
 
   // edit / update profile
   edit_profile_btn: "Edit profile details",
@@ -434,7 +434,7 @@ const ta: Dict = {
   results_found: "சுயவிவரங்கள் கிடைத்தன",
   result_found: "சுயவிவரம் கிடைத்தது",
   no_match: "இந்த வடிப்பான்களுக்கு பொருந்தும் சுயவிவரம் இல்லை.",
-  api_down: "API-ஐ அணுக முடியவில்லை. பின்தளம் http://localhost:5117 இல் இயங்குகிறதா எனப் பார்க்கவும்.",
+  api_down: "சேவையகத்தை அணுக முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
 
   yrs: "வயது",
   bride: "மணமகள்",
@@ -613,7 +613,7 @@ const ta: Dict = {
   ph_uploading: "பதிவேற்றுகிறது…",
   ph_err_type: "படக் கோப்பைத் தேர்ந்தெடுக்கவும் (JPG அல்லது PNG).",
   ph_err_size: "படம் மிகப் பெரியது. 5 MB-க்கு கீழ் உள்ள கோப்பைத் தேர்ந்தெடுக்கவும்.",
-  ph_err_upload: "பதிவேற்றம் தோல்வியடைந்தது. API http://localhost:5117 இல் இயங்குகிறதா?",
+  ph_err_upload: "பதிவேற்றம் தோல்வியடைந்தது. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
   lg_createdby: "சுயவிவரம் உருவாக்கியவர்",
   l_createdfor: "யாருக்காக *",
   l_lookingfor: "தேடுவது *",
@@ -692,7 +692,7 @@ const ta: Dict = {
   reset_btn: "மீட்டமை",
   toast_ok: "சுயவிவரம் திருச்சபை சரிபார்ப்புக்கு சமர்ப்பிக்கப்பட்டது.",
   toast_name: "முழுப் பெயரை உள்ளிடவும்.",
-  toast_err: "சமர்ப்பிக்க முடியவில்லை. API http://localhost:5117 இல் இயங்குகிறதா?",
+  toast_err: "சமர்ப்பிக்க முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
 
   // edit / update profile
   edit_profile_btn: "சுயவிவரத்தைத் திருத்து",

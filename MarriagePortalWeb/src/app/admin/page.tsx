@@ -35,7 +35,7 @@ export default function AdminDashboard() {
       <div className="p-7">
         {error && (
           <p className="mb-5 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-            Could not reach the API at http://localhost:5117. Start the backend to see live data.
+            Could not reach the server. Please check your connection and try again.
           </p>
         )}
 

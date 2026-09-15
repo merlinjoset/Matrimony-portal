@@ -259,8 +259,9 @@ export default function RegisterPage() {
       });
       toast.success(t("toast_ok"));
       router.push(`/profiles/${created.id}`);
-    } catch {
-      toast.error(t("toast_err"));
+    } catch (err) {
+      // Surface the real server message when we have one; fall back to the generic notice.
+      toast.error(err instanceof Error && err.message ? err.message : t("toast_err"));
     } finally {
       setSaving(false);
     }
