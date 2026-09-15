@@ -221,6 +221,8 @@ export default function RegisterPage() {
     if ((ageOf(form.dateOfBirth) ?? 0) < MIN_AGE) return toast.error(t("dob_min"));
     if (!form.caste?.trim()) return toast.error(t("caste_req"));
     if (!form.nativePlace?.trim()) return toast.error(t("native_req"));
+    if (form.congregation === "Other" && !form.refereeName?.trim()) return toast.error(t("referee_name_req"));
+    if (form.congregation === "Other" && !form.refereeContact?.trim()) return toast.error(t("referee_contact_req"));
     const pmax = phoneMax(dialCode);
     if (pmax > 0 && phone.length !== pmax) return toast.error(t("mobile_len"));
     if (!agree) return toast.error(t("tc_req"));
@@ -604,10 +606,10 @@ export default function RegisterPage() {
               )}
               {form.congregation === "Other" && (
                 <>
-                  <Field label={t("l_referee_name")}>
+                  <Field label={`${t("l_referee_name")} *`}>
                     <Input value={form.refereeName ?? ""} onChange={(e) => set("refereeName", e.target.value)} placeholder={t("ph_referee_name")} />
                   </Field>
-                  <Field label={t("l_referee_contact")}>
+                  <Field label={`${t("l_referee_contact")} *`}>
                     <Input value={form.refereeContact ?? ""} onChange={(e) => set("refereeContact", e.target.value)} placeholder={t("ph_referee_contact")} />
                   </Field>
                 </>
