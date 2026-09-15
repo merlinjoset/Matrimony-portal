@@ -106,9 +106,9 @@ function siblingsToRows(raw: string | null): SiblingRow[] {
   return parsed.map((s) => ({ name: s.name, status: s.status === "Married" ? "Married" : "Unmarried", occupation: s.occupation }));
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="space-y-1.5">
+    <div className={`space-y-1.5${className ? ` ${className}` : ""}`}>
       <Label className="text-[12.5px]">{label}</Label>
       {children}
     </div>
@@ -469,14 +469,14 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
               </>
             )}
             {form.congregation === "Other" && (
-              <div className="grid gap-3.5 md:col-span-3 md:grid-cols-2">
-                <Field label={`${t("l_referee_name")} *`}>
+              <>
+                <Field label={`${t("l_referee_name")} *`} className="md:col-start-1">
                   <Input value={form.refereeName ?? ""} onChange={(e) => set("refereeName", e.target.value)} placeholder={t("ph_referee_name")} />
                 </Field>
                 <Field label={`${t("l_referee_contact")} *`}>
                   <Input value={form.refereeContact ?? ""} onChange={(e) => set("refereeContact", e.target.value)} placeholder={t("ph_referee_contact")} />
                 </Field>
-              </div>
+              </>
             )}
           </div>
           <Field label={t("l_walk")}>
