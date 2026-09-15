@@ -10,5 +10,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   // Contact number and presbyter details are admin-only here; members see the number only
   // through the approval flow and never see the presbyter contact.
   const isAdmin = (await requireAdmin()).ok;
-  return Response.json(isAdmin ? profile : { ...profile, mobile: null, presbyterName: null, presbyterContact: null });
+  return Response.json(isAdmin ? profile : { ...profile, mobile: null, presbyterName: null, presbyterContact: null, refereeName: null, refereeContact: null });
 }

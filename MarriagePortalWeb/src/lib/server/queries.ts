@@ -69,6 +69,8 @@ function toDetail(r: Row): ProfileDetail {
     homeParish: r.HomeParish as string,
     presbyterName: s(r.PresbyterName),
     presbyterContact: s(r.PresbyterContact),
+    refereeName: s(r.RefereeName),
+    refereeContact: s(r.RefereeContact),
     aboutFaith: s(r.AboutFaith),
     expectations: s(r.Expectations),
     salary: s(r.Salary),
@@ -85,7 +87,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -173,14 +175,14 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
   await sql`
     INSERT INTO "TblProfiles"
       ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender",
-       "DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","AboutFaith","Expectations",
+       "DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations",
        "Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${referenceId}, ${dto.membershipNo ?? null}, ${ownerMemberId}, ${dto.createdFor ?? "Self"},
        ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
        ${dto.dateOfBirth ?? null}, ${dto.height ?? null}, ${dto.maritalStatus ?? "Never married"},
        ${dto.motherTongue ?? "Tamil"}, ${dto.caste ?? null}, ${dto.nativePlace ?? null}, ${dto.denomination ?? "CSI"}, ${dto.homeParish ?? ""},
-       ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null}, ${dto.education ?? null},
+       ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.refereeName ?? null}, ${dto.refereeContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null}, ${dto.education ?? null},
        ${dto.profession ?? null}, ${dto.city ?? null}, ${dto.salary ?? null}, ${dto.company ?? null}, ${dto.workLocation ?? null},
        ${dto.fatherName ?? null}, ${dto.fatherOccupation ?? null}, ${dto.motherName ?? null}, ${dto.motherOccupation ?? null}, ${dto.siblingsDetails ?? null},
        ${dto.mainPhotoUrl ?? null}, 'Pending', now(), false)`;
@@ -353,7 +355,7 @@ export interface VerifyQueueItem extends ProfileListItem {
 /** Pending profiles awaiting the 3-level approval, with their progress. */
 export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
   const rows = await sql`
-    SELECT ${LIST_COLS}, "ApprovalLevel", "Mobile", "Email", "PresbyterName", "PresbyterContact" FROM "TblProfiles"
+    SELECT ${LIST_COLS}, "ApprovalLevel", "Mobile", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact" FROM "TblProfiles"
     WHERE "IsDeleted" = false AND "Status" = 'Pending'
     ORDER BY "CreatedAt" ASC`;
   const ids = rows.map((r) => r.Id as string);
@@ -366,6 +368,8 @@ export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
     email: s(r.Email),
     presbyterName: s(r.PresbyterName),
     presbyterContact: s(r.PresbyterContact),
+    refereeName: s(r.RefereeName),
+    refereeContact: s(r.RefereeContact),
   }));
 }
 
@@ -487,6 +491,8 @@ export async function updateProfile(
       "Congregation" = ${dto.congregation ?? "Dubai"},
       "PresbyterName" = ${dto.presbyterName ?? null},
       "PresbyterContact" = ${dto.presbyterContact ?? null},
+      "RefereeName" = ${dto.refereeName ?? null},
+      "RefereeContact" = ${dto.refereeContact ?? null},
       "AboutFaith" = ${dto.aboutFaith ?? null},
       "Expectations" = ${dto.expectations ?? null},
       "Education" = ${dto.education ?? null},
@@ -550,6 +556,8 @@ export async function adminUpdateProfile(
       "Congregation" = ${dto.congregation ?? "Dubai"},
       "PresbyterName" = ${dto.presbyterName ?? null},
       "PresbyterContact" = ${dto.presbyterContact ?? null},
+      "RefereeName" = ${dto.refereeName ?? null},
+      "RefereeContact" = ${dto.refereeContact ?? null},
       "AboutFaith" = ${dto.aboutFaith ?? null},
       "Expectations" = ${dto.expectations ?? null},
       "Education" = ${dto.education ?? null},

@@ -154,6 +154,14 @@ export default function VerifyQueue() {
                               <dd className="break-all font-medium">{m.presbyterContact || "-"}</dd>
                             </>
                           )}
+                          {m.congregation === "Other" && (
+                            <>
+                              <dt className="text-muted-foreground">Reference</dt>
+                              <dd className="font-medium">{m.refereeName || "-"}</dd>
+                              <dt className="text-muted-foreground">Reference contact</dt>
+                              <dd className="break-all font-medium">{m.refereeContact || "-"}</dd>
+                            </>
+                          )}
                         </dl>
                       </div>
                     </div>

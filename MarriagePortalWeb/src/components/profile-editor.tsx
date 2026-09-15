@@ -46,6 +46,8 @@ const empty: UpdateProfileInput = {
   congregation: "Dubai",
   presbyterName: "",
   presbyterContact: "",
+  refereeName: "",
+  refereeContact: "",
   aboutFaith: "",
   expectations: "",
   education: "",
@@ -197,6 +199,8 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
       congregation: p.congregation || "Dubai",
       presbyterName: p.presbyterName ?? "",
       presbyterContact: p.presbyterContact ?? "",
+      refereeName: p.refereeName ?? "",
+      refereeContact: p.refereeContact ?? "",
       aboutFaith: p.aboutFaith ?? "",
       expectations: p.expectations ?? "",
       education: p.education ?? "",
@@ -459,6 +463,16 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
                 </Field>
                 <Field label={t("l_presbyter_contact")}>
                   <Input value={form.presbyterContact ?? ""} onChange={(e) => set("presbyterContact", e.target.value)} placeholder={t("ph_presbyter_contact")} />
+                </Field>
+              </>
+            )}
+            {form.congregation === "Other" && (
+              <>
+                <Field label={t("l_referee_name")}>
+                  <Input value={form.refereeName ?? ""} onChange={(e) => set("refereeName", e.target.value)} placeholder={t("ph_referee_name")} />
+                </Field>
+                <Field label={t("l_referee_contact")}>
+                  <Input value={form.refereeContact ?? ""} onChange={(e) => set("refereeContact", e.target.value)} placeholder={t("ph_referee_contact")} />
                 </Field>
               </>
             )}

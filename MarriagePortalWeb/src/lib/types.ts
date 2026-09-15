@@ -32,6 +32,8 @@ export interface ProfileDetail extends ProfileListItem {
   homeParish: string;
   presbyterName: string | null; // admin-only; stripped from member-facing payloads
   presbyterContact: string | null; // admin-only; stripped from member-facing payloads
+  refereeName: string | null; // extra reference for "Other" congregations; admin-only
+  refereeContact: string | null; // extra reference for "Other" congregations; admin-only
   aboutFaith: string | null;
   expectations: string | null;
   salary: string | null;
@@ -160,6 +162,8 @@ export interface CreateProfileInput {
   congregation: string;
   presbyterName?: string | null;
   presbyterContact?: string | null;
+  refereeName?: string | null;
+  refereeContact?: string | null;
   aboutFaith?: string | null;
   expectations?: string | null;
   education?: string | null;
@@ -271,6 +275,8 @@ export interface VerifyQueueItem extends ProfileListItem {
   email: string | null;
   presbyterName: string | null;
   presbyterContact: string | null;
+  refereeName: string | null;
+  refereeContact: string | null;
 }
 
 export const ADMIN_CONGREGATIONS = [

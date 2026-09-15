@@ -222,6 +222,12 @@ export default function AdminMemberDetail() {
                     <Row label="Presbyter contact" value={p.presbyterContact} />
                   </>
                 )}
+                {p.congregation === "Other" && (
+                  <>
+                    <Row label="Reference name" value={p.refereeName} />
+                    <Row label="Reference contact" value={p.refereeContact} />
+                  </>
+                )}
                 <Row label="Walk of faith" value={p.aboutFaith} />
                 <Row label="Partner expectations" value={p.expectations} />
               </dl>
