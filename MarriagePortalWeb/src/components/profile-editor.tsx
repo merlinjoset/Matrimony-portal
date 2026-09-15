@@ -469,14 +469,14 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
               </>
             )}
             {form.congregation === "Other" && (
-              <>
+              <div className="grid gap-3.5 md:col-span-3 md:grid-cols-2">
                 <Field label={`${t("l_referee_name")} *`}>
                   <Input value={form.refereeName ?? ""} onChange={(e) => set("refereeName", e.target.value)} placeholder={t("ph_referee_name")} />
                 </Field>
                 <Field label={`${t("l_referee_contact")} *`}>
                   <Input value={form.refereeContact ?? ""} onChange={(e) => set("refereeContact", e.target.value)} placeholder={t("ph_referee_contact")} />
                 </Field>
-              </>
+              </div>
             )}
           </div>
           <Field label={t("l_walk")}>
