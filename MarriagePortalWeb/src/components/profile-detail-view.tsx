@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { Lock, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import { MemberGate } from "@/components/member-gate";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 import { parseSiblings } from "@/lib/siblings";
+import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { REPORT_REASONS, type ContactReveal, type ProfileDetail } from "@/lib/types";
 import {
@@ -45,6 +46,75 @@ function Row({ label, value }: { label: string; value?: string | number | null }
       <dt className="text-sm font-semibold text-muted-foreground">{label}</dt>
       <dd className="text-[15px]">{value}</dd>
     </div>
+  );
+}
+
+/** Owner-facing tracker for the 3-level parish verification (Initial check -> Admin review -> Final approval). */
+function VerificationProgress({
+  status,
+  level,
+  statusNote,
+}: {
+  status: ProfileDetail["status"];
+  level: number;
+  statusNote: string | null;
+}) {
+  const { t } = useT();
+  const allDone = status === "Verified" || status === "Active" || status === "Committed";
+  const steps = [t("vp_l1"), t("vp_l2"), t("vp_l3")];
+  const stateOf = (n: number): "done" | "current" | "pending" => {
+    if (allDone || level >= n) return "done";
+    if (status === "Pending" && level + 1 === n) return "current";
+    return "pending";
+  };
+  const note =
+    status === "Rejected" ? t("vp_rejected")
+    : status === "Suspended" ? t("vp_suspended")
+    : status === "Committed" ? t("vp_committed")
+    : allDone ? t("vp_verified")
+    : t("vp_in_review");
+
+  return (
+    <Card className="mt-4 p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <span className="text-[12.5px] font-semibold uppercase tracking-wide text-muted-foreground">{t("vp_title")}</span>
+        <StatusBadge status={status} />
+      </div>
+      <ol className="space-y-2.5">
+        {steps.map((label, i) => {
+          const st = stateOf(i + 1);
+          return (
+            <li key={i} className="flex items-center gap-2.5">
+              <span
+                className={cn(
+                  "grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold",
+                  st === "done" ? "bg-brand-green text-white"
+                  : st === "current" ? "bg-gold text-maroon ring-2 ring-gold/40"
+                  : "bg-muted text-muted-foreground",
+                )}
+              >
+                {st === "done" ? <Check className="size-3.5" /> : i + 1}
+              </span>
+              <span className={cn("text-sm", st === "pending" ? "text-muted-foreground" : "font-medium")}>{label}</span>
+              <span
+                className={cn(
+                  "ml-auto text-[11px] font-medium",
+                  st === "done" ? "text-brand-green" : st === "current" ? "text-maroon" : "text-muted-foreground",
+                )}
+              >
+                {st === "done" ? t("vp_step_done") : st === "current" ? t("vp_step_current") : t("vp_step_pending")}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="mt-3 text-[12px] leading-snug text-muted-foreground">{note}</p>
+      {(status === "Rejected" || status === "Suspended") && statusNote && (
+        <p className="mt-1.5 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-1.5 text-[12px] text-destructive">
+          {statusNote}
+        </p>
+      )}
+    </Card>
   );
 }
 
@@ -76,6 +146,9 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
   // Photo is private: revealed by the contact/photo request flow (owner or approved viewer).
   const [reveal, setReveal] = useState<ContactReveal | null>(null);
   const isOwner = !!reveal?.isOwner;
+  // Owners may edit only before the parish approves it; once Verified/Active (or locked as
+  // Committed/Suspended) the listing is read-only and changes go through the parish office.
+  const canEdit = isOwner && (p.status === "Pending" || p.status === "Rejected");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [reqBusy, setReqBusy] = useState(false);
@@ -228,30 +301,37 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
           )}
           {isOwner && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <label className="cursor-pointer">
-                <span className="inline-flex h-8 items-center rounded-lg border border-border bg-background px-3 text-[13px] font-medium hover:bg-muted">
-                  {photoBusy ? "Uploading…" : photoUrl ? "📷 Change photo" : "📷 Add photo"}
-                </span>
-                <input type="file" accept="image/*" hidden onChange={onChangePhoto} disabled={photoBusy} />
-              </label>
-              {photoUrl && (
-                <button
-                  type="button"
-                  onClick={removePhoto}
-                  disabled={photoBusy}
-                  className="inline-flex h-8 items-center rounded-lg border border-destructive/40 px-3 text-[13px] font-medium text-destructive hover:bg-destructive/5"
-                >
-                  Remove
-                </button>
+              {canEdit && (
+                <>
+                  <label className="cursor-pointer">
+                    <span className="inline-flex h-8 items-center rounded-lg border border-border bg-background px-3 text-[13px] font-medium hover:bg-muted">
+                      {photoBusy ? "Uploading…" : photoUrl ? "📷 Change photo" : "📷 Add photo"}
+                    </span>
+                    <input type="file" accept="image/*" hidden onChange={onChangePhoto} disabled={photoBusy} />
+                  </label>
+                  {photoUrl && (
+                    <button
+                      type="button"
+                      onClick={removePhoto}
+                      disabled={photoBusy}
+                      className="inline-flex h-8 items-center rounded-lg border border-destructive/40 px-3 text-[13px] font-medium text-destructive hover:bg-destructive/5"
+                    >
+                      Remove
+                    </button>
+                  )}
+                  <Link
+                    href={`/profiles/${p.id}/edit`}
+                    className="inline-flex h-8 items-center rounded-lg border border-maroon/40 px-3 text-[13px] font-medium text-maroon hover:bg-maroon/5"
+                  >
+                    ✏️ {t("edit_profile_btn")}
+                  </Link>
+                </>
               )}
-              <Link
-                href={`/profiles/${p.id}/edit`}
-                className="inline-flex h-8 items-center rounded-lg border border-maroon/40 px-3 text-[13px] font-medium text-maroon hover:bg-maroon/5"
-              >
-                ✏️ {t("edit_profile_btn")}
-              </Link>
               <span className="text-[11.5px] text-muted-foreground">This is your profile</span>
             </div>
+          )}
+          {isOwner && (
+            <VerificationProgress status={p.status} level={p.approvalLevel} statusNote={p.statusNote} />
           )}
           {/* Actions apply only to other members' profiles - hidden on your own. */}
           {!isOwner && (

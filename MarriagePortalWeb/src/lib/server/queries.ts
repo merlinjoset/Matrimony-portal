@@ -82,12 +82,13 @@ function toDetail(r: Row): ProfileDetail {
     motherOccupation: s(r.MotherOccupation),
     siblingsDetails: s(r.SiblingsDetails),
     statusNote: s(r.StatusNote),
+    approvalLevel: Number(r.ApprovalLevel ?? 0),
     createdAt: new Date(r.CreatedAt as string).toISOString(),
   };
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -471,6 +472,9 @@ export async function updateProfile(
     return { ok: false, status: 409, message: "This profile is suspended. Please contact the parish office to update it." };
   if (cur.Status === "Committed")
     return { ok: false, status: 409, message: "This profile is marked as committed and can no longer be edited." };
+  // Once the parish has verified a profile it is locked to the owner; only staff can amend it.
+  if (cur.Status === "Verified" || cur.Status === "Active")
+    return { ok: false, status: 409, message: "This profile has been verified by the parish and can no longer be edited. Please contact the parish office to make changes." };
 
   await sql`
     UPDATE "TblProfiles" SET

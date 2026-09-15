@@ -45,6 +45,7 @@ export interface ProfileDetail extends ProfileListItem {
   motherOccupation: string | null;
   siblingsDetails: string | null;
   statusNote: string | null;
+  approvalLevel: number; // 0-3: how many of the 3 verification levels have been signed off
   createdAt: string;
 }
 

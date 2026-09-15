@@ -56,6 +56,18 @@ export default function EditProfilePage() {
     );
   }
 
+  // Once the parish has verified (or otherwise locked) a listing, the owner can no longer edit it.
+  if (profile.status !== "Pending" && profile.status !== "Rejected") {
+    return (
+      <section className="mx-auto max-w-3xl px-5 py-12">
+        <Card className="space-y-4 p-8">
+          <p className="text-muted-foreground">{t("edit_locked")}</p>
+          <Button variant="outline" render={<Link href={`/profiles/${id}`} />} nativeButton={false}>{t("edit_cancel")}</Button>
+        </Card>
+      </section>
+    );
+  }
+
   return (
     <section className="mx-auto max-w-3xl px-5 py-12">
       <Card className="p-8">
