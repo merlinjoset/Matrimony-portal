@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AdminHeader, Pill, statusTone } from "@/components/admin/admin-ui";
+import { ImageLightbox } from "@/components/image-lightbox";
 import { api } from "@/lib/api";
 import { parseSiblings } from "@/lib/siblings";
 import type { ProfileDetail, ProfileStatus } from "@/lib/types";
@@ -64,6 +65,7 @@ export default function AdminMemberDetail() {
   const [busy, setBusy] = useState(false);
   const [reasonMode, setReasonMode] = useState<"reject" | "suspend" | null>(null);
   const [reason, setReason] = useState("");
+  const [zoom, setZoom] = useState(false);
 
   const load = useCallback(() => {
     api.getProfile(id).then(setP).catch(() => setError(true));
@@ -149,7 +151,12 @@ export default function AdminMemberDetail() {
             <div className="grid h-64 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-maroon to-brand-green text-7xl font-bold text-white">
               {p.mainPhotoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.mainPhotoUrl} alt={p.fullName} className="h-full w-full object-cover" />
+                <img
+                  src={p.mainPhotoUrl}
+                  alt={p.fullName}
+                  onClick={() => setZoom(true)}
+                  className="h-full w-full cursor-zoom-in object-cover"
+                />
               ) : (
                 initials(p.fullName)
               )}
@@ -285,6 +292,8 @@ export default function AdminMemberDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {zoom && p.mainPhotoUrl && <ImageLightbox src={p.mainPhotoUrl} alt={p.fullName} onClose={() => setZoom(false)} />}
     </>
   );
 }

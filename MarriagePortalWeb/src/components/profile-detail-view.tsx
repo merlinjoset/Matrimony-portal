@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/status-badge";
+import { ImageLightbox } from "@/components/image-lightbox";
 import { ContactCard } from "@/components/contact-card";
 import { MemberGate } from "@/components/member-gate";
 import { useT } from "@/lib/i18n";
@@ -151,6 +152,7 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
   const canEdit = isOwner && (p.status === "Pending" || p.status === "Rejected");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [zoom, setZoom] = useState(false);
   const [reqBusy, setReqBusy] = useState(false);
 
   useEffect(() => {
@@ -269,7 +271,12 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
           <div className="grid h-72 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-maroon to-brand-green text-8xl font-bold text-white shadow-lg">
             {photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={photoUrl} alt={p.fullName} className="h-full w-full object-cover" />
+              <img
+                src={photoUrl}
+                alt={p.fullName}
+                onClick={() => setZoom(true)}
+                className="h-full w-full cursor-zoom-in object-cover"
+              />
             ) : hasPhoto ? (
               <div className="flex flex-col items-center gap-2 px-6 text-center">
                 <Lock className="size-8 opacity-90" />
@@ -509,6 +516,7 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
           )}
         </div>
       </div>
+      {zoom && photoUrl && <ImageLightbox src={photoUrl} alt={p.fullName} onClose={() => setZoom(false)} />}
     </section>
   );
 }
