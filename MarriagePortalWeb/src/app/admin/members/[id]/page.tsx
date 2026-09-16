@@ -195,6 +195,7 @@ export default function AdminMemberDetail() {
               <Separator className="my-3" />
               <dl>
                 <Row label="Reference ID" value={p.referenceId} />
+                <Row label="Membership card" value={p.membershipNo} />
                 <Row label="Contact number" value={p.mobile} />
                 <Row label="Email" value={p.email} />
                 <Row label="Created for" value={p.createdFor} />

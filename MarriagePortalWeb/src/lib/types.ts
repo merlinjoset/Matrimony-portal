@@ -23,6 +23,7 @@ export interface ProfileListItem {
 export interface ProfileDetail extends ProfileListItem {
   createdFor: string;
   lookingFor: string;
+  membershipNo: string | null; // admin-only; stripped from member-facing payloads
   mobile: string | null; // admin-only; stripped from member-facing payloads
   email: string | null;
   maritalStatus: string;
@@ -272,6 +273,7 @@ export interface VerifyQueueItem extends ProfileListItem {
   approvalLevel: number;
   approvals: ApprovalInfo[];
   // Admin-only contact details shown to the verifier on hover.
+  membershipNo: string | null;
   mobile: string | null;
   email: string | null;
   presbyterName: string | null;

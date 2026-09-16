@@ -60,6 +60,7 @@ function toDetail(r: Row): ProfileDetail {
     ...toListItem(r),
     createdFor: r.CreatedFor as string,
     lookingFor: r.LookingFor as string,
+    membershipNo: s(r.MembershipNo),
     mobile: s(r.Mobile),
     email: s(r.Email),
     maritalStatus: r.MaritalStatus as string,
@@ -88,7 +89,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","MembershipNo","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -356,7 +357,7 @@ export interface VerifyQueueItem extends ProfileListItem {
 /** Pending profiles awaiting the 3-level approval, with their progress. */
 export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
   const rows = await sql`
-    SELECT ${LIST_COLS}, "ApprovalLevel", "Mobile", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact" FROM "TblProfiles"
+    SELECT ${LIST_COLS}, "ApprovalLevel", "MembershipNo", "Mobile", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact" FROM "TblProfiles"
     WHERE "IsDeleted" = false AND "Status" = 'Pending'
     ORDER BY "CreatedAt" ASC`;
   const ids = rows.map((r) => r.Id as string);
@@ -365,6 +366,7 @@ export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
     ...toListItem(r as Row),
     approvalLevel: Number(r.ApprovalLevel),
     approvals: approvals[r.Id as string] ?? [],
+    membershipNo: s(r.MembershipNo),
     mobile: s(r.Mobile),
     email: s(r.Email),
     presbyterName: s(r.PresbyterName),
