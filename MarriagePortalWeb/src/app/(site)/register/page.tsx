@@ -102,6 +102,8 @@ export default function RegisterPage() {
   const [uploading, setUploading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [membership, setMembership] = useState<MemberValidation | null>(null);
+  // True when the validated card already has a profile - block a duplicate, point them to editing.
+  const [dupProfile, setDupProfile] = useState(false);
   const [dialCode, setDialCode] = useState("+971");
   const [phone, setPhone] = useState("");
   // Salary is entered as a currency + amount, stored combined (e.g. "AED 12,000").
@@ -147,8 +149,15 @@ export default function RegisterPage() {
     const card = form.membershipNo.trim();
     if (!card) return;
     setChecking(true);
+    setDupProfile(false);
     try {
-      setMembership(await api.validateMembership(card));
+      const m = await api.validateMembership(card);
+      setMembership(m);
+      // If this membership already has a profile, warn and block a duplicate.
+      if (m.valid && m.memberId) {
+        const hp = await api.hasProfile(m.memberId).catch(() => ({ hasProfile: false }));
+        setDupProfile(hp.hasProfile);
+      }
     } catch {
       setMembership({ valid: false, memberId: null, name: null, congregation: null, message: t("ei_err") });
     } finally {
@@ -216,6 +225,7 @@ export default function RegisterPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!identityOk) return toast.error(authMode === "card" ? t("m_required") : t("otp_required"));
+    if (authMode === "card" && dupProfile) return toast.error(t("dup_profile"));
     if (!form.fullName.trim()) return toast.error(t("toast_name"));
     if (!form.dateOfBirth) return toast.error(t("dob_req"));
     if ((ageOf(form.dateOfBirth) ?? 0) < MIN_AGE) return toast.error(t("dob_min"));
@@ -334,6 +344,11 @@ export default function RegisterPage() {
                     {membership.message}
                   </div>
                 ) : null}
+                {dupProfile && (
+                  <div className="rounded-lg border border-amber-400/40 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800">
+                    {t("dup_profile")}
+                  </div>
+                )}
               </>
             ) : (
               <>

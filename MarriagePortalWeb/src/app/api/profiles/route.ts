@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { browseProfiles, createProfile, validateMembership } from "@/lib/server/queries";
+import { browseProfiles, createProfile, memberHasProfile, validateMembership } from "@/lib/server/queries";
 import { guestMemberId, verifyEmailToken } from "@/lib/server/otp";
 import { notifyLevelApprovers, notifyNewProfile } from "@/lib/server/notifications";
 import { requireAdmin } from "@/lib/server/guard";
@@ -52,6 +52,15 @@ export async function POST(req: NextRequest) {
     const membership = await validateMembership(dto.membershipNo ?? "");
     if (!membership.valid) return new Response(membership.message ?? "Invalid membership card.", { status: 400 });
     ownerMemberId = membership.memberId;
+  }
+
+  // One profile per member: block a duplicate instead of creating a second listing for the same owner.
+  // (Editing an existing profile goes through PATCH /profiles/[id]/edit, so this never blocks edits.)
+  if (ownerMemberId && (await memberHasProfile(ownerMemberId))) {
+    return new Response(
+      "A profile already exists for this membership. Please sign in and edit your existing profile instead of creating a new one. If you cannot sign in, please contact the parish office.",
+      { status: 409 },
+    );
   }
 
   const created = await createProfile(dto, ownerMemberId);
