@@ -170,8 +170,12 @@ export async function getDistinctCastes(): Promise<string[]> {
 }
 
 export async function createProfile(dto: CreateProfileInput, ownerMemberId: string | null): Promise<ProfileDetail> {
-  const countRows = await sql`SELECT count(*)::int AS c FROM "TblProfiles"`;
-  const referenceId = `CSI${2000 + Number(countRows[0].c) + 1}`;
+  // Reference IDs are a continuous CSInnnn series: take the highest number ever assigned
+  // (including soft-deleted rows) and add 1, so a deletion never causes a number to be reused.
+  const maxRow = await sql`
+    SELECT COALESCE(MAX(CAST(SUBSTRING("ReferenceId" FROM 4) AS INTEGER)), 2000) AS m
+    FROM "TblProfiles" WHERE "ReferenceId" ~ '^CSI[0-9]+$'`;
+  const referenceId = `CSI${Number(maxRow[0].m) + 1}`;
   const id = crypto.randomUUID();
 
   await sql`
