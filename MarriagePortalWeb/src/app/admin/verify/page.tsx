@@ -142,7 +142,7 @@ export default function VerifyQueue() {
                       <div className="absolute left-0 top-full z-30 hidden w-72 rounded-lg border border-border bg-white p-3 text-[12.5px] shadow-xl group-hover:block">
                         <div className="mb-1.5 font-semibold text-maroon">Contact details</div>
                         <dl className="grid grid-cols-[84px_1fr] gap-x-2 gap-y-1">
-                          <dt className="text-muted-foreground">Card #</dt>
+                          <dt className="text-muted-foreground">Membership Card</dt>
                           <dd className="font-medium">{m.membershipNo || "-"}</dd>
                           <dt className="text-muted-foreground">Mobile</dt>
                           <dd className="font-medium">{m.mobile || "-"}</dd>
