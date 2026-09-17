@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { browseProfiles, createProfile, memberHasProfile, validateMembership } from "@/lib/server/queries";
 import { guestMemberId, verifyEmailToken } from "@/lib/server/otp";
+import { activateMemberAccountByMemberId } from "@/lib/server/auth";
 import { notifyLevelApprovers, notifyNewProfile } from "@/lib/server/notifications";
 import { requireAdmin } from "@/lib/server/guard";
 import type { CreateProfileInput } from "@/lib/types";
@@ -64,6 +65,15 @@ export async function POST(req: NextRequest) {
   }
 
   const created = await createProfile(dto, ownerMemberId);
+
+  // Activate the owner's login account so they can sign in and manage their profile (never blocks).
+  if (ownerMemberId) {
+    try {
+      await activateMemberAccountByMemberId(ownerMemberId);
+    } catch (err) {
+      console.error("[profiles] account activation failed:", err);
+    }
+  }
 
   // Notify the parish office, and email the Level 1 approvers to start the review (never blocks the response).
   try {

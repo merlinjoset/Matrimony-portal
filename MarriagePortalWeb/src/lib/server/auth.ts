@@ -29,7 +29,8 @@ export interface AuthResult {
 
 /**
  * Create a member login (username + password) against a valid membership card.
- * The account starts as 'Pending' - a parish admin must activate it before sign-in works.
+ * The account starts as 'Pending'; it is activated automatically once the member creates a
+ * profile (see POST /api/profiles), or a parish admin can activate it manually.
  */
 export async function signup(membershipNo: string, username: string, password: string): Promise<AuthResult> {
   const user = (username ?? "").trim();
@@ -61,7 +62,8 @@ export async function signup(membershipNo: string, username: string, password: s
  * Create a member login for a non-member, gated by a verified-email token (from the email OTP)
  * instead of a membership card. The account has no membership number and a deterministic
  * MemberId derived from the email, so its profile links to it. Like a member sign-up it starts
- * 'Pending' until a parish admin activates it. Once active it is treated exactly like a member.
+ * 'Pending' and is activated automatically once a profile is created (or by a parish admin).
+ * Once active it is treated exactly like a member.
  */
 export async function signupGuest(
   email: string,
@@ -266,6 +268,16 @@ export async function listLoginLogs(limit = 200): Promise<LoginLogRow[]> {
 export async function setMemberAccountStatus(id: string, status: string): Promise<boolean> {
   if (!["Pending", "Active", "Disabled"].includes(status)) return false;
   const rows = await sql`UPDATE "TblMemberAccounts" SET "Status" = ${status}, "UpdatedAt" = now() WHERE "Id" = ${id} AND "IsDeleted" = false RETURNING "Id"`;
+  return rows.length > 0;
+}
+
+/** Activate a member's login account when their profile is created, so they can sign in and manage
+ *  it. Only lifts a 'Pending' account - a 'Disabled' account stays disabled. */
+export async function activateMemberAccountByMemberId(memberId: string): Promise<boolean> {
+  const rows = await sql`
+    UPDATE "TblMemberAccounts" SET "Status" = 'Active', "UpdatedAt" = now()
+    WHERE "MemberId" = ${memberId} AND "Status" = 'Pending' AND "IsDeleted" = false
+    RETURNING "Id"`;
   return rows.length > 0;
 }
 
