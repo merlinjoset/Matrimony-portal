@@ -18,6 +18,7 @@ export interface ProfileListItem {
   city: string | null;
   mainPhotoUrl: string | null;
   status: ProfileStatus;
+  createdAt: string;
 }
 
 export interface ProfileDetail extends ProfileListItem {

@@ -111,6 +111,7 @@ export default function MembersPage() {
                   <th className="px-5 py-3 font-bold">For</th>
                   <th className="px-5 py-3 font-bold">Congregation</th>
                   <th className="px-5 py-3 font-bold">Status</th>
+                  <th className="px-5 py-3 font-bold">Registered</th>
                   <th className="px-5 py-3 font-bold">Action</th>
                 </tr>
               </thead>
@@ -129,6 +130,9 @@ export default function MembersPage() {
                     <td className="px-5 py-3 text-sm">{m.gender === "Female" ? "Bride" : "Groom"}</td>
                     <td className="px-5 py-3 text-sm">{m.congregation}</td>
                     <td className="px-5 py-3"><Pill tone={statusTone(m.status)}>{m.status}</Pill></td>
+                    <td className="px-5 py-3 whitespace-nowrap text-sm text-muted-foreground" title={new Date(m.createdAt).toLocaleString()}>
+                      {new Date(m.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                    </td>
                     <td className="px-5 py-3">
                       <div className="flex gap-2">
                         <Button render={<Link href={`/admin/members/${m.id}`} />} nativeButton={false} size="sm" variant="ghost">

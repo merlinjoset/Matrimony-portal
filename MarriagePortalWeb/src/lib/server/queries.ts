@@ -52,6 +52,7 @@ function toListItem(r: Row): ProfileListItem {
     city: s(r.City),
     mainPhotoUrl: s(r.MainPhotoUrl),
     status: r.Status as ProfileListItem["status"],
+    createdAt: new Date(r.CreatedAt as string).toISOString(),
   };
 }
 
@@ -88,7 +89,7 @@ function toDetail(r: Row): ProfileDetail {
   };
 }
 
-const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status"`;
+const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status","CreatedAt"`;
 const DETAIL_COLS = sql`"Id","ReferenceId","MembershipNo","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
