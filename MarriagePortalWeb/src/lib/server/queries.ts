@@ -776,8 +776,27 @@ export async function getContactReveal(profileId: string, viewerMemberId: string
 }
 
 export async function listIncomingContactRequests(ownerMemberId: string): Promise<ContactRequest[]> {
-  const rows = await sql`SELECT * FROM "TblContactRequests" WHERE "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false ORDER BY "CreatedAt" DESC`;
-  return rows.map((r) => toContactRequest(r as Row));
+  // Show the requester's own PROFILE name (who the profile is for), not their account/creator name.
+  const rows = await sql`
+    SELECT c.*, rp."FullName" AS "RequesterProfileName", rp."Congregation" AS "RequesterProfileCongregation"
+    FROM "TblContactRequests" c
+    LEFT JOIN LATERAL (
+      SELECT "FullName", "Congregation" FROM "TblProfiles"
+      WHERE "OwnerMemberId" = c."RequesterMemberId" AND "IsDeleted" = false
+      ORDER BY "CreatedAt" DESC LIMIT 1
+    ) rp ON true
+    WHERE c."OwnerMemberId" = ${ownerMemberId} AND c."IsDeleted" = false
+    ORDER BY c."CreatedAt" DESC`;
+  return rows.map((r) => {
+    const base = toContactRequest(r as Row);
+    const profileName = (r as Row).RequesterProfileName as string | null;
+    if (!profileName) return base;
+    return {
+      ...base,
+      requesterName: profileName,
+      requesterCongregation: ((r as Row).RequesterProfileCongregation as string) ?? base.requesterCongregation,
+    };
+  });
 }
 
 export async function listOutgoingContactRequests(requesterMemberId: string): Promise<ContactRequest[]> {
