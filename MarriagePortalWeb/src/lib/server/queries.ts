@@ -151,10 +151,11 @@ export async function getStats(): Promise<ProfileStats> {
   const rows = await sql`SELECT "Status", count(*)::int AS c FROM "TblProfiles" WHERE "IsDeleted" = false GROUP BY "Status"`;
   const by: Record<string, number> = {};
   for (const r of rows) by[r.Status as string] = Number(r.c);
+  // Only verified/live profiles count as "available" brides and grooms.
   const g = (await sql`
     SELECT count(*) FILTER (WHERE "Gender" = 'Female')::int AS brides,
            count(*) FILTER (WHERE "Gender" = 'Male')::int AS grooms
-    FROM "TblProfiles" WHERE "IsDeleted" = false`)[0];
+    FROM "TblProfiles" WHERE "IsDeleted" = false AND "Status" IN ('Verified', 'Active')`)[0];
   const total = Object.values(by).reduce((a, b) => a + b, 0);
   return {
     total,

@@ -58,7 +58,8 @@ export default function AdminDashboard() {
         </div>
 
         <Card className="mb-6 p-5">
-          <h3 className="mb-4 font-semibold">Brides &amp; Grooms</h3>
+          <h3 className="font-semibold">Brides &amp; Grooms</h3>
+          <p className="mb-4 text-[12.5px] text-muted-foreground">Verified profiles available for matching</p>
           {stats ? (
             <GenderChart brides={stats.brides} grooms={stats.grooms} />
           ) : (
