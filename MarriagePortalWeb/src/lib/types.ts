@@ -80,6 +80,8 @@ export interface ProfileStats {
   verified: number;
   active: number;
   suspended: number;
+  brides: number; // Female profiles
+  grooms: number; // Male profiles
 }
 
 export interface MemberValidation {

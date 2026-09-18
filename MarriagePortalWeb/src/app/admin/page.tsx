@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminHeader, Avatar, Pill, statusTone } from "@/components/admin/admin-ui";
+import { GenderChart } from "@/components/admin/gender-chart";
 import { api } from "@/lib/api";
 import type { ProfileListItem, ProfileStats } from "@/lib/types";
 
@@ -55,6 +56,15 @@ export default function AdminDashboard() {
             );
           })}
         </div>
+
+        <Card className="mb-6 p-5">
+          <h3 className="mb-4 font-semibold">Brides &amp; Grooms</h3>
+          {stats ? (
+            <GenderChart brides={stats.brides} grooms={stats.grooms} />
+          ) : (
+            <Skeleton className="h-[150px] w-full max-w-sm" />
+          )}
+        </Card>
 
         <Card className="p-0">
           <div className="flex items-center gap-3 border-b border-border px-5 py-3.5">
