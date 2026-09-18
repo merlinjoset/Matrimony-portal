@@ -251,13 +251,14 @@ export interface ApprovalInfo {
   level: number;
   byName: string | null;
   byRole: string | null;
+  remarks: string | null;
   createdAt: string;
 }
 
 export async function getProfileApprovals(profileIds: string[]): Promise<Record<string, ApprovalInfo[]>> {
   if (!profileIds.length) return {};
   const rows = await sql`
-    SELECT "ProfileId","Level","ApprovedByName","ApprovedByRole","CreatedAt"
+    SELECT "ProfileId","Level","ApprovedByName","ApprovedByRole","Remarks","CreatedAt"
     FROM "TblProfileApprovals" WHERE "ProfileId" = ANY(${profileIds}) ORDER BY "Level" ASC`;
   const map: Record<string, ApprovalInfo[]> = {};
   for (const r of rows) {
@@ -266,6 +267,7 @@ export async function getProfileApprovals(profileIds: string[]): Promise<Record<
       level: Number(r.Level),
       byName: (r.ApprovedByName as string) ?? null,
       byRole: (r.ApprovedByRole as string) ?? null,
+      remarks: (r.Remarks as string) ?? null,
       createdAt: new Date(r.CreatedAt as string).toISOString(),
     });
   }
@@ -280,13 +282,14 @@ export interface ApprovalLogEntry {
   byName: string | null;
   byRole: string | null;
   checklist: string[];
+  remarks: string | null;
   createdAt: string;
 }
 
 /** Audit log of every level approval - who verified which profile, when, and what they confirmed. */
 export async function getApprovalLog(limit = 300): Promise<ApprovalLogEntry[]> {
   const rows = await sql`
-    SELECT a."Id", a."Level", a."ApprovedByName", a."ApprovedByRole", a."Checklist", a."CreatedAt",
+    SELECT a."Id", a."Level", a."ApprovedByName", a."ApprovedByRole", a."Checklist", a."Remarks", a."CreatedAt",
            p."ReferenceId", p."FullName"
     FROM "TblProfileApprovals" a
     LEFT JOIN "TblProfiles" p ON p."Id" = a."ProfileId"
@@ -308,6 +311,7 @@ export async function getApprovalLog(limit = 300): Promise<ApprovalLogEntry[]> {
     byName: (r.ApprovedByName as string) ?? null,
     byRole: (r.ApprovedByRole as string) ?? null,
     checklist: parseList(r.Checklist),
+    remarks: (r.Remarks as string) ?? null,
     createdAt: new Date(r.CreatedAt as string).toISOString(),
   }));
 }
@@ -318,7 +322,8 @@ export async function approveProfileLevel(
   profileId: string,
   level: number,
   admin: { id: string; name: string; role: string },
-  checklist?: string[]
+  checklist?: string[],
+  remarks?: string,
 ): Promise<{ ok: boolean; status: number; message?: string }> {
   const required = (await getApprovalChecklist())[level] ?? [];
   const checked = checklist ?? [];
@@ -346,8 +351,8 @@ export async function approveProfileLevel(
   }
 
   await sql`
-    INSERT INTO "TblProfileApprovals" ("Id","ProfileId","Level","ApprovedByUserId","ApprovedByName","ApprovedByRole","Checklist","CreatedAt")
-    VALUES (${crypto.randomUUID()}, ${profileId}, ${level}, ${admin.id}, ${admin.name}, ${admin.role}, ${JSON.stringify(checked)}, now())`;
+    INSERT INTO "TblProfileApprovals" ("Id","ProfileId","Level","ApprovedByUserId","ApprovedByName","ApprovedByRole","Checklist","Remarks","CreatedAt")
+    VALUES (${crypto.randomUUID()}, ${profileId}, ${level}, ${admin.id}, ${admin.name}, ${admin.role}, ${JSON.stringify(checked)}, ${remarks?.trim() || null}, now())`;
   await sql`UPDATE "TblProfiles" SET "ApprovalLevel" = ${level}, "UpdatedAt" = now() WHERE "Id" = ${profileId}`;
   if (level === 3) await setProfileStatus(profileId, "Verified");
 

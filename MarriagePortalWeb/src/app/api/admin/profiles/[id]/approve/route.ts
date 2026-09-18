@@ -8,10 +8,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const g = await requireAdmin();
   if (!g.ok) return g.response;
   const { id } = await params;
-  const body = (await req.json()) as { level: number; checklist?: string[] };
+  const body = (await req.json()) as { level: number; checklist?: string[]; remarks?: string };
   const level = Number(body.level);
 
-  const result = await approveProfileLevel(id, level, g.admin, body.checklist);
+  const result = await approveProfileLevel(id, level, g.admin, body.checklist, body.remarks);
   if (!result.ok) {
     return new Response(JSON.stringify({ message: result.message }), {
       status: result.status,

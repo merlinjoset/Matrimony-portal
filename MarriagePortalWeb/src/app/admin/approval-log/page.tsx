@@ -63,7 +63,10 @@ export default function ApprovalLogPage() {
                             ))}
                           </ul>
                         ) : (
-                          <span className="text-[12.5px] text-muted-foreground">-</span>
+                          !r.remarks && <span className="text-[12.5px] text-muted-foreground">-</span>
+                        )}
+                        {r.remarks && (
+                          <p className="mt-1 text-[12.5px] italic text-foreground/70">&ldquo;{r.remarks}&rdquo;</p>
                         )}
                       </td>
                     </tr>

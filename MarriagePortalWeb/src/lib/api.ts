@@ -356,10 +356,10 @@ export const api = {
     });
   },
 
-  approveProfileLevel(id: string, level: number, checklist: string[]): Promise<void> {
+  approveProfileLevel(id: string, level: number, checklist: string[], remarks?: string): Promise<void> {
     return http<void>(`/admin/profiles/${id}/approve`, {
       method: "POST",
-      body: JSON.stringify({ level, checklist }),
+      body: JSON.stringify({ level, checklist, remarks }),
     });
   },
 

@@ -256,6 +256,7 @@ export interface ApprovalInfo {
   level: number;
   byName: string | null;
   byRole: string | null;
+  remarks: string | null;
   createdAt: string;
 }
 
@@ -267,6 +268,7 @@ export interface ApprovalLogEntry {
   byName: string | null;
   byRole: string | null;
   checklist: string[];
+  remarks: string | null;
   createdAt: string;
 }
 

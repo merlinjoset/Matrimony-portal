@@ -43,6 +43,7 @@ export default function VerifyQueue() {
   const [rows, setRows] = useState<VerifyQueueItem[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [checked, setChecked] = useState<Record<string, string[]>>({});
+  const [remarks, setRemarks] = useState<Record<string, string>>({});
   const [reject, setReject] = useState<VerifyQueueItem | null>(null);
   const [reason, setReason] = useState("");
   // Checklist is admin-configurable (see /admin/checklists); fall back to the built-in defaults.
@@ -71,9 +72,10 @@ export default function VerifyQueue() {
     if (!items.every((i) => done.includes(i))) return toast.error("Please confirm all checklist items first.");
     setBusy(p.id);
     try {
-      await api.approveProfileLevel(p.id, level, done);
+      await api.approveProfileLevel(p.id, level, done, remarks[p.id]?.trim() || undefined);
       toast.success(level === 3 ? `Final approval done - ${p.fullName} is now Verified.` : `Level ${level} approved for ${p.fullName}.`);
       setChecked((c) => ({ ...c, [p.id]: [] }));
+      setRemarks((r) => ({ ...r, [p.id]: "" }));
       load();
     } catch (e) {
       toast.error(String(e).replace(/^\d+:\s*/, "") || "Approval failed.");
@@ -185,6 +187,18 @@ export default function VerifyQueue() {
                     })}
                   </div>
 
+                  {/* Recorded remarks from completed levels */}
+                  {m.approvals.some((a) => a.remarks) && (
+                    <div className="mt-2 space-y-1">
+                      {m.approvals.filter((a) => a.remarks).map((a) => (
+                        <div key={a.level} className="rounded-md border border-border bg-muted/20 px-2.5 py-1.5 text-[12px] leading-snug">
+                          <span className="font-semibold text-maroon">L{a.level} {LEVEL_LABEL[a.level]}{a.byName ? ` · ${a.byName}` : ""}:</span>{" "}
+                          <span className="text-foreground/80">{a.remarks}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Next-level checklist + approve */}
                   <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
                     <div className="mb-2 text-[12.5px] font-bold uppercase tracking-wide text-maroon">
@@ -205,6 +219,15 @@ export default function VerifyQueue() {
                               <span>{it}</span>
                             </label>
                           ))}
+                        </div>
+                        <div className="mt-3 space-y-1">
+                          <label className="text-[12px] font-semibold text-muted-foreground">Verification remarks <span className="font-normal">(optional)</span></label>
+                          <Textarea
+                            rows={2}
+                            value={remarks[m.id] ?? ""}
+                            onChange={(e) => setRemarks((r) => ({ ...r, [m.id]: e.target.value }))}
+                            placeholder={`Notes for Level ${nextLevel} (e.g. spoke to the presbyter, documents seen)…`}
+                          />
                         </div>
                         <Button
                           size="sm"
