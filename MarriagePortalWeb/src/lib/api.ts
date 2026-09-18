@@ -162,8 +162,8 @@ export const api = {
     return http<ProfileListItem[]>(`/members/${memberId}/shortlist`);
   },
 
-  hasProfile(memberId: string): Promise<{ hasProfile: boolean; hasApprovedProfile: boolean; profileId: string | null }> {
-    return http<{ hasProfile: boolean; hasApprovedProfile: boolean; profileId: string | null }>(`/members/${memberId}/has-profile`);
+  hasProfile(memberId: string): Promise<{ hasProfile: boolean; hasApprovedProfile: boolean; profileId: string | null; gender: string | null }> {
+    return http<{ hasProfile: boolean; hasApprovedProfile: boolean; profileId: string | null; gender: string | null }>(`/members/${memberId}/has-profile`);
   },
 
   getMemberSelf(memberId: string): Promise<{ name: string | null; mobile: string | null }> {

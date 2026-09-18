@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ProfileCard } from "@/components/profile-card";
 import { BrowseFilters } from "@/components/browse-filters";
 import { MemberGate } from "@/components/member-gate";
+import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 import type { ProfileListItem } from "@/lib/types";
@@ -26,9 +28,20 @@ function BrowseContent({
 }) {
   const { t } = useT();
   const { member } = useMemberShortlist();
-  // Never show the viewer their own listing when browsing others.
-  const visible = member ? items.filter((p) => p.ownerMemberId !== member.memberId) : items;
-  const count = Math.max(0, total - (items.length - visible.length));
+  // A member only sees the opposite gender (a groom sees brides, a bride sees grooms).
+  const [myGender, setMyGender] = useState<string | null>(null);
+  useEffect(() => {
+    if (!member) { setMyGender(null); return; }
+    api.hasProfile(member.memberId).then((r) => setMyGender(r.gender)).catch(() => {});
+  }, [member]);
+  const targetGender = myGender === "Male" ? "Female" : myGender === "Female" ? "Male" : null;
+
+  const visible = items.filter(
+    (p) =>
+      (!member || p.ownerMemberId !== member.memberId) && // never show the viewer their own listing
+      (!targetGender || p.gender === targetGender),        // only the opposite gender
+  );
+  const count = visible.length;
   return (
     <section className="mx-auto max-w-6xl px-5 py-12">
       <div className="mb-6 flex flex-wrap items-center gap-4">

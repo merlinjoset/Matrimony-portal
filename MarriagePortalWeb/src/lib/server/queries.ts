@@ -684,12 +684,12 @@ export async function memberHasProfile(memberId: string): Promise<boolean> {
 /** The member's own listing (most recent), used to link them to "My profile". Null if none. */
 export async function getMemberOwnProfileBrief(
   memberId: string,
-): Promise<{ id: string; referenceId: string; status: string } | null> {
+): Promise<{ id: string; referenceId: string; status: string; gender: string } | null> {
   const p = (await sql`
-    SELECT "Id", "ReferenceId", "Status" FROM "TblProfiles"
+    SELECT "Id", "ReferenceId", "Status", "Gender" FROM "TblProfiles"
     WHERE "OwnerMemberId" = ${memberId} AND "IsDeleted" = false
     ORDER BY "CreatedAt" DESC LIMIT 1`)[0];
-  return p ? { id: p.Id as string, referenceId: p.ReferenceId as string, status: p.Status as string } : null;
+  return p ? { id: p.Id as string, referenceId: p.ReferenceId as string, status: p.Status as string, gender: p.Gender as string } : null;
 }
 
 // ---------- shortlist ----------

@@ -1,31 +1,14 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { CONGREGATIONS, DENOMINATIONS } from "@/lib/types";
 import { useT } from "@/lib/i18n";
-
-const ALL = "all";
 
 export function BrowseFilters() {
   const router = useRouter();
   const sp = useSearchParams();
   const { t } = useT();
-
-  function update(key: string, value: string | null) {
-    const params = new URLSearchParams(sp.toString());
-    if (!value || value === ALL) params.delete(key);
-    else params.set(key, value);
-    params.delete("page");
-    router.push(`/browse?${params.toString()}`);
-  }
 
   function updateMulti(key: string, values: string[]) {
     const params = new URLSearchParams(sp.toString());
@@ -40,15 +23,7 @@ export function BrowseFilters() {
 
   return (
     <div className="flex flex-wrap gap-2.5">
-      <Select value={sp.get("gender") ?? ALL} onValueChange={(v) => update("gender", v)}>
-        <SelectTrigger className="w-[150px] bg-white"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{t("all")}</SelectItem>
-          <SelectItem value="Female">{t("brides")}</SelectItem>
-          <SelectItem value="Male">{t("grooms")}</SelectItem>
-        </SelectContent>
-      </Select>
-
+      {/* Gender is fixed to the opposite of the viewer's own profile (a groom sees brides, and vice versa). */}
       <MultiSelect
         className="w-[180px]"
         options={DENOMINATIONS}
