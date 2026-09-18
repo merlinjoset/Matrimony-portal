@@ -121,7 +121,7 @@ function VerificationProgress({
 
 export function ProfileDetailView({ p, hasPhoto = false }: { p: ProfileDetail; hasPhoto?: boolean }) {
   return (
-    <MemberGate requireProfile>
+    <MemberGate requireProfile ownerMemberId={p.ownerMemberId}>
       <ProfileDetailContent p={p} hasPhoto={hasPhoto} />
     </MemberGate>
   );

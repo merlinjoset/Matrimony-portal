@@ -11,24 +11,36 @@ import { useMemberShortlist } from "@/lib/member-shortlist";
 
 /**
  * Members-only gate: renders children only when a member is signed in.
- * With `requireProfile`, the member must also have created at least one listing of their own
- * before they can view others - otherwise they are prompted to create their profile first.
+ * With `requireProfile`, the member's own profile must also be APPROVED (Verified/Active)
+ * before they can view others - otherwise they are prompted to create it or wait for approval.
  */
-export function MemberGate({ children, requireProfile = false }: { children: React.ReactNode; requireProfile?: boolean }) {
+type Gate = { hasProfile: boolean; approved: boolean; profileId: string | null };
+
+export function MemberGate({
+  children,
+  requireProfile = false,
+  ownerMemberId = null,
+}: {
+  children: React.ReactNode;
+  requireProfile?: boolean;
+  /** When the signed-in member owns this profile, they may view it regardless of approval state. */
+  ownerMemberId?: string | null;
+}) {
   const { t } = useT();
   const { member, ready, openSignIn } = useMemberShortlist();
-  // null = unknown/loading, true/false once checked.
-  const [owns, setOwns] = useState<boolean | null>(null);
+  // null = unknown/loading, otherwise the resolved gate state.
+  const [gate, setGate] = useState<Gate | null>(null);
+  const isOwnProfile = !!(member && ownerMemberId && member.memberId === ownerMemberId);
 
   useEffect(() => {
-    if (!requireProfile || !member) { setOwns(null); return; }
+    if (!requireProfile || !member || isOwnProfile) { setGate(null); return; }
     let live = true;
-    setOwns(null);
+    setGate(null);
     api.hasProfile(member.memberId)
-      .then((r) => { if (live) setOwns(r.hasProfile); })
-      .catch(() => { if (live) setOwns(true); }); // fail open so a check error never blocks a real member
+      .then((r) => { if (live) setGate({ hasProfile: r.hasProfile, approved: r.hasApprovedProfile, profileId: r.profileId }); })
+      .catch(() => { if (live) setGate({ hasProfile: true, approved: true, profileId: null }); }); // fail open on a check error
     return () => { live = false; };
-  }, [requireProfile, member]);
+  }, [requireProfile, member, isOwnProfile]);
 
   // Until the stored session is restored, render nothing to avoid a flash.
   if (!ready) return null;
@@ -45,9 +57,9 @@ export function MemberGate({ children, requireProfile = false }: { children: Rea
     );
   }
 
-  if (requireProfile) {
-    if (owns === null) return null; // brief check; avoid flashing the wrong state
-    if (!owns) {
+  if (requireProfile && !isOwnProfile) {
+    if (gate === null) return null; // brief check; avoid flashing the wrong state
+    if (!gate.hasProfile) {
       return (
         <Prompt
           title={t("pg_title")}
@@ -55,6 +67,24 @@ export function MemberGate({ children, requireProfile = false }: { children: Rea
           primary={
             <Button render={<Link href="/register" />} nativeButton={false} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
               {t("create_profile")}
+            </Button>
+          }
+        />
+      );
+    }
+    if (!gate.approved) {
+      // Has a profile, but it is still Pending / Rejected / Suspended - can't view others yet.
+      return (
+        <Prompt
+          title={t("pg_pending_title")}
+          message={t("pg_pending_msg")}
+          primary={
+            <Button
+              render={<Link href={gate.profileId ? `/profiles/${gate.profileId}` : "/"} />}
+              nativeButton={false}
+              className="bg-gold text-maroon hover:bg-gold! hover:brightness-105"
+            >
+              {t("pg_view_mine")}
             </Button>
           }
         />
