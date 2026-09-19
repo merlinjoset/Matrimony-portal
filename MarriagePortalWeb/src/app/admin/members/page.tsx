@@ -104,7 +104,8 @@ export default function MembersPage() {
           ) : rows.length === 0 ? (
             <p className="p-8 text-center text-muted-foreground">No members match this filter.</p>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px]">
               <thead>
                 <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-muted-foreground">
                   <th className="px-5 py-3 font-bold">Member</th>
@@ -185,6 +186,7 @@ export default function MembersPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
       </div>

@@ -186,7 +186,8 @@ export default function UsersPage() {
           ) : users.length === 0 ? (
             <p className="p-8 text-center text-muted-foreground">No users yet. Click “Add user” to invite staff.</p>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px]">
               <thead>
                 <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-muted-foreground">
                   <th className="px-5 py-3 font-bold">Name</th>
@@ -229,6 +230,7 @@ export default function UsersPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
       </div>

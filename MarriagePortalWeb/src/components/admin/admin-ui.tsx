@@ -10,8 +10,8 @@ export function AdminHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-border bg-white px-7 py-4">
-      <div>
+    <div className="z-10 flex flex-wrap items-center gap-3 border-b border-border bg-white px-5 py-4 sm:px-7 lg:sticky lg:top-0">
+      <div className="min-w-0">
         <h1 className="text-xl font-bold">{title}</h1>
         {subtitle && <p className="text-[13px] text-muted-foreground">{subtitle}</p>}
       </div>

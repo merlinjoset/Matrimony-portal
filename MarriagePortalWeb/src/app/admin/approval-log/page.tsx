@@ -26,7 +26,7 @@ export default function ApprovalLogPage() {
         ) : (
           <Card className="overflow-hidden p-0">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[680px] text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50 text-left text-[12px] uppercase tracking-wide text-muted-foreground">
                     <th className="px-5 py-3 font-semibold">When</th>

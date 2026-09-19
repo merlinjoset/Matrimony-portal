@@ -52,7 +52,8 @@ export default function InterestsPage() {
           ) : rows.length === 0 ? (
             <p className="p-8 text-center text-muted-foreground">No interests yet.</p>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px]">
               <thead>
                 <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-muted-foreground">
                   <th className="px-5 py-3 font-bold">From (enquirer)</th>
@@ -96,6 +97,7 @@ export default function InterestsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
       </div>

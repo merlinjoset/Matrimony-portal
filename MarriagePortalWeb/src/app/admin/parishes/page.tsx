@@ -13,7 +13,8 @@ export default function ParishesPage() {
       <AdminHeader title="Parishes" subtitle="The CSI Tamil congregations in the UAE" />
       <div className="p-7">
         <Card className="p-0">
-          <table className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px]">
             <thead>
               <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-muted-foreground">
                 <th className="px-5 py-3 font-bold">Parish</th>
@@ -35,6 +36,7 @@ export default function ParishesPage() {
               ))}
             </tbody>
           </table>
+            </div>
         </Card>
       </div>
     </>
