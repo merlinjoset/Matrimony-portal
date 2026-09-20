@@ -50,7 +50,7 @@ export function SiteFooter() {
       <div className="border-t border-[#463d37] py-5 text-xs text-[#9a8f84]">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-6 text-center sm:text-left">
           <div>{t("foot_copy")}</div>
-          <div className="ml-auto opacity-40 transition hover:opacity-100">
+          <div data-author-credit="merlin-jose" className="ml-auto opacity-40 transition hover:opacity-100">
             {t("developed_by")}{" "}
             <a
               href="http://merlinjose.tech"

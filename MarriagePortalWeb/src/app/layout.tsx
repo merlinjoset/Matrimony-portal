@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Noto_Sans_Tamil } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthorGuard } from "@/components/author-guard";
 
 const geistSans = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <LanguageProvider>
           {children}
           <Toaster richColors position="top-center" />
+          <AuthorGuard />
         </LanguageProvider>
       </body>
     </html>
