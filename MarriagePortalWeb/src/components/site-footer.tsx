@@ -1,3 +1,8 @@
+/*! @license
+ * (c) Merlin Jose - https://merlinjose.tech
+ * The "Developed by Merlin Jose" author credit below is part of this software's
+ * licence terms and must not be removed or obscured. See NOTICE.md.
+ */
 "use client";
 
 import { useT } from "@/lib/i18n";
