@@ -17,11 +17,13 @@ function StatusPill({ status }: { status: ContactRequestStatus }) {
     Pending: "bg-amber-100 text-amber-800",
     Approved: "bg-brand-green/15 text-brand-green",
     Declined: "bg-destructive/10 text-destructive",
+    Revoked: "bg-muted text-muted-foreground",
   };
   const label: Record<ContactRequestStatus, string> = {
     Pending: t("rq_pending"),
     Approved: t("rq_approved"),
     Declined: t("rq_declined"),
+    Revoked: t("rq_revoked"),
   };
   return <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${map[status]}`}>{label[status]}</span>;
 }
@@ -53,15 +55,19 @@ export default function RequestsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function act(id: string, status: "Approved" | "Declined") {
+  // Owners may revoke access only 2 days after they approved a request.
+  const REVOKE_AFTER_MS = 2 * 24 * 60 * 60 * 1000;
+  const canRevoke = (r: ContactRequest) => r.status === "Approved" && Date.now() - new Date(r.updatedAt).getTime() >= REVOKE_AFTER_MS;
+
+  async function act(id: string, status: "Approved" | "Declined" | "Revoked") {
     if (!member) return;
     setBusy(id);
     try {
       await api.setContactRequestStatus(id, member.memberId, status);
-      setIncoming((rs) => (rs ? rs.map((r) => (r.id === id ? { ...r, status } : r)) : rs));
-      toast.success(status === "Approved" ? t("rq_approve_ok") : t("rq_decline_ok"));
-    } catch {
-      toast.error(t("rq_action_err"));
+      setIncoming((rs) => (rs ? rs.map((r) => (r.id === id ? { ...r, status, updatedAt: new Date().toISOString() } : r)) : rs));
+      toast.success(status === "Approved" ? t("rq_approve_ok") : status === "Revoked" ? t("rq_revoke_ok") : t("rq_decline_ok"));
+    } catch (e) {
+      toast.error(String(e).replace(/^\d+:\s*/, "") || t("rq_action_err"));
     } finally {
       setBusy(null);
     }
@@ -127,6 +133,21 @@ export default function RequestsPage() {
                         >
                           {t("rq_decline")}
                         </Button>
+                      </div>
+                    ) : r.status === "Approved" ? (
+                      <div className="flex shrink-0 items-center gap-2">
+                        <StatusPill status={r.status} />
+                        {canRevoke(r) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busy === r.id}
+                            onClick={() => act(r.id, "Revoked")}
+                            className="border-destructive/40 text-destructive hover:bg-destructive/5"
+                          >
+                            {t("rq_revoke")}
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <StatusPill status={r.status} />

@@ -316,7 +316,7 @@ export interface CreateInterestInput {
 }
 
 // ---- Contact-reveal requests ----
-export type ContactRequestStatus = "Pending" | "Approved" | "Declined";
+export type ContactRequestStatus = "Pending" | "Approved" | "Declined" | "Revoked";
 /** Contact number and photo are requested and approved independently. */
 export type RequestType = "Contact" | "Photo";
 
@@ -331,6 +331,7 @@ export interface ContactRequest {
   requestType: RequestType;
   status: ContactRequestStatus;
   createdAt: string;
+  updatedAt: string; // last status change (e.g. when it was approved)
 }
 
 /** What the signed-in viewer may see of a profile - the contact number and the photo are

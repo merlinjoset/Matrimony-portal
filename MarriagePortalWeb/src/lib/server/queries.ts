@@ -735,6 +735,7 @@ function toContactRequest(r: Row): ContactRequest {
     requestType: ((r.RequestType as RequestType) ?? "Contact"),
     status: r.Status as ContactRequest["status"],
     createdAt: new Date(r.CreatedAt as string).toISOString(),
+    updatedAt: new Date((r.UpdatedAt as string) ?? (r.CreatedAt as string)).toISOString(),
   };
 }
 
@@ -816,12 +817,31 @@ export async function listOutgoingContactRequests(requesterMemberId: string): Pr
   return rows.map((r) => toContactRequest(r as Row));
 }
 
-export async function setContactRequestStatus(id: string, ownerMemberId: string, status: string): Promise<boolean> {
+export async function setContactRequestStatus(
+  id: string,
+  ownerMemberId: string,
+  status: string,
+): Promise<{ ok: boolean; status: number; message?: string }> {
+  if (!["Pending", "Approved", "Declined", "Revoked"].includes(status)) {
+    return { ok: false, status: 400, message: "Invalid status." };
+  }
+  // Revoking is only allowed on a request that has been approved for at least 2 days.
+  if (status === "Revoked") {
+    const cur = (await sql`
+      SELECT "Status", "UpdatedAt" FROM "TblContactRequests"
+      WHERE "Id" = ${id} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false LIMIT 1`)[0];
+    if (!cur) return { ok: false, status: 404, message: "Request not found." };
+    if (cur.Status !== "Approved") return { ok: false, status: 409, message: "Only an approved request can be revoked." };
+    const approvedAt = new Date(cur.UpdatedAt as string).getTime();
+    if (Date.now() - approvedAt < 2 * 24 * 60 * 60 * 1000) {
+      return { ok: false, status: 409, message: "Access can only be revoked 2 days after it was approved." };
+    }
+  }
   const rows = await sql`
     UPDATE "TblContactRequests" SET "Status" = ${status}, "UpdatedAt" = now()
     WHERE "Id" = ${id} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false
     RETURNING "Id"`;
-  return rows.length > 0;
+  return rows.length ? { ok: true, status: 204 } : { ok: false, status: 404, message: "Request not found." };
 }
 
 // ---------- interests ----------
