@@ -9,10 +9,12 @@ import type { CreateProfileInput } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  // This list endpoint is admin-only. The public browse page renders server-side (it calls
+  // browseProfiles directly), so this must not be an open API that anyone can scrape/download.
+  const g = await requireAdmin();
+  if (!g.ok) return g.response;
   const p = req.nextUrl.searchParams;
   const num = (v: string | null) => (v ? Number(v) : undefined);
-  // Only admins get photo URLs in list results; everyone else must request-and-be-approved per profile.
-  const isAdmin = (await requireAdmin()).ok;
   const result = await browseProfiles({
     gender: p.get("gender") ?? undefined,
     denomination: p.get("denomination") ?? undefined,
@@ -21,7 +23,7 @@ export async function GET(req: NextRequest) {
     live: p.get("live") === "true",
     page: num(p.get("page")),
     pageSize: num(p.get("pageSize")),
-    includePhotos: isAdmin,
+    includePhotos: true,
   });
   return Response.json(result);
 }
