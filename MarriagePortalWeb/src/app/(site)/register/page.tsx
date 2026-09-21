@@ -903,36 +903,43 @@ export default function RegisterPage() {
 
       {/* Mandatory consent form - shown only when registering on behalf of someone else. */}
       <Dialog open={consentOpen} onOpenChange={(o) => { if (!saving) setConsentOpen(o); }}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Details of the person submitting the form</DialogTitle>
             <DialogDescription>
-              You are creating this profile on behalf of the bride/groom. Please complete this consent form before you submit the profile - all fields are required.
+              You are creating this profile on behalf of the bride/groom. Please complete this consent form before you submit - all fields are required.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-1">
-            <Field label="Relationship to the bride/groom *">
-              <Select value={submitter.relationship} onValueChange={(v) => setSub("relationship", v ?? "Father")}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["Father", "Mother", "Brother", "Sister", "Relative", "Friend", "Other"].map((r) => (
-                    <SelectItem key={r} value={r}>{r}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+          <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Relationship to the bride/groom *">
+                <Select value={submitter.relationship} onValueChange={(v) => setSub("relationship", v ?? "Father")}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["Father", "Mother", "Brother", "Sister", "Relative", "Friend", "Other"].map((r) => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              {submitter.relationship === "Other" ? (
+                <Field label="Please specify *">
+                  <Input value={submitter.relationshipOther} onChange={(e) => setSub("relationshipOther", e.target.value)} placeholder="Your relationship" />
+                </Field>
+              ) : (
+                <Field label="Full name of the submitter *">
+                  <Input value={submitter.name} onChange={(e) => setSub("name", e.target.value)} />
+                </Field>
+              )}
+            </div>
             {submitter.relationship === "Other" && (
-              <Field label="Please specify *">
-                <Input value={submitter.relationshipOther} onChange={(e) => setSub("relationshipOther", e.target.value)} placeholder="Your relationship" />
+              <Field label="Full name of the submitter *">
+                <Input value={submitter.name} onChange={(e) => setSub("name", e.target.value)} />
               </Field>
             )}
 
-            <Field label="Full name of the person submitting the form *">
-              <Input value={submitter.name} onChange={(e) => setSub("name", e.target.value)} />
-            </Field>
-
-            <div className="grid gap-3.5 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Mobile / WhatsApp number *">
                 <Input type="tel" value={submitter.mobile} onChange={(e) => setSub("mobile", e.target.value)} placeholder="e.g. +971 50 123 4567" />
               </Field>
@@ -945,28 +952,27 @@ export default function RegisterPage() {
               <Field label="City / Emirate / State / District *">
                 <Input value={submitter.city} onChange={(e) => setSub("city", e.target.value)} placeholder="e.g. Dubai" />
               </Field>
+              <Field label="Church membership details *">
+                <Input value={submitter.churchMembership} onChange={(e) => setSub("churchMembership", e.target.value)} placeholder="Parish / congregation / no." />
+              </Field>
+              <Field label="Preferred method of communication *">
+                <Select value={submitter.preferredContact} onValueChange={(v) => setSub("preferredContact", v ?? "Contact either of us")}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Contact the Bride/Groom directly">Contact the Bride/Groom directly</SelectItem>
+                    <SelectItem value="Contact the person who submitted the form">Contact the person who submitted the form</SelectItem>
+                    <SelectItem value="Contact either of us">Contact either of us</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
             </div>
-            <Field label="Church membership details *">
-              <Input value={submitter.churchMembership} onChange={(e) => setSub("churchMembership", e.target.value)} placeholder="Parish / congregation / membership no." />
-            </Field>
 
-            <Field label="Preferred method of communication *">
-              <Select value={submitter.preferredContact} onValueChange={(v) => setSub("preferredContact", v ?? "Contact either of us")}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Contact the Bride/Groom directly">Contact the Bride/Groom directly</SelectItem>
-                  <SelectItem value="Contact the person who submitted the form">Contact the person who submitted the form</SelectItem>
-                  <SelectItem value="Contact either of us">Contact either of us</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <div className="space-y-2.5 rounded-lg border border-border bg-muted/30 p-3.5">
-              <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-relaxed">
+            <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+              <label className="flex cursor-pointer items-start gap-2 text-[12.5px] leading-snug">
                 <input type="checkbox" checked={submitter.declaration} onChange={(e) => setSub("declaration", e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[maroon]" />
                 <span>I am submitting this matrimonial profile on behalf of the Bride/Groom named above, with their knowledge and consent, and I confirm that the information provided is true to the best of my knowledge.</span>
               </label>
-              <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-relaxed">
+              <label className="flex cursor-pointer items-start gap-2 text-[12.5px] leading-snug">
                 <input type="checkbox" checked={submitter.consent} onChange={(e) => setSub("consent", e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[maroon]" />
                 <span>I confirm that the Bride/Groom has given permission for this matrimonial profile and the information provided to be used for the purpose of matrimonial introductions through the Church Matrimonial Ministry.</span>
               </label>
