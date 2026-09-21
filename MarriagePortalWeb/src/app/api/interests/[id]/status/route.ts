@@ -1,8 +1,12 @@
 import { setInterestStatus } from "@/lib/server/queries";
+import { requireAdmin } from "@/lib/server/guard";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  // Admin-only: only the parish office may accept/decline an expressed interest.
+  const g = await requireAdmin();
+  if (!g.ok) return g.response;
   const { id } = await params;
   const body = (await req.json()) as { status: string };
   const ok = await setInterestStatus(id, body.status);
