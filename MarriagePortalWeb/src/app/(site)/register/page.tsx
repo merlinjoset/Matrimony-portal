@@ -145,6 +145,8 @@ export default function RegisterPage() {
     consent: false,
   };
   const [consentOpen, setConsentOpen] = useState(false);
+  // The consent captured from the popup (shown right after the T&C is agreed, before final submit).
+  const [submitterConsent, setSubmitterConsent] = useState<SubmitterDetails | null>(null);
   const [submitter, setSubmitter] = useState(emptySubmitter);
   const setSub = <K extends keyof typeof emptySubmitter>(k: K, v: (typeof emptySubmitter)[K]) =>
     setSubmitter((prev) => ({ ...prev, [k]: v }));
@@ -279,15 +281,17 @@ export default function RegisterPage() {
     if (!agree) return toast.error(t("tc_req"));
     // Guests choose a username + password: this creates their member login (admin activates it).
     if (!member && (!username.trim() || password.length < 6)) return toast.error(t("acc_hint"));
-    // Creating on behalf of someone else? The submitter must complete the consent popup first.
-    if (form.createdFor !== "Self") {
+    // Creating on behalf of someone else? The consent (captured via the popup at the T&C step) is
+    // mandatory - if it is somehow missing, re-open the popup instead of submitting.
+    if (form.createdFor !== "Self" && !submitterConsent) {
       setConsentOpen(true);
       return;
     }
-    await doCreate();
+    await doCreate(form.createdFor !== "Self" ? submitterConsent ?? undefined : undefined);
   }
 
-  // Validate the mandatory "person submitting the form" consent, then create the profile with it.
+  // Validate the "person submitting the form" consent and record it. The profile is created later,
+  // when the member clicks the main Submit button.
   function submitConsent() {
     const req = (v: string) => !!v.trim();
     if (submitter.relationship === "Other" && !req(submitter.relationshipOther)) return toast.error("Please specify your relationship to the bride/groom.");
@@ -313,7 +317,9 @@ export default function RegisterPage() {
       consent: true,
       submittedAt: new Date().toISOString(),
     };
-    doCreate(details);
+    setSubmitterConsent(details);
+    setConsentOpen(false);
+    toast.success("Consent recorded. You can now submit the profile.");
   }
 
   async function doCreate(submitterDetails?: SubmitterDetails) {
@@ -548,7 +554,16 @@ export default function RegisterPage() {
             <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_createdby")}</legend>
             <div className="grid gap-3.5 md:grid-cols-3">
               <Field label={t("l_createdfor")}>
-                <Select value={form.createdFor} onValueChange={setStr("createdFor")}>
+                <Select
+                  value={form.createdFor}
+                  onValueChange={(v) => {
+                    const val = v ?? "Self";
+                    set("createdFor", val);
+                    // Self needs no submitter consent; a later on-behalf choice re-collects it.
+                    if (val === "Self") setSubmitterConsent(null);
+                    else if (agree && !submitterConsent) setConsentOpen(true);
+                  }}
+                >
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Self">{t("o_self")}</SelectItem>
@@ -847,11 +862,28 @@ export default function RegisterPage() {
               <input
                 type="checkbox"
                 checked={agree}
-                onChange={(e) => setAgree(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setAgree(checked);
+                  // Right after agreeing to the T&C, an on-behalf submitter completes the consent popup.
+                  if (checked && form.createdFor !== "Self" && !submitterConsent) setConsentOpen(true);
+                }}
                 className="mt-0.5 size-4 accent-[maroon]"
               />
               <span>{t("tc_agree")}</span>
             </label>
+            {form.createdFor !== "Self" && submitterConsent && (
+              <p className="text-[12.5px] font-medium text-brand-green">
+                ✓ Submitter consent recorded ({submitterConsent.name}).{" "}
+                <button type="button" onClick={() => setConsentOpen(true)} className="font-semibold underline">Edit</button>
+              </p>
+            )}
+            {form.createdFor !== "Self" && agree && !submitterConsent && (
+              <p className="text-[12.5px] font-medium text-amber-700">
+                Submitter consent is required before you can submit.{" "}
+                <button type="button" onClick={() => setConsentOpen(true)} className="font-semibold underline">Complete it</button>
+              </p>
+            )}
           </fieldset>
 
           <div className="flex flex-wrap gap-3">
@@ -862,7 +894,7 @@ export default function RegisterPage() {
             >
               {saving ? t("submitting") : t("submit_btn")}
             </Button>
-            <Button type="button" variant="outline" onClick={() => { setForm(empty); setSalaryAmount(""); setCurrency("AED"); setSiblings([]); setSubmitter(emptySubmitter); }}>
+            <Button type="button" variant="outline" onClick={() => { setForm(empty); setSalaryAmount(""); setCurrency("AED"); setSiblings([]); setSubmitter(emptySubmitter); setSubmitterConsent(null); }}>
               {t("reset_btn")}
             </Button>
           </div>
@@ -875,7 +907,7 @@ export default function RegisterPage() {
           <DialogHeader>
             <DialogTitle>Details of the person submitting the form</DialogTitle>
             <DialogDescription>
-              You are creating this profile on behalf of the bride/groom. Please complete this consent form - all fields are required.
+              You are creating this profile on behalf of the bride/groom. Please complete this consent form before you submit the profile - all fields are required.
             </DialogDescription>
           </DialogHeader>
 
@@ -942,14 +974,13 @@ export default function RegisterPage() {
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" disabled={saving} onClick={() => setConsentOpen(false)}>{t("ei_cancel")}</Button>
+            <Button type="button" variant="outline" onClick={() => setConsentOpen(false)}>{t("ei_cancel")}</Button>
             <Button
               type="button"
-              disabled={saving}
               onClick={submitConsent}
               className="bg-gold text-maroon hover:bg-gold! hover:brightness-105"
             >
-              {saving ? t("submitting") : t("submit_btn")}
+              Confirm consent
             </Button>
           </DialogFooter>
         </DialogContent>
