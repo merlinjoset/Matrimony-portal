@@ -148,6 +148,14 @@ export default function VerifyQueue() {
                           <dd className="font-medium">{m.membershipNo || "-"}</dd>
                           <dt className="text-muted-foreground">Mobile</dt>
                           <dd className="font-medium">{m.mobile || "-"}</dd>
+                          {m.mobile2 && (
+                            <>
+                              <dt className="text-muted-foreground">Mobile 2</dt>
+                              <dd className="font-medium">{m.mobile2}</dd>
+                            </>
+                          )}
+                          <dt className="text-muted-foreground">DOB</dt>
+                          <dd className="font-medium">{m.dateOfBirth ? new Date(m.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-"}</dd>
                           <dt className="text-muted-foreground">Email</dt>
                           <dd className="break-all font-medium">{m.email || "-"}</dd>
                           {(m.congregation === "India" || m.congregation === "Other") && (

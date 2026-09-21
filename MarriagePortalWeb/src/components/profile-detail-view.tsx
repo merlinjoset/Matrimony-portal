@@ -180,6 +180,7 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
       setReveal((r) => ({
         isOwner: false,
         mobile: r?.mobile ?? null,
+        mobile2: r?.mobile2 ?? null,
         mobileStatus: r?.mobileStatus ?? null,
         photoUrl: null,
         photoStatus: "Pending",

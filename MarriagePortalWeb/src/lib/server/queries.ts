@@ -63,6 +63,8 @@ function toDetail(r: Row): ProfileDetail {
     lookingFor: r.LookingFor as string,
     membershipNo: s(r.MembershipNo),
     mobile: s(r.Mobile),
+    mobile2: s(r.Mobile2),
+    dateOfBirth: r.DateOfBirth ? new Date(r.DateOfBirth as string).toISOString().slice(0, 10) : null,
     email: s(r.Email),
     maritalStatus: r.MaritalStatus as string,
     motherTongue: r.MotherTongue as string,
@@ -90,7 +92,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status","CreatedAt"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -188,12 +190,12 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
 
   await sql`
     INSERT INTO "TblProfiles"
-      ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Email","FullName","Gender",
+      ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender",
        "DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations",
        "Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${referenceId}, ${dto.membershipNo ?? null}, ${ownerMemberId}, ${dto.createdFor ?? "Self"},
-       ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
+       ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.mobile2 ?? null}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
        ${dto.dateOfBirth ?? null}, ${dto.height ?? null}, ${dto.maritalStatus ?? "Never married"},
        ${dto.motherTongue ?? "Tamil"}, ${dto.caste ?? null}, ${dto.nativePlace ?? null}, ${dto.denomination ?? "CSI"}, ${dto.homeParish ?? ""},
        ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.refereeName ?? null}, ${dto.refereeContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null}, ${dto.education ?? null},
@@ -374,7 +376,7 @@ export interface VerifyQueueItem extends ProfileListItem {
 /** Pending profiles awaiting the 3-level approval, with their progress. */
 export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
   const rows = await sql`
-    SELECT ${LIST_COLS}, "ApprovalLevel", "MembershipNo", "Mobile", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact" FROM "TblProfiles"
+    SELECT ${LIST_COLS}, "ApprovalLevel", "MembershipNo", "Mobile", "Mobile2", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact" FROM "TblProfiles"
     WHERE "IsDeleted" = false AND "Status" = 'Pending'
     ORDER BY "CreatedAt" ASC`;
   const ids = rows.map((r) => r.Id as string);
@@ -385,6 +387,8 @@ export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
     approvals: approvals[r.Id as string] ?? [],
     membershipNo: s(r.MembershipNo),
     mobile: s(r.Mobile),
+    mobile2: s(r.Mobile2),
+    dateOfBirth: r.DateOfBirth ? new Date(r.DateOfBirth as string).toISOString().slice(0, 10) : null,
     email: s(r.Email),
     presbyterName: s(r.PresbyterName),
     presbyterContact: s(r.PresbyterContact),
@@ -500,6 +504,7 @@ export async function updateProfile(
       "CreatedFor" = ${dto.createdFor ?? "Self"},
       "LookingFor" = ${dto.lookingFor ?? "Bride"},
       "Mobile" = ${dto.mobile ?? ""},
+      "Mobile2" = ${dto.mobile2 ?? null},
       "Email" = ${dto.email ?? null},
       "FullName" = ${dto.fullName},
       "Gender" = ${dto.gender},
@@ -565,6 +570,7 @@ export async function adminUpdateProfile(
       "CreatedFor" = ${dto.createdFor ?? "Self"},
       "LookingFor" = ${dto.lookingFor ?? "Bride"},
       "Mobile" = ${dto.mobile ?? ""},
+      "Mobile2" = ${dto.mobile2 ?? null},
       "Email" = ${dto.email ?? null},
       "FullName" = ${dto.fullName},
       "Gender" = ${dto.gender},
@@ -763,13 +769,14 @@ export async function requestContact(profileId: string, requesterMemberId: strin
 }
 
 export async function getContactReveal(profileId: string, viewerMemberId: string): Promise<ContactReveal> {
-  const p = (await sql`SELECT "Mobile","MainPhotoUrl","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
-  if (!p) return { isOwner: false, mobile: null, mobileStatus: null, photoUrl: null, photoStatus: null };
+  const p = (await sql`SELECT "Mobile","Mobile2","MainPhotoUrl","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
+  if (!p) return { isOwner: false, mobile: null, mobile2: null, mobileStatus: null, photoUrl: null, photoStatus: null };
   const photo = (p.MainPhotoUrl as string) ?? null;
   const mobile = (p.Mobile as string) ?? null;
+  const mobile2 = (p.Mobile2 as string) ?? null;
   // The owner always sees both.
   if (p.OwnerMemberId && p.OwnerMemberId === viewerMemberId) {
-    return { isOwner: true, mobile, mobileStatus: "Approved", photoUrl: photo, photoStatus: "Approved" };
+    return { isOwner: true, mobile, mobile2, mobileStatus: "Approved", photoUrl: photo, photoStatus: "Approved" };
   }
   // Otherwise the contact number and photo are gated by their own separate requests.
   const reqs = await sql`SELECT "RequestType","Status" FROM "TblContactRequests" WHERE "RequesterMemberId" = ${viewerMemberId} AND "ProfileId" = ${profileId} AND "IsDeleted" = false`;
@@ -782,6 +789,7 @@ export async function getContactReveal(profileId: string, viewerMemberId: string
   return {
     isOwner: false,
     mobile: mobileStatus === "Approved" ? mobile : null,
+    mobile2: mobileStatus === "Approved" ? mobile2 : null,
     mobileStatus,
     photoUrl: photoStatus === "Approved" ? photo : null,
     photoStatus,

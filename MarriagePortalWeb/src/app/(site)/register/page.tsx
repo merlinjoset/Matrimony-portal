@@ -26,6 +26,7 @@ const empty: CreateProfileInput = {
   createdFor: "Son",
   lookingFor: "Groom",
   mobile: "",
+  mobile2: "",
   email: "",
   fullName: "",
   gender: "Female",
@@ -106,6 +107,8 @@ export default function RegisterPage() {
   const [dupProfile, setDupProfile] = useState(false);
   const [dialCode, setDialCode] = useState("+971");
   const [phone, setPhone] = useState("");
+  const [dialCode2, setDialCode2] = useState("+971");
+  const [phone2, setPhone2] = useState("");
   // Salary is entered as a currency + amount, stored combined (e.g. "AED 12,000").
   const [currency, setCurrency] = useState("AED");
   const [salaryAmount, setSalaryAmount] = useState("");
@@ -143,6 +146,15 @@ export default function RegisterPage() {
     setDialCode(code);
     setPhone(digits);
     set("mobile", digits ? `${code} ${digits}` : "");
+  }
+
+  function updateMobile2(code: string, num: string) {
+    const max = phoneMax(code);
+    let digits = num.replace(/\D/g, "");
+    if (max > 0) digits = digits.slice(0, max);
+    setDialCode2(code);
+    setPhone2(digits);
+    set("mobile2", digits ? `${code} ${digits}` : "");
   }
 
   async function validateCard() {
@@ -235,6 +247,8 @@ export default function RegisterPage() {
     if (form.congregation === "Other" && !form.refereeContact?.trim()) return toast.error(t("referee_contact_req"));
     const pmax = phoneMax(dialCode);
     if (pmax > 0 && phone.length !== pmax) return toast.error(t("mobile_len"));
+    const pmax2 = phoneMax(dialCode2);
+    if (phone2 && pmax2 > 0 && phone2.length !== pmax2) return toast.error(t("mobile_len"));
     if (!agree) return toast.error(t("tc_req"));
     // Guests choose a username + password: this creates their member login (admin activates it).
     if (!member && (!username.trim() || password.length < 6)) return toast.error(t("acc_hint"));
@@ -498,6 +512,27 @@ export default function RegisterPage() {
                     onChange={(e) => updateMobile(dialCode, e.target.value)}
                     placeholder={dialCode === "+91" ? "9876543210" : "501234567"}
                     required
+                  />
+                </div>
+              </Field>
+              <Field label={t("l_mobile2")}>
+                <div className="flex gap-2">
+                  <Select value={dialCode2} onValueChange={(v) => updateMobile2(v ?? "+971", phone2)}>
+                    <SelectTrigger className="w-[92px] shrink-0"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {COUNTRY_CODES.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={phoneMax(dialCode2) || undefined}
+                    className="flex-1"
+                    value={phone2}
+                    onChange={(e) => updateMobile2(dialCode2, e.target.value)}
+                    placeholder={dialCode2 === "+91" ? "9876543210" : "501234567"}
                   />
                 </div>
               </Field>

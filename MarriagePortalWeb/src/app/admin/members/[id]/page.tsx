@@ -204,9 +204,11 @@ export default function AdminMemberDetail() {
                 <Row label="Reference ID" value={p.referenceId} />
                 <Row label="Membership card" value={p.membershipNo} />
                 <Row label="Contact number" value={p.mobile} />
+                <Row label="Contact number 2" value={p.mobile2} />
                 <Row label="Email" value={p.email} />
                 <Row label="Created for" value={p.createdFor} />
                 <Row label="Looking for" value={p.lookingFor} />
+                <Row label="Date of birth" value={p.dateOfBirth ? new Date(p.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : null} />
                 <Row label="Age / Height" value={[p.age ? `${p.age} yrs` : null, p.height].filter(Boolean).join(" · ")} />
                 <Row label="Marital status" value={p.maritalStatus} />
                 <Row label="Mother tongue" value={p.motherTongue} />

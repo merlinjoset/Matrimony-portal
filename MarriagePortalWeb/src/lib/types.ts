@@ -26,6 +26,8 @@ export interface ProfileDetail extends ProfileListItem {
   lookingFor: string;
   membershipNo: string | null; // admin-only; stripped from member-facing payloads
   mobile: string | null; // admin-only; stripped from member-facing payloads
+  mobile2: string | null; // second contact number; admin-only; stripped from member-facing payloads
+  dateOfBirth: string | null; // full DOB (yyyy-MM-dd); admin-only; stripped from member-facing payloads
   email: string | null;
   maritalStatus: string;
   motherTongue: string;
@@ -153,6 +155,7 @@ export interface CreateProfileInput {
   createdFor: string;
   lookingFor: string;
   mobile: string;
+  mobile2?: string | null;
   email?: string | null;
   fullName: string;
   gender: Gender;
@@ -191,7 +194,7 @@ export interface CreateProfileInput {
 export type UpdateProfileInput = Omit<CreateProfileInput, "membershipNo" | "emailToken">;
 
 /** The owner's own listing for editing - adds the raw date of birth the public detail hides (it shows age only). */
-export type OwnProfileDetail = ProfileDetail & { dateOfBirth: string | null };
+export type OwnProfileDetail = ProfileDetail;
 
 /** Currencies for the salary field (code stored as a prefix, e.g. "AED 12,000"). */
 export const CURRENCIES = ["AED", "INR", "USD", "SAR", "QAR", "BHD", "OMR", "KWD", "GBP", "EUR"] as const;
@@ -280,6 +283,8 @@ export interface VerifyQueueItem extends ProfileListItem {
   // Admin-only contact details shown to the verifier on hover.
   membershipNo: string | null;
   mobile: string | null;
+  mobile2: string | null;
+  dateOfBirth: string | null;
   email: string | null;
   presbyterName: string | null;
   presbyterContact: string | null;
@@ -339,6 +344,7 @@ export interface ContactRequest {
 export interface ContactReveal {
   isOwner: boolean;
   mobile: string | null; // set only when owner or the Contact request is approved
+  mobile2: string | null; // second number, revealed together with mobile
   mobileStatus: ContactRequestStatus | null; // null = not requested yet
   photoUrl: string | null; // set only when owner or the Photo request is approved
   photoStatus: ContactRequestStatus | null; // null = not requested yet

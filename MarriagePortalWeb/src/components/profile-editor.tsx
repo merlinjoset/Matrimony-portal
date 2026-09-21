@@ -32,6 +32,7 @@ const empty: UpdateProfileInput = {
   createdFor: "Self",
   lookingFor: "Bride",
   mobile: "",
+  mobile2: "",
   email: "",
   fullName: "",
   gender: "Female",
@@ -136,6 +137,8 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
   const [siblings, setSiblings] = useState<SiblingRow[]>([]);
   const [dialCode, setDialCode] = useState("+971");
   const [phone, setPhone] = useState("");
+  const [dialCode2, setDialCode2] = useState("+971");
+  const [phone2, setPhone2] = useState("");
   const [currency, setCurrency] = useState("AED");
   const [salaryAmount, setSalaryAmount] = useState("");
   const [saving, setSaving] = useState(false);
@@ -166,6 +169,15 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
     set("mobile", digits ? `${code} ${digits}` : "");
   }
 
+  function updateMobile2(code: string, num: string) {
+    const max = phoneMax(code);
+    let digits = num.replace(/\D/g, "");
+    if (max > 0) digits = digits.slice(0, max);
+    setDialCode2(code);
+    setPhone2(digits);
+    set("mobile2", digits ? `${code} ${digits}` : "");
+  }
+
   function updateSalary(cur: string, amt: string) {
     const clean = amt.replace(/[^\d.,]/g, "");
     setCurrency(cur);
@@ -177,6 +189,9 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
     const { code, phone: ph } = splitMobile(p.mobile);
     setDialCode(code);
     setPhone(ph);
+    const m2 = splitMobile(p.mobile2);
+    setDialCode2(m2.code);
+    setPhone2(p.mobile2 ? m2.phone : "");
     const sal = splitSalary(p.salary);
     setCurrency(sal.currency);
     setSalaryAmount(sal.amount);
@@ -185,6 +200,7 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
       createdFor: p.createdFor || "Self",
       lookingFor: p.lookingFor || (p.gender === "Male" ? "Bride" : "Groom"),
       mobile: p.mobile ?? "",
+      mobile2: p.mobile2 ?? "",
       email: p.email ?? "",
       fullName: p.fullName,
       gender: p.gender,
@@ -248,6 +264,8 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
     if (form.congregation === "Other" && !form.refereeContact?.trim()) return toast.error(t("referee_contact_req"));
     const pmax = phoneMax(dialCode);
     if (pmax > 0 && phone.length !== pmax) return toast.error(t("mobile_len"));
+    const pmax2 = phoneMax(dialCode2);
+    if (phone2 && pmax2 > 0 && phone2.length !== pmax2) return toast.error(t("mobile_len"));
     setSaving(true);
     try {
       const lookingFor = form.gender === "Male" ? "Bride" : "Groom";
@@ -347,6 +365,27 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
                   onChange={(e) => updateMobile(dialCode, e.target.value)}
                   placeholder={dialCode === "+91" ? "9876543210" : "501234567"}
                   required
+                />
+              </div>
+            </Field>
+            <Field label={t("l_mobile2")}>
+              <div className="flex gap-2">
+                <Select value={dialCode2} onValueChange={(v) => updateMobile2(v ?? "+971", phone2)}>
+                  <SelectTrigger className="w-[92px] shrink-0"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {COUNTRY_CODES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={phoneMax(dialCode2) || undefined}
+                  className="flex-1"
+                  value={phone2}
+                  onChange={(e) => updateMobile2(dialCode2, e.target.value)}
+                  placeholder={dialCode2 === "+91" ? "9876543210" : "501234567"}
                 />
               </div>
             </Field>

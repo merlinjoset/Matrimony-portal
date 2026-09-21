@@ -38,6 +38,7 @@ export function ContactCard({ profileId }: { profileId: string }) {
       setReveal((r) => ({
         isOwner: false,
         mobile: null,
+        mobile2: null,
         mobileStatus: "Pending",
         photoUrl: r?.photoUrl ?? null,
         photoStatus: r?.photoStatus ?? null,
@@ -63,11 +64,16 @@ export function ContactCard({ profileId }: { profileId: string }) {
           <a href={`tel:${reveal.mobile}`} className="text-[17px] font-bold tracking-wide text-foreground hover:text-maroon">
             {reveal.mobile}
           </a>
+          {reveal.mobile2 && (
+            <a href={`tel:${reveal.mobile2}`} className="mt-1 block text-[17px] font-bold tracking-wide text-foreground hover:text-maroon">
+              {reveal.mobile2}
+            </a>
+          )}
           {reveal.isOwner && <p className="mt-1 text-sm text-muted-foreground">{t("c_owner_note")}</p>}
         </div>
       ) : reveal?.mobileStatus === "Pending" ? (
         <p className="text-sm font-medium text-amber-700">{t("c_pending")}</p>
-      ) : reveal?.mobileStatus === "Declined" ? (
+      ) : reveal?.mobileStatus === "Declined" || reveal?.mobileStatus === "Revoked" ? (
         <p className="text-sm text-muted-foreground">{t("c_declined")}</p>
       ) : (
         // Not requested yet - or not signed in.
