@@ -66,13 +66,34 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
     setOtpSent(false); setEmailToken(null);
   }
 
-  // restore session
+  // Restore the session, then reconcile it with the server. Authority now lives in an httpOnly
+  // session cookie (set at sign-in), not in localStorage: we render optimistically from the
+  // stored copy, then confirm via /members/me. A definitive 401 means the server does not
+  // recognise us (e.g. the cookie expired or predates this security change) - clear the stale
+  // local copy so the UI prompts a fresh sign-in. Transient/network errors keep the local copy.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setMember(JSON.parse(raw));
-    } catch {}
-    setReady(true);
+    let raw: string | null = null;
+    try { raw = localStorage.getItem(KEY); } catch {}
+    if (raw) { try { setMember(JSON.parse(raw)); } catch {} }
+    // With a stored session, confirm it against the server (authority now lives in an httpOnly
+    // cookie, not localStorage). A definitive 401 means the server no longer recognises us
+    // (cookie expired, or this session predates the move to server-side sessions) - clear the
+    // stale copy so the UI prompts a fresh sign-in. Without a stored session there is nothing
+    // to reconcile. Either way, mark ready in finally (never a synchronous setState here).
+    const confirm = raw
+      ? api.me()
+          .then((m) => {
+            setMember(m);
+            try { localStorage.setItem(KEY, JSON.stringify(m)); } catch {}
+          })
+          .catch((e) => {
+            if ((e as { status?: number })?.status === 401) {
+              setMember(null);
+              try { localStorage.removeItem(KEY); } catch {}
+            }
+          })
+      : Promise.resolve();
+    confirm.finally(() => setReady(true));
   }, []);
 
   // load shortlist whenever the member changes
@@ -176,7 +197,7 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
     }
   }
 
-  const signOut = () => { persistMember(null); setItems([]); toast.success(t("toast_signed_out")); };
+  const signOut = () => { persistMember(null); setItems([]); api.logout().catch(() => {}); toast.success(t("toast_signed_out")); };
 
   const canSubmit =
     mode === "signin"

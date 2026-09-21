@@ -688,6 +688,24 @@ export async function getMemberSelf(memberId: string): Promise<{ name: string | 
   return { name: a ? (a.Name as string) : null, mobile: p ? ((p.Mobile as string) ?? null) : null };
 }
 
+/** Resolve an active member account from a session's memberId. Returns null if the account is
+ *  missing, deleted or no longer Active - so a signed cookie for a disabled account grants nothing. */
+export async function getMemberSessionInfo(
+  memberId: string,
+): Promise<{ memberId: string; name: string; membershipNo: string; username?: string } | null> {
+  const r = (await sql`
+    SELECT "MemberId","Name","MembershipNo","Username"
+    FROM "TblMemberAccounts"
+    WHERE "MemberId" = ${memberId} AND "IsDeleted" = false AND "Status" = 'Active' LIMIT 1`)[0];
+  if (!r) return null;
+  return {
+    memberId: r.MemberId as string,
+    name: r.Name as string,
+    membershipNo: (r.MembershipNo as string) ?? "",
+    username: (r.Username as string) ?? undefined,
+  };
+}
+
 /** True once the member owns at least one (non-deleted) listing. Gates browsing others. */
 export async function memberHasProfile(memberId: string): Promise<boolean> {
   const rows = await sql`SELECT 1 FROM "TblProfiles" WHERE "OwnerMemberId" = ${memberId} AND "IsDeleted" = false LIMIT 1`;

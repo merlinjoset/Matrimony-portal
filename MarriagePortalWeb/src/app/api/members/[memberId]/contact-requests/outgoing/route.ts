@@ -1,8 +1,11 @@
 import { listOutgoingContactRequests } from "@/lib/server/queries";
+import { requireMember } from "@/lib/server/guard";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, { params }: { params: Promise<{ memberId: string }> }) {
-  const { memberId } = await params;
-  return Response.json(await listOutgoingContactRequests(memberId));
+// Requests the caller has sent to others - resolved from the session, not the URL id.
+export async function GET() {
+  const g = await requireMember();
+  if (!g.ok) return g.response;
+  return Response.json(await listOutgoingContactRequests(g.memberId));
 }

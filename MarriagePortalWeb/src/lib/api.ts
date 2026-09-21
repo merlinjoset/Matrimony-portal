@@ -296,6 +296,16 @@ export const api = {
     });
   },
 
+  // The member the server currently recognises from the session cookie (401 if none).
+  me(): Promise<MemberSession> {
+    return http<MemberSession>(`/members/me`);
+  },
+
+  // Clear the server-side member session cookie.
+  logout(): Promise<void> {
+    return http<void>(`/auth/logout`, { method: "POST" });
+  },
+
   getMemberAccounts(): Promise<MemberAccount[]> {
     return http<MemberAccount[]>(`/admin/accounts`);
   },
