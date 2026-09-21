@@ -15,11 +15,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 import { joinSalary } from "@/lib/salary";
-import { CONGREGATIONS, COUNTRY_CODES, CURRENCIES, DENOMINATIONS, type CreateProfileInput, type Gender, type MemberValidation } from "@/lib/types";
+import { CONGREGATIONS, COUNTRY_CODES, CURRENCIES, DENOMINATIONS, type CreateProfileInput, type Gender, type MemberValidation, type SubmitterDetails } from "@/lib/types";
 
 const empty: CreateProfileInput = {
   membershipNo: "",
@@ -121,6 +129,25 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [agree, setAgree] = useState(false);
+  // "Details of the Person Submitting the Form" - a mandatory popup shown only when the profile
+  // is being created on behalf of someone else (createdFor != "Self").
+  const emptySubmitter = {
+    relationship: "Father",
+    relationshipOther: "",
+    name: "",
+    mobile: "",
+    email: "",
+    country: "",
+    city: "",
+    churchMembership: "",
+    preferredContact: "Contact either of us",
+    declaration: false,
+    consent: false,
+  };
+  const [consentOpen, setConsentOpen] = useState(false);
+  const [submitter, setSubmitter] = useState(emptySubmitter);
+  const setSub = <K extends keyof typeof emptySubmitter>(k: K, v: (typeof emptySubmitter)[K]) =>
+    setSubmitter((prev) => ({ ...prev, [k]: v }));
   // Non-member email-OTP path (an alternative to the membership card).
   const [authMode, setAuthMode] = useState<"card" | "email">("card");
   const [otpEmail, setOtpEmail] = useState("");
@@ -252,6 +279,44 @@ export default function RegisterPage() {
     if (!agree) return toast.error(t("tc_req"));
     // Guests choose a username + password: this creates their member login (admin activates it).
     if (!member && (!username.trim() || password.length < 6)) return toast.error(t("acc_hint"));
+    // Creating on behalf of someone else? The submitter must complete the consent popup first.
+    if (form.createdFor !== "Self") {
+      setConsentOpen(true);
+      return;
+    }
+    await doCreate();
+  }
+
+  // Validate the mandatory "person submitting the form" consent, then create the profile with it.
+  function submitConsent() {
+    const req = (v: string) => !!v.trim();
+    if (submitter.relationship === "Other" && !req(submitter.relationshipOther)) return toast.error("Please specify your relationship to the bride/groom.");
+    if (!req(submitter.name)) return toast.error("Please enter the name of the person submitting the form.");
+    if (!req(submitter.mobile)) return toast.error("Please enter a mobile / WhatsApp number.");
+    if (!req(submitter.email)) return toast.error("Please enter an email address.");
+    if (!req(submitter.country)) return toast.error("Please enter the country of residence.");
+    if (!req(submitter.city)) return toast.error("Please enter the city / emirate / state / district.");
+    if (!req(submitter.churchMembership)) return toast.error("Please enter the church membership details.");
+    if (!submitter.declaration) return toast.error("Please agree to the declaration to continue.");
+    if (!submitter.consent) return toast.error("Please give the consent to share the profile to continue.");
+    const details: SubmitterDetails = {
+      relationship: submitter.relationship,
+      relationshipOther: submitter.relationship === "Other" ? submitter.relationshipOther.trim() : null,
+      name: submitter.name.trim(),
+      mobile: submitter.mobile.trim(),
+      email: submitter.email.trim(),
+      country: submitter.country.trim(),
+      city: submitter.city.trim(),
+      churchMembership: submitter.churchMembership.trim(),
+      preferredContact: submitter.preferredContact,
+      declaration: true,
+      consent: true,
+      submittedAt: new Date().toISOString(),
+    };
+    doCreate(details);
+  }
+
+  async function doCreate(submitterDetails?: SubmitterDetails) {
     setSaving(true);
     try {
       if (!member) {
@@ -279,9 +344,11 @@ export default function RegisterPage() {
         lookingFor,
         dateOfBirth: form.dateOfBirth || null,
         siblingsDetails: cleanSiblings.length ? JSON.stringify(cleanSiblings) : null,
+        submitterDetails: submitterDetails ?? null,
         emailToken: authMode === "email" ? emailToken ?? undefined : undefined,
       });
       toast.success(t("toast_ok"));
+      setConsentOpen(false);
       router.push(`/profiles/${created.id}`);
     } catch (err) {
       // Surface the real server message when we have one; fall back to the generic notice.
@@ -795,12 +862,98 @@ export default function RegisterPage() {
             >
               {saving ? t("submitting") : t("submit_btn")}
             </Button>
-            <Button type="button" variant="outline" onClick={() => { setForm(empty); setSalaryAmount(""); setCurrency("AED"); setSiblings([]); }}>
+            <Button type="button" variant="outline" onClick={() => { setForm(empty); setSalaryAmount(""); setCurrency("AED"); setSiblings([]); setSubmitter(emptySubmitter); }}>
               {t("reset_btn")}
             </Button>
           </div>
         </form>
       </Card>
+
+      {/* Mandatory consent form - shown only when registering on behalf of someone else. */}
+      <Dialog open={consentOpen} onOpenChange={(o) => { if (!saving) setConsentOpen(o); }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Details of the person submitting the form</DialogTitle>
+            <DialogDescription>
+              You are creating this profile on behalf of the bride/groom. Please complete this consent form - all fields are required.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-1">
+            <Field label="Relationship to the bride/groom *">
+              <Select value={submitter.relationship} onValueChange={(v) => setSub("relationship", v ?? "Father")}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["Father", "Mother", "Brother", "Sister", "Relative", "Friend", "Other"].map((r) => (
+                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            {submitter.relationship === "Other" && (
+              <Field label="Please specify *">
+                <Input value={submitter.relationshipOther} onChange={(e) => setSub("relationshipOther", e.target.value)} placeholder="Your relationship" />
+              </Field>
+            )}
+
+            <Field label="Full name of the person submitting the form *">
+              <Input value={submitter.name} onChange={(e) => setSub("name", e.target.value)} />
+            </Field>
+
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              <Field label="Mobile / WhatsApp number *">
+                <Input type="tel" value={submitter.mobile} onChange={(e) => setSub("mobile", e.target.value)} placeholder="e.g. +971 50 123 4567" />
+              </Field>
+              <Field label="Email address *">
+                <Input type="email" value={submitter.email} onChange={(e) => setSub("email", e.target.value)} placeholder="name@example.com" />
+              </Field>
+              <Field label="Country of residence *">
+                <Input value={submitter.country} onChange={(e) => setSub("country", e.target.value)} placeholder="e.g. United Arab Emirates" />
+              </Field>
+              <Field label="City / Emirate / State / District *">
+                <Input value={submitter.city} onChange={(e) => setSub("city", e.target.value)} placeholder="e.g. Dubai" />
+              </Field>
+            </div>
+            <Field label="Church membership details *">
+              <Input value={submitter.churchMembership} onChange={(e) => setSub("churchMembership", e.target.value)} placeholder="Parish / congregation / membership no." />
+            </Field>
+
+            <Field label="Preferred method of communication *">
+              <Select value={submitter.preferredContact} onValueChange={(v) => setSub("preferredContact", v ?? "Contact either of us")}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Contact the Bride/Groom directly">Contact the Bride/Groom directly</SelectItem>
+                  <SelectItem value="Contact the person who submitted the form">Contact the person who submitted the form</SelectItem>
+                  <SelectItem value="Contact either of us">Contact either of us</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <div className="space-y-2.5 rounded-lg border border-border bg-muted/30 p-3.5">
+              <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-relaxed">
+                <input type="checkbox" checked={submitter.declaration} onChange={(e) => setSub("declaration", e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[maroon]" />
+                <span>I am submitting this matrimonial profile on behalf of the Bride/Groom named above, with their knowledge and consent, and I confirm that the information provided is true to the best of my knowledge.</span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-relaxed">
+                <input type="checkbox" checked={submitter.consent} onChange={(e) => setSub("consent", e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[maroon]" />
+                <span>I confirm that the Bride/Groom has given permission for this matrimonial profile and the information provided to be used for the purpose of matrimonial introductions through the Church Matrimonial Ministry.</span>
+              </label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={saving} onClick={() => setConsentOpen(false)}>{t("ei_cancel")}</Button>
+            <Button
+              type="button"
+              disabled={saving}
+              onClick={submitConsent}
+              className="bg-gold text-maroon hover:bg-gold! hover:brightness-105"
+            >
+              {saving ? t("submitting") : t("submit_btn")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

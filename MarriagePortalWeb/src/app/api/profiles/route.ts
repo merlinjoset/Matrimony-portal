@@ -45,6 +45,32 @@ export async function POST(req: NextRequest) {
   if (!dto.caste || !dto.caste.trim()) return new Response("Caste is required (or choose 'Caste no bar').", { status: 400 });
   if (!dto.nativePlace || !dto.nativePlace.trim()) return new Response("Native place is required.", { status: 400 });
 
+  // When someone submits a profile on behalf of the bride/groom (createdFor != "Self"), the
+  // "Details of the Person Submitting the Form" consent is mandatory - enforce it server-side too.
+  if ((dto.createdFor ?? "Self") !== "Self") {
+    const sd = dto.submitterDetails;
+    const filled = (v?: string | null) => !!(v && v.trim());
+    const ok =
+      !!sd &&
+      filled(sd.relationship) &&
+      (sd.relationship !== "Other" || filled(sd.relationshipOther)) &&
+      filled(sd.name) &&
+      filled(sd.mobile) &&
+      filled(sd.email) &&
+      filled(sd.country) &&
+      filled(sd.city) &&
+      filled(sd.churchMembership) &&
+      filled(sd.preferredContact) &&
+      sd.declaration === true &&
+      sd.consent === true;
+    if (!ok) {
+      return new Response(
+        "Please complete and agree to the submitter consent form (required when registering on behalf of someone else).",
+        { status: 400 },
+      );
+    }
+  }
+
   // Identity is proven by EITHER a valid parish membership card OR a verified-email token (non-members).
   let ownerMemberId: string | null;
   if (dto.emailToken) {

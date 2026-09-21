@@ -268,6 +268,33 @@ export default function AdminMemberDetail() {
                 </dl>
               </Card>
             )}
+
+            {p.submitterDetails && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-maroon">Submitted on behalf</h3>
+                <p className="mt-0.5 text-[12.5px] text-muted-foreground">Consent form completed by the person who registered this profile.</p>
+                <Separator className="my-3" />
+                <dl>
+                  <Row
+                    label="Relationship"
+                    value={p.submitterDetails.relationship === "Other" ? (p.submitterDetails.relationshipOther || "Other") : p.submitterDetails.relationship}
+                  />
+                  <Row label="Name" value={p.submitterDetails.name} />
+                  <Row label="Mobile / WhatsApp" value={p.submitterDetails.mobile} />
+                  <Row label="Email" value={p.submitterDetails.email} />
+                  <Row label="Country" value={p.submitterDetails.country} />
+                  <Row label="City / Emirate / State" value={p.submitterDetails.city} />
+                  <Row label="Church membership" value={p.submitterDetails.churchMembership} />
+                  <Row label="Preferred contact" value={p.submitterDetails.preferredContact} />
+                  <Row label="Declaration agreed" value={p.submitterDetails.declaration ? "Yes" : "No"} />
+                  <Row label="Consent given" value={p.submitterDetails.consent ? "Yes" : "No"} />
+                  <Row
+                    label="Consent given at"
+                    value={p.submitterDetails.submittedAt ? new Date(p.submitterDetails.submittedAt).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : null}
+                  />
+                </dl>
+              </Card>
+            )}
           </div>
         </div>
       </div>

@@ -48,9 +48,30 @@ export interface ProfileDetail extends ProfileListItem {
   motherName: string | null;
   motherOccupation: string | null;
   siblingsDetails: string | null;
+  submitterDetails: SubmitterDetails | null; // consent form when someone submits on behalf; admin-only
   statusNote: string | null;
   approvalLevel: number; // 0-3: how many of the 3 verification levels have been signed off
   createdAt: string;
+}
+
+/**
+ * "Details of the Person Submitting the Form" - collected (and required) only when a profile is
+ * created on behalf of someone else (createdFor != "Self"). Held with the listing as a consent
+ * record and shown to admins only.
+ */
+export interface SubmitterDetails {
+  relationship: string;              // Father | Mother | Brother | Sister | Relative | Friend | Other
+  relationshipOther: string | null;  // free text when relationship = Other
+  name: string;
+  mobile: string;                    // mobile / WhatsApp number
+  email: string;
+  country: string;                   // country of residence
+  city: string;                      // city / emirate / state / district
+  churchMembership: string;          // church membership details
+  preferredContact: string;          // how the bride/groom or submitter prefer to be reached
+  declaration: boolean;              // submitting with the bride/groom's knowledge and consent
+  consent: boolean;                  // permission to use the profile for matrimonial introductions
+  submittedAt: string;               // ISO timestamp the consent was given
 }
 
 /** Country dialing codes for the registration contact field. */
@@ -186,6 +207,8 @@ export interface CreateProfileInput {
   motherOccupation?: string | null;
   siblingsDetails?: string | null;
   mainPhotoUrl?: string | null;
+  /** Consent form, required when createdFor != "Self" (someone submitting on behalf). */
+  submitterDetails?: SubmitterDetails | null;
   /** Verified-email token (for non-members registering via email OTP instead of a card). */
   emailToken?: string;
 }

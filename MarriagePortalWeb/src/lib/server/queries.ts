@@ -18,6 +18,7 @@ import type {
   ProfileDetail,
   ProfileListItem,
   ProfileStats,
+  SubmitterDetails,
   UpdateProfileInput,
 } from "@/lib/types";
 
@@ -35,6 +36,16 @@ function computeAge(dob: unknown): number | null {
 
 type Row = Record<string, unknown>;
 const s = (v: unknown) => (v == null ? null : String(v));
+
+/** Parse the stored submitter-consent JSON (text column) back into an object, tolerating bad data. */
+function parseSubmitter(v: unknown): SubmitterDetails | null {
+  if (v == null) return null;
+  try {
+    return JSON.parse(String(v)) as SubmitterDetails;
+  } catch {
+    return null;
+  }
+}
 
 function toListItem(r: Row): ProfileListItem {
   return {
@@ -85,6 +96,7 @@ function toDetail(r: Row): ProfileDetail {
     motherName: s(r.MotherName),
     motherOccupation: s(r.MotherOccupation),
     siblingsDetails: s(r.SiblingsDetails),
+    submitterDetails: parseSubmitter(r.SubmitterDetails),
     statusNote: s(r.StatusNote),
     approvalLevel: Number(r.ApprovalLevel ?? 0),
     createdAt: new Date(r.CreatedAt as string).toISOString(),
@@ -92,7 +104,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status","CreatedAt"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -192,7 +204,7 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
     INSERT INTO "TblProfiles"
       ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender",
        "DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations",
-       "Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","MainPhotoUrl","Status","CreatedAt","IsDeleted")
+       "Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","SubmitterDetails","MainPhotoUrl","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${referenceId}, ${dto.membershipNo ?? null}, ${ownerMemberId}, ${dto.createdFor ?? "Self"},
        ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.mobile2 ?? null}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
@@ -201,6 +213,7 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
        ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.refereeName ?? null}, ${dto.refereeContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null}, ${dto.education ?? null},
        ${dto.profession ?? null}, ${dto.city ?? null}, ${dto.salary ?? null}, ${dto.company ?? null}, ${dto.workLocation ?? null},
        ${dto.fatherName ?? null}, ${dto.fatherOccupation ?? null}, ${dto.motherName ?? null}, ${dto.motherOccupation ?? null}, ${dto.siblingsDetails ?? null},
+       ${dto.submitterDetails ? JSON.stringify(dto.submitterDetails) : null},
        ${dto.mainPhotoUrl ?? null}, 'Pending', now(), false)`;
 
   return (await getProfile(id))!;
