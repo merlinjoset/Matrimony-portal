@@ -1,4 +1,4 @@
-import { getProfile } from "@/lib/server/queries";
+import { getProfile, memberHasApprovedProfile } from "@/lib/server/queries";
 import { requireAdmin } from "@/lib/server/guard";
 import { getMemberSession } from "@/lib/server/member-session";
 
@@ -6,11 +6,17 @@ export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  // Members-only: never expose profile data (email, family, salary, photo URL, ...) to anonymous
-  // callers. The member-facing page renders server-side; this API is used by the admin panel.
+  // Members-only, and only members with an approved profile of their own may view others (mirrors
+  // the client gate). Never expose profile data (email, family, salary, photo URL, ...) otherwise.
+  // The member-facing page renders server-side; this API is used by the admin panel.
   const isAdmin = (await requireAdmin()).ok;
-  const memberId = isAdmin ? null : await getMemberSession();
-  if (!isAdmin && !memberId) return new Response("Please sign in to view profiles.", { status: 401 });
+  if (!isAdmin) {
+    const memberId = await getMemberSession();
+    if (!memberId) return new Response("Please sign in to view profiles.", { status: 401 });
+    if (!(await memberHasApprovedProfile(memberId))) {
+      return new Response("Your profile must be approved before you can view others.", { status: 403 });
+    }
+  }
 
   const profile = await getProfile(id);
   if (!profile) return new Response("Profile not found.", { status: 404 });

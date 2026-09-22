@@ -726,6 +726,15 @@ export async function memberHasProfile(memberId: string): Promise<boolean> {
   return rows.length > 0;
 }
 
+/** True when the member owns an approved (Verified/Active) listing. This is the server-side gate
+ *  for viewing OTHER members' profiles - it mirrors the client MemberGate's requireProfile rule. */
+export async function memberHasApprovedProfile(memberId: string): Promise<boolean> {
+  const rows = await sql`
+    SELECT 1 FROM "TblProfiles"
+    WHERE "OwnerMemberId" = ${memberId} AND "IsDeleted" = false AND "Status" IN ('Verified', 'Active') LIMIT 1`;
+  return rows.length > 0;
+}
+
 /** The member's own listing (most recent), used to link them to "My profile". Null if none. */
 export async function getMemberOwnProfileBrief(
   memberId: string,

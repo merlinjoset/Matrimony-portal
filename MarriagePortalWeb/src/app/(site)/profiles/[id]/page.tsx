@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { ProfileDetailView } from "@/components/profile-detail-view";
 import { MemberGate } from "@/components/member-gate";
-import { getProfile } from "@/lib/server/queries";
+import { getProfile, memberHasApprovedProfile } from "@/lib/server/queries";
 import { getMemberSession } from "@/lib/server/member-session";
 import { requireAdmin } from "@/lib/server/guard";
 
@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  // Members-only: do not fetch or ship any profile data to anonymous users (this page is
-  // server-rendered, so the payload itself must not carry PII). Signed-in members and admins get
-  // the profile; everyone else gets the members-only gate with nothing in the HTML.
+  // Members-only, and only members with an approved profile of their own may view others (the
+  // owner may always view their own listing). Never fetch or ship profile PII to anyone else -
+  // the payload of this server-rendered page must not carry it. Others get the members-only gate.
   const isAdmin = (await requireAdmin()).ok;
   const memberId = isAdmin ? null : await getMemberSession();
   if (!isAdmin && !memberId) {
@@ -20,6 +20,15 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
   const p = await getProfile(id);
   if (!p) notFound();
+
+  if (!isAdmin) {
+    const isOwner = p.ownerMemberId === memberId;
+    const canView = isOwner || (await memberHasApprovedProfile(memberId!));
+    if (!canView) {
+      // Signed-in member without an approved profile, viewing someone else - show the gate, no data.
+      return <MemberGate requireProfile>{null}</MemberGate>;
+    }
+  }
   // The photo is private: never send the URL in the page payload. The client reveals it
   // through the contact/photo request flow (getContact) once the owner approves.
   const hasPhoto = !!p.mainPhotoUrl;

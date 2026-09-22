@@ -7,19 +7,21 @@ import {
   FeaturesSection,
   FeaturedSection,
 } from "@/components/home/home-sections";
-import { browseProfiles } from "@/lib/server/queries";
+import { browseProfiles, memberHasApprovedProfile } from "@/lib/server/queries";
 import { getMemberSession } from "@/lib/server/member-session";
 
 export const dynamic = "force-dynamic";
 
 async function FeaturedProfiles() {
-  // Members-only: do not render real profiles (names/photos) to logged-out visitors on the
-  // public landing page. Signed-in members see the featured profiles.
+  // Members-only, and only once your own profile is approved (matches browsing). Logged-out
+  // visitors never reach this (the section is hidden client-side), so this covers signed-in
+  // members whose profile is still pending - no real profiles are rendered for them.
   const memberId = await getMemberSession();
-  if (!memberId) {
+  const canBrowse = !!memberId && (await memberHasApprovedProfile(memberId));
+  if (!canBrowse) {
     return (
       <p className="text-center text-muted-foreground">
-        Please sign in as a parish member to browse profiles.
+        Profiles appear here once your membership profile is approved.
       </p>
     );
   }

@@ -1,5 +1,5 @@
 import { BrowseView } from "@/components/browse-view";
-import { browseProfiles } from "@/lib/server/queries";
+import { browseProfiles, memberHasApprovedProfile } from "@/lib/server/queries";
 import { getMemberSession } from "@/lib/server/member-session";
 import type { ProfileListItem } from "@/lib/types";
 
@@ -12,15 +12,16 @@ export default async function BrowsePage({
 }) {
   const sp = await searchParams;
 
-  // Members-only: only fetch and ship profile data when a member is signed in (verified
-  // server-side). For anonymous visitors nothing is rendered into the HTML - BrowseView shows the
-  // sign-in gate - so names and IDs never leak in the SSR payload.
+  // Members-only, and only members with an approved profile of their own may browse others (same
+  // rule as the client gate). Otherwise nothing is fetched or rendered into the HTML - BrowseView
+  // shows the appropriate sign-in / "profile pending" gate - so names and IDs never leak.
   const memberId = await getMemberSession();
+  const canBrowse = !!memberId && (await memberHasApprovedProfile(memberId));
 
   let items: ProfileListItem[] = [];
   let total = 0;
   let error = false;
-  if (memberId) {
+  if (canBrowse) {
     try {
       const res = await browseProfiles({
         gender: sp.gender,
