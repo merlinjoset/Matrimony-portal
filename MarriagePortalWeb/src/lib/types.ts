@@ -313,6 +313,7 @@ export interface VerifyQueueItem extends ProfileListItem {
   presbyterContact: string | null;
   refereeName: string | null;
   refereeContact: string | null;
+  submitterDetails: SubmitterDetails | null; // consent form when submitted on behalf of someone else
 }
 
 export const ADMIN_CONGREGATIONS = [

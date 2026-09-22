@@ -139,6 +139,9 @@ export default function VerifyQueue() {
                       <div className="text-[12.5px] text-muted-foreground">
                         {m.referenceId} · {m.gender === "Female" ? "Bride" : "Groom"} · {m.denomination} · {m.congregation}
                         <span className="ml-1.5 cursor-help text-maroon/70" title="Hover for contact details">📞</span>
+                        {m.submitterDetails && (
+                          <span className="ml-1.5 rounded bg-maroon/10 px-1.5 py-0.5 text-[11px] font-semibold text-maroon" title="Submitted on behalf - hover for the consent form">On behalf</span>
+                        )}
                       </div>
                       {/* Hover to reveal contact details for the checklist review */}
                       <div className="absolute left-0 top-full z-30 hidden w-72 rounded-lg border border-border bg-white p-3 text-[12.5px] shadow-xl group-hover:block">
@@ -175,6 +178,29 @@ export default function VerifyQueue() {
                             </>
                           )}
                         </dl>
+                        {m.submitterDetails && (
+                          <div className="mt-2.5 border-t border-border pt-2">
+                            <div className="mb-1.5 font-semibold text-maroon">Submitted on behalf</div>
+                            <dl className="grid grid-cols-[84px_1fr] gap-x-2 gap-y-1">
+                              <dt className="text-muted-foreground">Relationship</dt>
+                              <dd className="font-medium">{m.submitterDetails.relationship === "Other" ? (m.submitterDetails.relationshipOther || "Other") : m.submitterDetails.relationship}</dd>
+                              <dt className="text-muted-foreground">Name</dt>
+                              <dd className="font-medium">{m.submitterDetails.name}</dd>
+                              <dt className="text-muted-foreground">Mobile</dt>
+                              <dd className="font-medium">{m.submitterDetails.mobile}</dd>
+                              <dt className="text-muted-foreground">Email</dt>
+                              <dd className="break-all font-medium">{m.submitterDetails.email}</dd>
+                              <dt className="text-muted-foreground">Location</dt>
+                              <dd className="font-medium">{[m.submitterDetails.city, m.submitterDetails.country].filter(Boolean).join(", ")}</dd>
+                              <dt className="text-muted-foreground">Church</dt>
+                              <dd className="font-medium">{m.submitterDetails.churchMembership}</dd>
+                              <dt className="text-muted-foreground">Preferred</dt>
+                              <dd className="font-medium">{m.submitterDetails.preferredContact}</dd>
+                              <dt className="text-muted-foreground">Consent</dt>
+                              <dd className="font-medium">{m.submitterDetails.declaration && m.submitterDetails.consent ? "Declaration + consent given" : "Incomplete"}</dd>
+                            </dl>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <Button
