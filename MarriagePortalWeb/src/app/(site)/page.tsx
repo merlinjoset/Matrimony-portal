@@ -8,10 +8,21 @@ import {
   FeaturedSection,
 } from "@/components/home/home-sections";
 import { browseProfiles } from "@/lib/server/queries";
+import { getMemberSession } from "@/lib/server/member-session";
 
 export const dynamic = "force-dynamic";
 
 async function FeaturedProfiles() {
+  // Members-only: do not render real profiles (names/photos) to logged-out visitors on the
+  // public landing page. Signed-in members see the featured profiles.
+  const memberId = await getMemberSession();
+  if (!memberId) {
+    return (
+      <p className="text-center text-muted-foreground">
+        Please sign in as a parish member to browse profiles.
+      </p>
+    );
+  }
   let items;
   try {
     items = (await browseProfiles({ pageSize: 3, live: true })).items;

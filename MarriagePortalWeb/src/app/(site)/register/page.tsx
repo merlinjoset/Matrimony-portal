@@ -109,6 +109,10 @@ export default function RegisterPage() {
   const removeSibling = (i: number) => setSiblings((s) => s.filter((_, k) => k !== i));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  // Local object-URL preview of the chosen photo. The photo endpoint requires a session, and the
+  // registrant is usually not signed in yet, so we preview the file locally rather than fetching
+  // it back from /api/photos. form.mainPhotoUrl still holds the stored URL for submission.
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const [membership, setMembership] = useState<MemberValidation | null>(null);
   // True when the validated card already has a profile - block a duplicate, point them to editing.
@@ -247,12 +251,16 @@ export default function RegisterPage() {
     if (!f) return;
     if (!f.type.startsWith("image/")) return toast.error(t("ph_err_type"));
     if (f.size > 5 * 1024 * 1024) return toast.error(t("ph_err_size"));
+    // Preview the file locally (works without a session); upload in the background for submission.
+    setPhotoPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(f); });
     setUploading(true);
     try {
       const { url } = await api.uploadPhoto(f);
       set("mainPhotoUrl", url);
     } catch {
       toast.error(t("ph_err_upload"));
+      setPhotoPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
+      set("mainPhotoUrl", null);
     } finally {
       setUploading(false);
     }
@@ -518,9 +526,9 @@ export default function RegisterPage() {
             <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_photo")}</legend>
             <div className="flex flex-wrap items-center gap-5">
               <label className="relative grid size-28 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-xl border-2 border-dashed border-gold bg-gold/10 transition hover:bg-gold/20">
-                {form.mainPhotoUrl ? (
+                {photoPreview ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={form.mainPhotoUrl} alt="" className="h-full w-full object-cover" />
+                  <img src={photoPreview} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-3xl text-gold">📷</span>
                 )}
@@ -536,10 +544,10 @@ export default function RegisterPage() {
                     </span>
                     <input type="file" accept="image/*" hidden onChange={onPhoto} disabled={uploading} />
                   </label>
-                  {form.mainPhotoUrl && (
+                  {photoPreview && (
                     <button
                       type="button"
-                      onClick={() => set("mainPhotoUrl", null)}
+                      onClick={() => { setPhotoPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return null; }); set("mainPhotoUrl", null); }}
                       className="inline-flex h-8 items-center rounded-lg border border-destructive/40 px-3 text-[13px] font-medium text-destructive hover:bg-destructive/5"
                     >
                       {t("ph_remove")}
@@ -894,7 +902,7 @@ export default function RegisterPage() {
             >
               {saving ? t("submitting") : t("submit_btn")}
             </Button>
-            <Button type="button" variant="outline" onClick={() => { setForm(empty); setSalaryAmount(""); setCurrency("AED"); setSiblings([]); setSubmitter(emptySubmitter); setSubmitterConsent(null); }}>
+            <Button type="button" variant="outline" onClick={() => { setForm(empty); setSalaryAmount(""); setCurrency("AED"); setSiblings([]); setSubmitter(emptySubmitter); setSubmitterConsent(null); setPhotoPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return null; }); }}>
               {t("reset_btn")}
             </Button>
           </div>
