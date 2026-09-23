@@ -110,9 +110,10 @@ async function logLogin(accountId: string, username: string, ip: string | null, 
 }
 
 /** Sign in with username + password. Only 'Active' (admin-approved) accounts may sign in.
- *  The client IP is logged. An account is bound to the IP of its first sign-in: the real
- *  member (same device/IP) is always allowed, and a login from any OTHER IP is refused -
- *  so shared credentials do not work elsewhere, and the owner is never locked out. */
+ *  The client IP is recorded for the admin Login Activity view. We do NOT refuse a login from a
+ *  new IP: members legitimately move between wifi and mobile data (whose IPs change constantly),
+ *  and the old "first IP wins" binding was locking real members out - most visibly after a
+ *  password reset, when they signed back in from a different network. */
 export async function login(username: string, password: string, ip?: string | null, userAgent?: string | null): Promise<AuthResult> {
   const rows = await sql`
     SELECT "Id","MemberId","MembershipNo","Name","Username","PasswordHash","Status"
@@ -127,24 +128,10 @@ export async function login(username: string, password: string, ip?: string | nu
   if (account.Status !== "Active") return { ok: false, status: 403, message: "This account is disabled. Please contact the parish office." };
 
   const accountId = account.Id as string;
-  // Ignore localhost / loopback addresses - they are dev artifacts and must never bind an account.
+  // Record the client IP for the admin Login Activity log, ignoring dev/loopback addresses.
   const LOOPBACK = new Set(["::1", "127.0.0.1", "::ffff:127.0.0.1", "localhost"]);
   const raw = (ip ?? "").trim();
   const cleanIp = raw && !LOOPBACK.has(raw) ? raw : null;
-
-  // Bind to the IP of the first successful sign-in. Allow that IP always; refuse any other.
-  // If the IP is unknown (no proxy header) we fail open so nobody is wrongly blocked.
-  if (cleanIp) {
-    const bound = await sql`
-      SELECT "IpAddress" FROM "TblLoginLog"
-      WHERE "MemberAccountId" = ${accountId} AND "Success" = true AND "IpAddress" IS NOT NULL
-      ORDER BY "CreatedAt" ASC LIMIT 1`;
-    const boundIp = (bound[0]?.IpAddress as string) ?? null;
-    if (boundIp && cleanIp !== boundIp) {
-      await logLogin(accountId, account.Username as string, cleanIp, userAgent ?? null, false);
-      return { ok: false, status: 403, message: "This account is registered to a different device. If this is you, please contact the parish office." };
-    }
-  }
 
   await logLogin(accountId, account.Username as string, cleanIp, userAgent ?? null, true);
 
