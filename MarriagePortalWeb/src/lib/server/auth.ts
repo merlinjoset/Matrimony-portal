@@ -336,10 +336,19 @@ export async function resetPasswordWithEmail(
     return { ok: true, status: 200, message: "Password updated. You can now sign in with your new password." };
   }
 
-  const rows = await sql`SELECT "Id" FROM "TblMemberAccounts" WHERE lower("Email") = lower(${v.email}) AND "IsDeleted" = false LIMIT 1`;
-  if (!rows[0]) return { ok: false, status: 404, message: "No account found for this email. If you did not add an email, please contact the parish office." };
-  const r = await setMemberAccountPassword(rows[0].Id as string, newPassword);
-  return r.ok ? { ok: true, status: 200, message: "Password updated. You can now sign in with your new password." } : r;
+  // Reset the password on every non-deleted account this verified email identifies - matched by
+  // its Email column OR by a Username equal to the email. Some members signed up with their email
+  // as the username (no Email stored), so an email-only match would update a different account than
+  // the one they sign in with, leaving them with "reset worked but I still can't log in".
+  const accounts = await sql`
+    SELECT "Id" FROM "TblMemberAccounts"
+    WHERE (lower("Email") = lower(${v.email}) OR lower("Username") = lower(${v.email})) AND "IsDeleted" = false`;
+  if (!accounts.length) return { ok: false, status: 404, message: "No account found for this email. If you did not add an email, please contact the parish office." };
+  for (const a of accounts) {
+    const r = await setMemberAccountPassword(a.Id as string, newPassword);
+    if (!r.ok) return r;
+  }
+  return { ok: true, status: 200, message: "Password updated. You can now sign in with your new password." };
 }
 
 /** Sign in to the admin panel with email + password. Only 'Active' staff with a password set may sign in. */
