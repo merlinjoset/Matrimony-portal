@@ -25,6 +25,7 @@ import {
   DENOMINATIONS,
   type Gender,
   type OwnProfileDetail,
+  type SubmitterDetails,
   type UpdateProfileInput,
 } from "@/lib/types";
 
@@ -146,6 +147,19 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
   const [casteList, setCasteList] = useState<string[]>([]);
   useEffect(() => { api.getCastes().then(setCasteList).catch(() => {}); }, []);
 
+  // "Details of the person submitting the form" consent - shown (optional) when the profile is
+  // created on behalf of someone else. Lets an owner/admin add it to a profile that predates the
+  // consent form, or amend an existing one. Existing values are hydrated below.
+  const emptySubmitter = {
+    relationship: "Father", relationshipOther: "", name: "", mobile: "", email: "",
+    country: "", city: "", churchMembership: "", preferredContact: "Contact either of us",
+    declaration: false, consent: false,
+  };
+  const [submitter, setSubmitter] = useState(emptySubmitter);
+  const [priorSubmittedAt, setPriorSubmittedAt] = useState<string | null>(null);
+  const setSub = <K extends keyof typeof emptySubmitter>(k: K, v: (typeof emptySubmitter)[K]) =>
+    setSubmitter((prev) => ({ ...prev, [k]: v }));
+
   const addSibling = () => setSiblings((s) => [...s, { name: "", status: "Unmarried", occupation: "" }]);
   const updateSibling = (i: number, field: keyof SiblingRow, val: string) =>
     setSiblings((s) => s.map((x, k) => (k === i ? { ...x, [field]: val } : x)));
@@ -232,6 +246,30 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
       siblingsDetails: p.siblingsDetails ?? "",
       mainPhotoUrl: p.mainPhotoUrl ?? null,
     });
+    const sd = p.submitterDetails;
+    setPriorSubmittedAt(sd?.submittedAt ?? null);
+    setSubmitter(
+      sd
+        ? {
+            relationship: sd.relationship || "Father",
+            relationshipOther: sd.relationshipOther ?? "",
+            name: sd.name ?? "",
+            mobile: sd.mobile ?? "",
+            email: sd.email ?? "",
+            country: sd.country ?? "",
+            city: sd.city ?? "",
+            churchMembership: sd.churchMembership ?? "",
+            preferredContact: sd.preferredContact || "Contact either of us",
+            declaration: !!sd.declaration,
+            consent: !!sd.consent,
+          }
+        : {
+            relationship: "Father", relationshipOther: "", name: "", mobile: "", email: "",
+            country: "", city: "", churchMembership: "", preferredContact: "Contact either of us",
+            declaration: false, consent: false,
+          },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { hydrate(initial); }, [initial, hydrate]);
@@ -270,11 +308,34 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
     try {
       const lookingFor = form.gender === "Male" ? "Bride" : "Groom";
       const cleanSiblings = siblings.filter((s) => s.name.trim() || s.occupation.trim());
+      // Persist the submitter consent for on-behalf profiles. Store it when it's complete
+      // (both declarations ticked with a name + number) or when the profile already had one -
+      // so a normal edit never wipes an existing consent, and switching to "Self" clears it.
+      const onBehalf = form.createdFor !== "Self";
+      const complete = submitter.declaration && submitter.consent && !!submitter.name.trim() && !!submitter.mobile.trim();
+      const submitterDetails: SubmitterDetails | null =
+        onBehalf && (complete || priorSubmittedAt)
+          ? {
+              relationship: submitter.relationship,
+              relationshipOther: submitter.relationship === "Other" ? (submitter.relationshipOther.trim() || null) : null,
+              name: submitter.name.trim(),
+              mobile: submitter.mobile.trim(),
+              email: submitter.email.trim(),
+              country: submitter.country.trim(),
+              city: submitter.city.trim(),
+              churchMembership: submitter.churchMembership.trim(),
+              preferredContact: submitter.preferredContact,
+              declaration: submitter.declaration,
+              consent: submitter.consent,
+              submittedAt: priorSubmittedAt ?? new Date().toISOString(),
+            }
+          : null;
       await onSave({
         ...form,
         lookingFor,
         dateOfBirth: form.dateOfBirth || null,
         siblingsDetails: cleanSiblings.length ? JSON.stringify(cleanSiblings) : null,
+        submitterDetails,
       });
       toast.success(t("edit_saved"));
       onSaved();
@@ -399,6 +460,70 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
             </Field>
           </div>
         </fieldset>
+
+        {form.createdFor !== "Self" && (
+          <fieldset className="space-y-4">
+            <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">Submitted on behalf - consent</legend>
+            <p className="text-[12.5px] text-muted-foreground">
+              Optional. The details and consent of the person who submitted this profile on behalf of the bride/groom. Tick both declarations to record the consent.
+            </p>
+            <div className="grid gap-3.5 md:grid-cols-2">
+              <Field label="Relationship to the bride/groom">
+                <Select value={submitter.relationship} onValueChange={(v) => setSub("relationship", v ?? "Father")}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["Father", "Mother", "Brother", "Sister", "Relative", "Friend", "Other"].map((r) => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              {submitter.relationship === "Other" && (
+                <Field label="Please specify">
+                  <Input value={submitter.relationshipOther} onChange={(e) => setSub("relationshipOther", e.target.value)} placeholder="Your relationship" />
+                </Field>
+              )}
+              <Field label="Full name of the submitter">
+                <Input value={submitter.name} onChange={(e) => setSub("name", e.target.value)} />
+              </Field>
+              <Field label="Mobile / WhatsApp number">
+                <Input type="tel" value={submitter.mobile} onChange={(e) => setSub("mobile", e.target.value)} placeholder="e.g. +971 50 123 4567" />
+              </Field>
+              <Field label="Email address">
+                <Input type="email" value={submitter.email} onChange={(e) => setSub("email", e.target.value)} placeholder="name@example.com" />
+              </Field>
+              <Field label="Country of residence">
+                <Input value={submitter.country} onChange={(e) => setSub("country", e.target.value)} placeholder="e.g. United Arab Emirates" />
+              </Field>
+              <Field label="City / Emirate / State / District">
+                <Input value={submitter.city} onChange={(e) => setSub("city", e.target.value)} placeholder="e.g. Dubai" />
+              </Field>
+              <Field label="Church membership details">
+                <Input value={submitter.churchMembership} onChange={(e) => setSub("churchMembership", e.target.value)} placeholder="Parish / congregation / no." />
+              </Field>
+              <Field label="Preferred method of communication">
+                <Select value={submitter.preferredContact} onValueChange={(v) => setSub("preferredContact", v ?? "Contact either of us")}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Contact the Bride/Groom directly">Contact the Bride/Groom directly</SelectItem>
+                    <SelectItem value="Contact the person who submitted the form">Contact the person who submitted the form</SelectItem>
+                    <SelectItem value="Contact either of us">Contact either of us</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+            <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+              <label className="flex cursor-pointer items-start gap-2 text-[12.5px] leading-snug">
+                <input type="checkbox" checked={submitter.declaration} onChange={(e) => setSub("declaration", e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[maroon]" />
+                <span>I am submitting this matrimonial profile on behalf of the Bride/Groom named above, with their knowledge and consent, and I confirm that the information provided is true to the best of my knowledge.</span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-2 text-[12.5px] leading-snug">
+                <input type="checkbox" checked={submitter.consent} onChange={(e) => setSub("consent", e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[maroon]" />
+                <span>I confirm that the Bride/Groom has given permission for this matrimonial profile and the information provided to be used for the purpose of matrimonial introductions through the Church Matrimonial Ministry.</span>
+              </label>
+            </div>
+          </fieldset>
+        )}
 
         <fieldset className="space-y-4">
           <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_personal")}</legend>
