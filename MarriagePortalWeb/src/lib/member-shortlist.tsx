@@ -301,7 +301,7 @@ export function MemberShortlistProvider({ children }: { children: React.ReactNod
               </div>
             )}
             <div className="space-y-1.5">
-              <Label>{t("l_username")}</Label>
+              <Label>{mode === "signin" ? t("l_login_id") : t("l_username")}</Label>
               <Input
                 value={username}
                 autoComplete="username"

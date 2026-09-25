@@ -135,6 +135,9 @@ export interface MemberAccount {
   createdAt: string;
   lastLoginIp: string | null;
   lastLoginAt: string | null;
+  profileId: string | null;
+  profileReferenceId: string | null; // CSInnnn of the member's listing, if any
+  profileStatus: string | null;
 }
 
 /** Common reasons a member can report a profile. */

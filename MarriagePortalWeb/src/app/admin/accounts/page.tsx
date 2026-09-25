@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -125,13 +126,14 @@ export default function MemberAccountsPage() {
             <p className="p-8 text-center text-muted-foreground">No member accounts yet.</p>
           ) : (
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px]">
+            <table className="w-full min-w-[780px]">
               <thead>
                 <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-muted-foreground">
                   <th className="px-5 py-3 font-bold">Member</th>
                   <th className="px-5 py-3 font-bold">Username</th>
                   <th className="px-5 py-3 font-bold">Email</th>
                   <th className="px-5 py-3 font-bold">Card #</th>
+                  <th className="px-5 py-3 font-bold">Profile</th>
                   <th className="px-5 py-3 font-bold">Last IP</th>
                   <th className="px-5 py-3 font-bold">Status</th>
                   <th className="px-5 py-3 font-bold">Action</th>
@@ -144,6 +146,19 @@ export default function MemberAccountsPage() {
                     <td className="px-5 py-3 text-sm">{a.username}</td>
                     <td className="px-5 py-3 text-sm text-muted-foreground">{a.email || "-"}</td>
                     <td className="px-5 py-3 text-sm">{a.membershipNo}</td>
+                    <td className="px-5 py-3 text-sm">
+                      {a.profileReferenceId ? (
+                        a.profileId ? (
+                          <Link href={`/admin/members/${a.profileId}`} className="font-semibold text-maroon hover:underline" title={a.profileStatus ?? ""}>
+                            {a.profileReferenceId}
+                          </Link>
+                        ) : (
+                          <span className="font-semibold">{a.profileReferenceId}</span>
+                        )
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </td>
                     <td className="px-5 py-3 text-sm text-muted-foreground" title={a.lastLoginAt ? new Date(a.lastLoginAt).toLocaleString() : ""}>{a.lastLoginIp || "-"}</td>
                     <td className="px-5 py-3"><Pill tone={tone(a.status)}>{a.status}</Pill></td>
                     <td className="px-5 py-3">

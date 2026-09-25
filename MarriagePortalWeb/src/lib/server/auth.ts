@@ -115,10 +115,15 @@ async function logLogin(accountId: string, username: string, ip: string | null, 
  *  and the old "first IP wins" binding was locking real members out - most visibly after a
  *  password reset, when they signed back in from a different network. */
 export async function login(username: string, password: string, ip?: string | null, userAgent?: string | null): Promise<AuthResult> {
+  // Members may sign in with their username OR their email address - people routinely type their
+  // email into the "username" box (and often don't remember the username they chose at sign-up).
+  // Prefer an exact username match if both an account's username and another's email collide.
+  const ident = (username ?? "").trim();
   const rows = await sql`
     SELECT "Id","MemberId","MembershipNo","Name","Username","PasswordHash","Status"
     FROM "TblMemberAccounts"
-    WHERE lower("Username") = lower(${(username ?? "").trim()}) AND "IsDeleted" = false
+    WHERE (lower("Username") = lower(${ident}) OR lower("Email") = lower(${ident})) AND "IsDeleted" = false
+    ORDER BY (lower("Username") = lower(${ident})) DESC
     LIMIT 1`;
   const account = rows[0];
   if (!account || !verifyPassword(password ?? "", account.PasswordHash as string)) {
@@ -195,18 +200,27 @@ export interface MemberAccountRow {
   createdAt: string;
   lastLoginIp: string | null;
   lastLoginAt: string | null;
+  profileId: string | null;
+  profileReferenceId: string | null; // CSInnnn of the member's listing, if any
+  profileStatus: string | null;
 }
 
 export async function listMemberAccounts(): Promise<MemberAccountRow[]> {
   const rows = await sql`
     SELECT a."Id", a."MemberId", a."MembershipNo", a."Name", a."Username", a."Email", a."Status", a."CreatedAt",
-           ll."IpAddress" AS "LastIp", ll."CreatedAt" AS "LastLoginAt"
+           ll."IpAddress" AS "LastIp", ll."CreatedAt" AS "LastLoginAt",
+           pr."Id" AS "ProfileId", pr."ReferenceId" AS "ProfileRef", pr."Status" AS "ProfileStatus"
     FROM "TblMemberAccounts" a
     LEFT JOIN LATERAL (
       SELECT "IpAddress", "CreatedAt" FROM "TblLoginLog" l
       WHERE l."MemberAccountId" = a."Id" AND l."Success" = true
       ORDER BY l."CreatedAt" DESC LIMIT 1
     ) ll ON true
+    LEFT JOIN LATERAL (
+      SELECT "Id", "ReferenceId", "Status" FROM "TblProfiles" p
+      WHERE p."OwnerMemberId" = a."MemberId" AND p."IsDeleted" = false
+      ORDER BY p."CreatedAt" DESC LIMIT 1
+    ) pr ON true
     WHERE a."IsDeleted" = false ORDER BY a."CreatedAt" DESC`;
   return rows.map((r) => ({
     id: r.Id as string,
@@ -219,6 +233,9 @@ export async function listMemberAccounts(): Promise<MemberAccountRow[]> {
     createdAt: new Date(r.CreatedAt as string).toISOString(),
     lastLoginIp: (r.LastIp as string) ?? null,
     lastLoginAt: r.LastLoginAt ? new Date(r.LastLoginAt as string).toISOString() : null,
+    profileId: (r.ProfileId as string) ?? null,
+    profileReferenceId: (r.ProfileRef as string) ?? null,
+    profileStatus: (r.ProfileStatus as string) ?? null,
   }));
 }
 
