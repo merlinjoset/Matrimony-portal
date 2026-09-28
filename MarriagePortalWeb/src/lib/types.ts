@@ -40,6 +40,8 @@ export interface ProfileDetail extends ProfileListItem {
   refereeContact: string | null; // extra reference for "Other" congregations; admin-only
   aboutFaith: string | null;
   expectations: string | null;
+  partnerCaste: string | null; // preferred caste for the partner, or "Caste No Bar"
+  partnerDenomination: string | null; // preferred denomination for the partner, or "Any"
   salary: string | null;
   company: string | null;
   workLocation: string | null;
@@ -198,6 +200,8 @@ export interface CreateProfileInput {
   refereeContact?: string | null;
   aboutFaith?: string | null;
   expectations?: string | null;
+  partnerCaste?: string | null;
+  partnerDenomination?: string | null;
   education?: string | null;
   profession?: string | null;
   city?: string | null;

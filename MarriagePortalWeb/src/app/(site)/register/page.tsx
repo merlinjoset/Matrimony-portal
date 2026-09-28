@@ -53,6 +53,8 @@ const empty: CreateProfileInput = {
   refereeContact: "",
   aboutFaith: "",
   expectations: "",
+  partnerCaste: "",
+  partnerDenomination: "",
   education: "",
   profession: "",
   city: "",
@@ -759,9 +761,54 @@ export default function RegisterPage() {
             <Field label={t("l_walk")}>
               <Textarea value={form.aboutFaith ?? ""} onChange={(e) => set("aboutFaith", e.target.value)} rows={2} />
             </Field>
+          </fieldset>
+
+          <fieldset className="space-y-4">
+            <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_partner")}</legend>
             <Field label={t("l_expect")}>
               <Textarea value={form.expectations ?? ""} onChange={(e) => set("expectations", e.target.value)} rows={2} placeholder={t("ph_expect")} />
             </Field>
+            <div className="grid gap-3.5 md:grid-cols-2">
+              <Field label={t("l_partner_caste")}>
+                <Input
+                  list="caste-options"
+                  value={form.partnerCaste === "Caste No Bar" ? "" : (form.partnerCaste ?? "")}
+                  disabled={form.partnerCaste === "Caste No Bar"}
+                  onChange={(e) => set("partnerCaste", e.target.value)}
+                  placeholder={t("ph_partner_caste")}
+                />
+                <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-[12.5px] text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={form.partnerCaste === "Caste No Bar"}
+                    onChange={(e) => set("partnerCaste", e.target.checked ? "Caste No Bar" : "")}
+                    className="size-3.5 accent-[maroon]"
+                  />
+                  {t("caste_no_bar")}
+                </label>
+              </Field>
+              <Field label={t("l_partner_denom")}>
+                <Input
+                  list="partner-denom-options"
+                  value={form.partnerDenomination === "Any" ? "" : (form.partnerDenomination ?? "")}
+                  disabled={form.partnerDenomination === "Any"}
+                  onChange={(e) => set("partnerDenomination", e.target.value)}
+                  placeholder={t("ph_partner_denom")}
+                />
+                <datalist id="partner-denom-options">
+                  {DENOMINATIONS.map((d) => <option key={d} value={d} />)}
+                </datalist>
+                <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-[12.5px] text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={form.partnerDenomination === "Any"}
+                    onChange={(e) => set("partnerDenomination", e.target.checked ? "Any" : "")}
+                    className="size-3.5 accent-[maroon]"
+                  />
+                  {t("o_any_denom")}
+                </label>
+              </Field>
+            </div>
           </fieldset>
 
           <fieldset className="space-y-4">

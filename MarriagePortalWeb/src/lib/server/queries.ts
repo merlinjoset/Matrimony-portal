@@ -88,6 +88,8 @@ function toDetail(r: Row): ProfileDetail {
     refereeContact: s(r.RefereeContact),
     aboutFaith: s(r.AboutFaith),
     expectations: s(r.Expectations),
+    partnerCaste: s(r.PartnerCaste),
+    partnerDenomination: s(r.PartnerDenomination),
     salary: s(r.Salary),
     company: s(r.Company),
     workLocation: s(r.WorkLocation),
@@ -104,7 +106,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status","CreatedAt"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","PartnerCaste","PartnerDenomination","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -204,13 +206,14 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
     INSERT INTO "TblProfiles"
       ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender",
        "DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations",
-       "Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","SubmitterDetails","MainPhotoUrl","Status","CreatedAt","IsDeleted")
+       "PartnerCaste","PartnerDenomination","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","SubmitterDetails","MainPhotoUrl","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${referenceId}, ${dto.membershipNo ?? null}, ${ownerMemberId}, ${dto.createdFor ?? "Self"},
        ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.mobile2 ?? null}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
        ${dto.dateOfBirth ?? null}, ${dto.height ?? null}, ${dto.maritalStatus ?? "Never married"},
        ${dto.motherTongue ?? "Tamil"}, ${dto.caste ?? null}, ${dto.nativePlace ?? null}, ${dto.denomination ?? "CSI"}, ${dto.homeParish ?? ""},
-       ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.refereeName ?? null}, ${dto.refereeContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null}, ${dto.education ?? null},
+       ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.refereeName ?? null}, ${dto.refereeContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null},
+       ${dto.partnerCaste ?? null}, ${dto.partnerDenomination ?? null}, ${dto.education ?? null},
        ${dto.profession ?? null}, ${dto.city ?? null}, ${dto.salary ?? null}, ${dto.company ?? null}, ${dto.workLocation ?? null},
        ${dto.fatherName ?? null}, ${dto.fatherOccupation ?? null}, ${dto.motherName ?? null}, ${dto.motherOccupation ?? null}, ${dto.siblingsDetails ?? null},
        ${dto.submitterDetails ? JSON.stringify(dto.submitterDetails) : null},
@@ -538,6 +541,8 @@ export async function updateProfile(
       "RefereeContact" = ${dto.refereeContact ?? null},
       "AboutFaith" = ${dto.aboutFaith ?? null},
       "Expectations" = ${dto.expectations ?? null},
+      "PartnerCaste" = ${dto.partnerCaste ?? null},
+      "PartnerDenomination" = ${dto.partnerDenomination ?? null},
       "Education" = ${dto.education ?? null},
       "Profession" = ${dto.profession ?? null},
       "City" = ${dto.city ?? null},
@@ -605,6 +610,8 @@ export async function adminUpdateProfile(
       "RefereeContact" = ${dto.refereeContact ?? null},
       "AboutFaith" = ${dto.aboutFaith ?? null},
       "Expectations" = ${dto.expectations ?? null},
+      "PartnerCaste" = ${dto.partnerCaste ?? null},
+      "PartnerDenomination" = ${dto.partnerDenomination ?? null},
       "Education" = ${dto.education ?? null},
       "Profession" = ${dto.profession ?? null},
       "City" = ${dto.city ?? null},

@@ -240,6 +240,8 @@ export default function AdminMemberDetail() {
                 )}
                 <Row label="Walk of faith" value={p.aboutFaith} />
                 <Row label="Partner expectations" value={p.expectations} />
+                <Row label="Preferred caste (partner)" value={p.partnerCaste === "Caste No Bar" ? "Caste no bar" : p.partnerCaste} />
+                <Row label="Preferred denomination (partner)" value={p.partnerDenomination === "Any" ? "Any denomination" : p.partnerDenomination} />
               </dl>
             </Card>
 
