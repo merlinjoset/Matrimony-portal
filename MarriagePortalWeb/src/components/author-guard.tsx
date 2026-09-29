@@ -33,11 +33,6 @@ export function AuthorGuard() {
       return el;
     }
 
-    function present(): boolean {
-      const el = document.querySelector(`[${MARK}]`);
-      return !!(el && el.textContent && el.textContent.includes(NAME));
-    }
-
     let banner: HTMLElement | null = null;
     function warn() {
       if (banner) return;
@@ -53,11 +48,21 @@ export function AuthorGuard() {
       }, 5000);
     }
 
+    // Our own fallback badge - only shown when no real credit (e.g. the footer) is on the page.
+    let badge: HTMLElement | null = null;
     let first = true;
     function ensure() {
-      if (!present()) {
-        if (!first) warn(); // only warn on removal, not on the initial silent insert
-        document.body.appendChild(makeBadge());
+      // A "real" credit is any author-credit element (other than our own badge/warning) naming the author.
+      const hasRealCredit = Array.from(document.querySelectorAll(`[${MARK}]`)).some(
+        (el) => el !== badge && el.getAttribute(MARK) !== "warning" && (el.textContent ?? "").includes(NAME),
+      );
+      if (hasRealCredit) {
+        // The footer credit is present - drop our fallback so the credit never shows twice.
+        if (badge) { badge.remove(); badge = null; }
+      } else if (!badge || !document.body.contains(badge)) {
+        if (!first) warn(); // warn only when a previously-present credit was removed, not on first insert
+        badge = makeBadge();
+        document.body.appendChild(badge);
       }
       first = false;
     }
