@@ -101,6 +101,7 @@ function toDetail(r: Row): ProfileDetail {
     siblingsDetails: s(r.SiblingsDetails),
     testimony: s(r.Testimony),
     testimonyVideoUrl: s(r.TestimonyVideoUrl),
+    marriageDate: r.MarriageDate ? new Date(r.MarriageDate as string).toISOString().slice(0, 10) : null,
     submitterDetails: parseSubmitter(r.SubmitterDetails),
     statusNote: s(r.StatusNote),
     approvalLevel: Number(r.ApprovalLevel ?? 0),
@@ -109,7 +110,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status","CreatedAt"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","PartnerCaste","PartnerDenomination","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","Testimony","TestimonyVideoUrl","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","PartnerCaste","PartnerDenomination","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","Testimony","TestimonyVideoUrl","MarriageDate","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -243,12 +244,19 @@ export async function setProfileStatus(id: string, status: string, note?: string
   return rows.length > 0;
 }
 
-/** Record (or clear) the success testimony (note + video link) for a profile. Blanks store NULL. */
-export async function setProfileTestimony(id: string, testimony: string | null, videoUrl?: string | null): Promise<boolean> {
+/** Record (or clear) the success testimony (note + video link + marriage date). Blanks store NULL. */
+export async function setProfileTestimony(
+  id: string,
+  testimony: string | null,
+  videoUrl?: string | null,
+  marriageDate?: string | null,
+): Promise<boolean> {
   const text = (testimony ?? "").trim() || null;
   const video = (videoUrl ?? "").trim() || null;
+  const married = (marriageDate ?? "").trim() || null;
   const rows = await sql`
-    UPDATE "TblProfiles" SET "Testimony" = ${text}, "TestimonyVideoUrl" = ${video}, "UpdatedAt" = now()
+    UPDATE "TblProfiles"
+    SET "Testimony" = ${text}, "TestimonyVideoUrl" = ${video}, "MarriageDate" = ${married}, "UpdatedAt" = now()
     WHERE "Id" = ${id} AND "IsDeleted" = false
     RETURNING "Id"`;
   return rows.length > 0;
@@ -257,11 +265,11 @@ export async function setProfileTestimony(id: string, testimony: string | null, 
 /** Committed profiles that have a testimony and/or video - the public success-stories feed. */
 export async function listSuccessStories(): Promise<SuccessStory[]> {
   const rows = await sql`
-    SELECT "Id","ReferenceId","FullName","City","Congregation","Testimony","TestimonyVideoUrl","UpdatedAt","CreatedAt"
+    SELECT "Id","ReferenceId","FullName","City","Congregation","Testimony","TestimonyVideoUrl","MarriageDate","UpdatedAt","CreatedAt"
     FROM "TblProfiles"
     WHERE "IsDeleted" = false AND "Status" = 'Committed'
       AND (COALESCE("Testimony", '') <> '' OR COALESCE("TestimonyVideoUrl", '') <> '')
-    ORDER BY COALESCE("UpdatedAt", "CreatedAt") DESC`;
+    ORDER BY COALESCE("MarriageDate", "UpdatedAt", "CreatedAt") DESC`;
   return rows.map((r) => ({
     id: r.Id as string,
     referenceId: r.ReferenceId as string,
@@ -270,6 +278,7 @@ export async function listSuccessStories(): Promise<SuccessStory[]> {
     congregation: r.Congregation as string,
     testimony: (r.Testimony as string) ?? null,
     testimonyVideoUrl: (r.TestimonyVideoUrl as string) ?? null,
+    marriageDate: r.MarriageDate ? new Date(r.MarriageDate as string).toISOString().slice(0, 10) : null,
     committedAt: new Date((r.UpdatedAt ?? r.CreatedAt) as string).toISOString(),
   }));
 }

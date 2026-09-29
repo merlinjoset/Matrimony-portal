@@ -91,6 +91,7 @@ export default function MembersPage() {
   const [testimonyTarget, setTestimonyTarget] = useState<ProfileListItem | null>(null);
   const [testimonyText, setTestimonyText] = useState("");
   const [testimonyVideo, setTestimonyVideo] = useState("");
+  const [testimonyDate, setTestimonyDate] = useState("");
   const [testimonyLoading, setTestimonyLoading] = useState(false);
   const [testimonySaving, setTestimonySaving] = useState(false);
 
@@ -98,17 +99,20 @@ export default function MembersPage() {
     setTestimonyTarget(null);
     setTestimonyText("");
     setTestimonyVideo("");
+    setTestimonyDate("");
   }
 
   async function openTestimony(m: ProfileListItem) {
     setTestimonyTarget(m);
     setTestimonyText("");
     setTestimonyVideo("");
+    setTestimonyDate("");
     setTestimonyLoading(true);
     try {
       const p = await api.getProfile(m.id);
       setTestimonyText(p.testimony ?? "");
       setTestimonyVideo(p.testimonyVideoUrl ?? "");
+      setTestimonyDate(p.marriageDate ?? "");
     } catch {
       // start blank if it can't be loaded
     } finally {
@@ -120,7 +124,7 @@ export default function MembersPage() {
     if (!testimonyTarget) return;
     setTestimonySaving(true);
     try {
-      await api.setTestimony(testimonyTarget.id, testimonyText.trim() || null, testimonyVideo.trim() || null);
+      await api.setTestimony(testimonyTarget.id, testimonyText.trim() || null, testimonyVideo.trim() || null, testimonyDate || null);
       toast.success(`Testimony saved for ${testimonyTarget.fullName}.`);
       closeTestimony();
     } catch {
@@ -307,15 +311,26 @@ export default function MembersPage() {
                 disabled={testimonyLoading}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Video link</Label>
-              <Input
-                type="url"
-                value={testimonyVideo}
-                onChange={(e) => setTestimonyVideo(e.target.value)}
-                placeholder="https://youtu.be/… or a Google Drive / Vimeo link"
-                disabled={testimonyLoading}
-              />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Video link</Label>
+                <Input
+                  type="url"
+                  value={testimonyVideo}
+                  onChange={(e) => setTestimonyVideo(e.target.value)}
+                  placeholder="https://youtu.be/… or a Drive / Vimeo link"
+                  disabled={testimonyLoading}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Marriage date</Label>
+                <Input
+                  type="date"
+                  value={testimonyDate}
+                  onChange={(e) => setTestimonyDate(e.target.value)}
+                  disabled={testimonyLoading}
+                />
+              </div>
             </div>
             <p className="text-[12px] text-muted-foreground">Recorded with the profile as a success story. Leave a field blank to clear it.</p>
           </div>

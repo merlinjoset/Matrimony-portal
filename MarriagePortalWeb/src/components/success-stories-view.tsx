@@ -45,6 +45,11 @@ export function SuccessStoriesView({ stories }: { stories: SuccessStory[] }) {
                     <span className="text-lg">💍</span>
                     <h2 className="text-lg font-bold text-maroon">{s.fullName}</h2>
                   </div>
+                  {s.marriageDate && (
+                    <p className="text-[13px] font-semibold text-brand-green">
+                      {t("ss_married")} {new Date(s.marriageDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  )}
                   {(s.city || s.congregation) && (
                     <p className="text-[12.5px] text-muted-foreground">{[s.city, s.congregation].filter(Boolean).join(" · ")}</p>
                   )}

@@ -203,11 +203,11 @@ export const api = {
     });
   },
 
-  // Admin: record (or clear) a success testimony (note + video link) for a committed profile.
-  setTestimony(id: string, testimony: string | null, videoUrl: string | null): Promise<void> {
+  // Admin: record (or clear) a success testimony (note + video link + marriage date).
+  setTestimony(id: string, testimony: string | null, videoUrl: string | null, marriageDate: string | null): Promise<void> {
     return http<void>(`/admin/profiles/${id}/testimony`, {
       method: "PATCH",
-      body: JSON.stringify({ testimony, videoUrl }),
+      body: JSON.stringify({ testimony, videoUrl, marriageDate }),
     });
   },
 

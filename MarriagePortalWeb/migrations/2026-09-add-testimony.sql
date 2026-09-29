@@ -4,3 +4,6 @@
 
 ALTER TABLE "TblProfiles" ADD COLUMN IF NOT EXISTS "Testimony" text;
 ALTER TABLE "TblProfiles" ADD COLUMN IF NOT EXISTS "TestimonyVideoUrl" text;
+
+-- Marriage date for a committed profile's success story.
+ALTER TABLE "TblProfiles" ADD COLUMN IF NOT EXISTS "MarriageDate" date;

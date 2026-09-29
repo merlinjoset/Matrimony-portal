@@ -52,6 +52,7 @@ export interface ProfileDetail extends ProfileListItem {
   siblingsDetails: string | null;
   testimony: string | null; // success story recorded for a committed/married profile
   testimonyVideoUrl: string | null; // link to a testimony video (YouTube, Drive, etc.)
+  marriageDate: string | null; // yyyy-MM-dd, for the success story
   submitterDetails: SubmitterDetails | null; // consent form when someone submits on behalf; admin-only
   statusNote: string | null;
   approvalLevel: number; // 0-3: how many of the 3 verification levels have been signed off
@@ -136,6 +137,7 @@ export interface SuccessStory {
   congregation: string;
   testimony: string | null;
   testimonyVideoUrl: string | null;
+  marriageDate: string | null;
   committedAt: string;
 }
 

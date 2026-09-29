@@ -20,6 +20,7 @@ const en: Dict = {
   ss_sub: "Marriages that began here - to God be the glory.",
   ss_empty: "Our success stories will appear here soon.",
   ss_watch: "Watch their story",
+  ss_married: "Married on",
 
   // hero
   hero_verse: "“Therefore what God has joined together, let no one separate.” - Mark 10:9",
@@ -413,6 +414,7 @@ const ta: Dict = {
   ss_sub: "இங்கு தொடங்கிய திருமணங்கள் - தேவனுக்கே மகிமை.",
   ss_empty: "எங்கள் வெற்றிக் கதைகள் விரைவில் இங்கே தோன்றும்.",
   ss_watch: "அவர்களின் கதையைப் பாருங்கள்",
+  ss_married: "திருமண நாள்",
 
   hero_verse: "“ஆகையால், கடவுள் இணைத்ததை மனிதன் பிரிக்காதிருப்பானாக.” - மாற்கு 10:9",
   hero_title_a: "நமது ",
