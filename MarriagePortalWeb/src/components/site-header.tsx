@@ -16,6 +16,7 @@ export function SiteHeader() {
   const nav = [
     { href: "/", label: t("nav_home") },
     { href: "/how-it-works", label: t("nav_how") },
+    { href: "/success-stories", label: t("nav_success") },
     // Browsing profiles and the shortlist are members-only - hidden until signed in.
     ...(member ? [{ href: "/browse", label: t("nav_browse") }] : []),
     ...(member ? [{ href: "/shortlist", label: t("nav_shortlist"), badge: count }] : []),

@@ -20,6 +20,7 @@ export function MobileNav() {
   const nav = [
     { href: "/", label: t("nav_home") },
     { href: "/how-it-works", label: t("nav_how") },
+    { href: "/success-stories", label: t("nav_success") },
     ...(member ? [{ href: "/browse", label: t("nav_browse") }] : []),
     ...(member ? [{ href: "/shortlist", label: t("nav_shortlist") }] : []),
     ...(member ? [{ href: "/requests", label: t("nav_requests") }] : []),

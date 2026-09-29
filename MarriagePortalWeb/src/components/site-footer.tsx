@@ -29,6 +29,7 @@ export function SiteFooter() {
             <a href="/browse" className="block w-fit transition hover:text-white">{t("nav_browse")}</a>
             <a href="/register" className="block w-fit transition hover:text-white">{t("nav_register")}</a>
             <a href="/how-it-works" className="block w-fit transition hover:text-white">{t("nav_how")}</a>
+            <a href="/success-stories" className="block w-fit transition hover:text-white">{t("nav_success")}</a>
           </nav>
         </div>
 

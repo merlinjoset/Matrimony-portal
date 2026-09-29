@@ -19,6 +19,7 @@ import type {
   ProfileListItem,
   ProfileStats,
   SubmitterDetails,
+  SuccessStory,
   UpdateProfileInput,
 } from "@/lib/types";
 
@@ -251,6 +252,26 @@ export async function setProfileTestimony(id: string, testimony: string | null, 
     WHERE "Id" = ${id} AND "IsDeleted" = false
     RETURNING "Id"`;
   return rows.length > 0;
+}
+
+/** Committed profiles that have a testimony and/or video - the public success-stories feed. */
+export async function listSuccessStories(): Promise<SuccessStory[]> {
+  const rows = await sql`
+    SELECT "Id","ReferenceId","FullName","City","Congregation","Testimony","TestimonyVideoUrl","UpdatedAt","CreatedAt"
+    FROM "TblProfiles"
+    WHERE "IsDeleted" = false AND "Status" = 'Committed'
+      AND (COALESCE("Testimony", '') <> '' OR COALESCE("TestimonyVideoUrl", '') <> '')
+    ORDER BY COALESCE("UpdatedAt", "CreatedAt") DESC`;
+  return rows.map((r) => ({
+    id: r.Id as string,
+    referenceId: r.ReferenceId as string,
+    fullName: r.FullName as string,
+    city: (r.City as string) ?? null,
+    congregation: r.Congregation as string,
+    testimony: (r.Testimony as string) ?? null,
+    testimonyVideoUrl: (r.TestimonyVideoUrl as string) ?? null,
+    committedAt: new Date((r.UpdatedAt ?? r.CreatedAt) as string).toISOString(),
+  }));
 }
 
 // ---------- 3-level listing verification ----------

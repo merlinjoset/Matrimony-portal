@@ -13,8 +13,13 @@ const en: Dict = {
   nav_home: "Home",
   nav_browse: "Browse Profiles",
   nav_how: "How It Works",
+  nav_success: "Success Stories",
   nav_register: "Register",
   create_profile: "Create Profile",
+  ss_h: "Success stories",
+  ss_sub: "Marriages that began here - to God be the glory.",
+  ss_empty: "Our success stories will appear here soon.",
+  ss_watch: "Watch their story",
 
   // hero
   hero_verse: "“Therefore what God has joined together, let no one separate.” - Mark 10:9",
@@ -401,8 +406,13 @@ const ta: Dict = {
   nav_home: "முகப்பு",
   nav_browse: "சுயவிவரங்கள்",
   nav_how: "எப்படி செயல்படுகிறது",
+  nav_success: "வெற்றிக் கதைகள்",
   nav_register: "பதிவு செய்க",
   create_profile: "சுயவிவரம் உருவாக்கு",
+  ss_h: "வெற்றிக் கதைகள்",
+  ss_sub: "இங்கு தொடங்கிய திருமணங்கள் - தேவனுக்கே மகிமை.",
+  ss_empty: "எங்கள் வெற்றிக் கதைகள் விரைவில் இங்கே தோன்றும்.",
+  ss_watch: "அவர்களின் கதையைப் பாருங்கள்",
 
   hero_verse: "“ஆகையால், கடவுள் இணைத்ததை மனிதன் பிரிக்காதிருப்பானாக.” - மாற்கு 10:9",
   hero_title_a: "நமது ",

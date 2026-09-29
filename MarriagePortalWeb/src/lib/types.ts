@@ -127,6 +127,18 @@ export interface MemberSession {
   username?: string;
 }
 
+/** A published success story (committed profile with a testimony) - shown on the public page. */
+export interface SuccessStory {
+  id: string;
+  referenceId: string;
+  fullName: string;
+  city: string | null;
+  congregation: string;
+  testimony: string | null;
+  testimonyVideoUrl: string | null;
+  committedAt: string;
+}
+
 /** A member login account (admin view). */
 export interface MemberAccount {
   id: string;
