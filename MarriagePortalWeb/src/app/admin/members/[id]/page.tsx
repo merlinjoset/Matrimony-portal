@@ -242,6 +242,15 @@ export default function AdminMemberDetail() {
                 <Row label="Partner expectations" value={p.expectations} />
                 <Row label="Preferred caste (partner)" value={p.partnerCaste === "Caste No Bar" ? "Caste no bar" : p.partnerCaste} />
                 <Row label="Preferred denomination (partner)" value={p.partnerDenomination === "Any" ? "Any denomination" : p.partnerDenomination} />
+                <Row label="Success testimony" value={p.testimony} />
+                {p.testimonyVideoUrl && (
+                  <div className="grid grid-cols-[160px_1fr] gap-3 py-1.5">
+                    <dt className="text-sm font-semibold text-muted-foreground">Testimony video</dt>
+                    <dd className="text-[15px]">
+                      <a href={p.testimonyVideoUrl} target="_blank" rel="noreferrer" className="font-medium text-maroon underline">Watch video ↗</a>
+                    </dd>
+                  </div>
+                )}
               </dl>
             </Card>
 

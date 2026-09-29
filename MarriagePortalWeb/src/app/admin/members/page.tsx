@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,6 +87,49 @@ export default function MembersPage() {
     }
   }
 
+  // Success testimony for a committed profile - loaded on open, saved via the admin endpoint.
+  const [testimonyTarget, setTestimonyTarget] = useState<ProfileListItem | null>(null);
+  const [testimonyText, setTestimonyText] = useState("");
+  const [testimonyVideo, setTestimonyVideo] = useState("");
+  const [testimonyLoading, setTestimonyLoading] = useState(false);
+  const [testimonySaving, setTestimonySaving] = useState(false);
+
+  function closeTestimony() {
+    setTestimonyTarget(null);
+    setTestimonyText("");
+    setTestimonyVideo("");
+  }
+
+  async function openTestimony(m: ProfileListItem) {
+    setTestimonyTarget(m);
+    setTestimonyText("");
+    setTestimonyVideo("");
+    setTestimonyLoading(true);
+    try {
+      const p = await api.getProfile(m.id);
+      setTestimonyText(p.testimony ?? "");
+      setTestimonyVideo(p.testimonyVideoUrl ?? "");
+    } catch {
+      // start blank if it can't be loaded
+    } finally {
+      setTestimonyLoading(false);
+    }
+  }
+
+  async function saveTestimony() {
+    if (!testimonyTarget) return;
+    setTestimonySaving(true);
+    try {
+      await api.setTestimony(testimonyTarget.id, testimonyText.trim() || null, testimonyVideo.trim() || null);
+      toast.success(`Testimony saved for ${testimonyTarget.fullName}.`);
+      closeTestimony();
+    } catch {
+      toast.error("Could not save the testimony.");
+    } finally {
+      setTestimonySaving(false);
+    }
+  }
+
   return (
     <>
       <AdminHeader
@@ -163,9 +207,22 @@ export default function MembersPage() {
                           Edit
                         </Button>
                         {m.status === "Suspended" || m.status === "Committed" ? (
-                          <Button size="sm" variant="outline" disabled={busy === m.id} onClick={() => setStatus(m.id, "Verified", m.fullName)}>
-                            Reactivate
-                          </Button>
+                          <>
+                            {m.status === "Committed" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openTestimony(m)}
+                                className="border-brand-green/40 text-brand-green hover:bg-brand-green/5"
+                                title="Write or edit the success testimony"
+                              >
+                                ✍️ Testimony
+                              </Button>
+                            )}
+                            <Button size="sm" variant="outline" disabled={busy === m.id} onClick={() => setStatus(m.id, "Verified", m.fullName)}>
+                              Reactivate
+                            </Button>
+                          </>
                         ) : (
                           <>
                             {(m.status === "Verified" || m.status === "Active") && (
@@ -229,6 +286,43 @@ export default function MembersPage() {
             <Button variant="outline" onClick={() => setSuspendTarget(null)}>Cancel</Button>
             <Button disabled={busy === suspendTarget?.id} onClick={confirmSuspend} className="bg-destructive text-white hover:bg-destructive/90">
               Suspend profile
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!testimonyTarget} onOpenChange={(o) => { if (!o && !testimonySaving) closeTestimony(); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Success testimony{testimonyTarget ? ` - ${testimonyTarget.fullName}` : ""}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label>Testimony</Label>
+              <Textarea
+                rows={5}
+                value={testimonyText}
+                onChange={(e) => setTestimonyText(e.target.value)}
+                placeholder={testimonyLoading ? "Loading…" : "e.g. Thank God, they were joined in holy matrimony on … A short thanksgiving note from the couple or family."}
+                disabled={testimonyLoading}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Video link</Label>
+              <Input
+                type="url"
+                value={testimonyVideo}
+                onChange={(e) => setTestimonyVideo(e.target.value)}
+                placeholder="https://youtu.be/… or a Google Drive / Vimeo link"
+                disabled={testimonyLoading}
+              />
+            </div>
+            <p className="text-[12px] text-muted-foreground">Recorded with the profile as a success story. Leave a field blank to clear it.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={testimonySaving} onClick={closeTestimony}>Cancel</Button>
+            <Button disabled={testimonySaving || testimonyLoading} onClick={saveTestimony} className="bg-brand-green text-white hover:bg-brand-green/90">
+              {testimonySaving ? "Saving…" : "Save testimony"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -98,6 +98,8 @@ function toDetail(r: Row): ProfileDetail {
     motherName: s(r.MotherName),
     motherOccupation: s(r.MotherOccupation),
     siblingsDetails: s(r.SiblingsDetails),
+    testimony: s(r.Testimony),
+    testimonyVideoUrl: s(r.TestimonyVideoUrl),
     submitterDetails: parseSubmitter(r.SubmitterDetails),
     statusNote: s(r.StatusNote),
     approvalLevel: Number(r.ApprovalLevel ?? 0),
@@ -106,7 +108,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status","CreatedAt"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","PartnerCaste","PartnerDenomination","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","PartnerCaste","PartnerDenomination","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","Testimony","TestimonyVideoUrl","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -235,6 +237,17 @@ export async function setProfileStatus(id: string, status: string, note?: string
         "LastVerifiedAt" = ${verifying ? sql`now()` : sql`"LastVerifiedAt"`},
         "ReverifyNotifiedAt" = ${verifying ? sql`NULL` : sql`"ReverifyNotifiedAt"`},
         "UpdatedAt" = now()
+    WHERE "Id" = ${id} AND "IsDeleted" = false
+    RETURNING "Id"`;
+  return rows.length > 0;
+}
+
+/** Record (or clear) the success testimony (note + video link) for a profile. Blanks store NULL. */
+export async function setProfileTestimony(id: string, testimony: string | null, videoUrl?: string | null): Promise<boolean> {
+  const text = (testimony ?? "").trim() || null;
+  const video = (videoUrl ?? "").trim() || null;
+  const rows = await sql`
+    UPDATE "TblProfiles" SET "Testimony" = ${text}, "TestimonyVideoUrl" = ${video}, "UpdatedAt" = now()
     WHERE "Id" = ${id} AND "IsDeleted" = false
     RETURNING "Id"`;
   return rows.length > 0;

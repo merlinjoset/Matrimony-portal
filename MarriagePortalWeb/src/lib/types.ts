@@ -50,6 +50,8 @@ export interface ProfileDetail extends ProfileListItem {
   motherName: string | null;
   motherOccupation: string | null;
   siblingsDetails: string | null;
+  testimony: string | null; // success story recorded for a committed/married profile
+  testimonyVideoUrl: string | null; // link to a testimony video (YouTube, Drive, etc.)
   submitterDetails: SubmitterDetails | null; // consent form when someone submits on behalf; admin-only
   statusNote: string | null;
   approvalLevel: number; // 0-3: how many of the 3 verification levels have been signed off
