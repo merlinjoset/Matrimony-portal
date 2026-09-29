@@ -331,6 +331,7 @@ export interface VerifyQueueItem extends ProfileListItem {
   mobile: string | null;
   mobile2: string | null;
   dateOfBirth: string | null;
+  marriageDate: string | null;
   email: string | null;
   presbyterName: string | null;
   presbyterContact: string | null;

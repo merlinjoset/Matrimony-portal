@@ -159,6 +159,12 @@ export default function VerifyQueue() {
                           )}
                           <dt className="text-muted-foreground">DOB</dt>
                           <dd className="font-medium">{m.dateOfBirth ? new Date(m.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-"}</dd>
+                          {m.marriageDate && (
+                            <>
+                              <dt className="text-muted-foreground">Marriage date</dt>
+                              <dd className="font-medium">{new Date(m.marriageDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</dd>
+                            </>
+                          )}
                           <dt className="text-muted-foreground">Email</dt>
                           <dd className="break-all font-medium">{m.email || "-"}</dd>
                           {(m.congregation === "India" || m.congregation === "Other") && (

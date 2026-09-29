@@ -437,7 +437,7 @@ export interface VerifyQueueItem extends ProfileListItem {
 /** Pending profiles awaiting the 3-level approval, with their progress. */
 export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
   const rows = await sql`
-    SELECT ${LIST_COLS}, "ApprovalLevel", "MembershipNo", "Mobile", "Mobile2", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact", "SubmitterDetails" FROM "TblProfiles"
+    SELECT ${LIST_COLS}, "ApprovalLevel", "MembershipNo", "Mobile", "Mobile2", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact", "MarriageDate", "SubmitterDetails" FROM "TblProfiles"
     WHERE "IsDeleted" = false AND "Status" = 'Pending'
     ORDER BY "CreatedAt" ASC`;
   const ids = rows.map((r) => r.Id as string);
@@ -450,6 +450,7 @@ export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
     mobile: s(r.Mobile),
     mobile2: s(r.Mobile2),
     dateOfBirth: r.DateOfBirth ? new Date(r.DateOfBirth as string).toISOString().slice(0, 10) : null,
+    marriageDate: r.MarriageDate ? new Date(r.MarriageDate as string).toISOString().slice(0, 10) : null,
     email: s(r.Email),
     presbyterName: s(r.PresbyterName),
     presbyterContact: s(r.PresbyterContact),
