@@ -32,20 +32,26 @@ export default function MembersPage() {
   const [rows, setRows] = useState<ProfileListItem[] | null>(null);
   const [total, setTotal] = useState(0);
   const [filter, setFilter] = useState("all");
+  // "committed" listings live in their own tab and are hidden from the main Profiles list.
+  const [view, setView] = useState<"profiles" | "committed">("profiles");
   const [busy, setBusy] = useState<string | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<ProfileListItem | null>(null);
   const [reason, setReason] = useState("");
 
   const load = useCallback(() => {
     setRows(null);
+    const params =
+      view === "committed"
+        ? { status: "Committed", pageSize: 100 }
+        : { status: filter === "all" ? undefined : filter, excludeStatus: filter === "all" ? "Committed" : undefined, pageSize: 100 };
     api
-      .browseProfiles({ status: filter === "all" ? undefined : filter, pageSize: 100 })
+      .browseProfiles(params)
       .then((r) => {
         setRows(r.items);
         setTotal(r.total);
       })
       .catch(() => setRows([]));
-  }, [filter]);
+  }, [filter, view]);
 
   useEffect(load, [load]);
 
@@ -84,17 +90,31 @@ export default function MembersPage() {
     <>
       <AdminHeader
         title="Profiles"
-        subtitle={rows ? `${total} profile${total === 1 ? "" : "s"}` : "Loading…"}
+        subtitle={rows ? `${total} ${view === "committed" ? "committed " : ""}profile${total === 1 ? "" : "s"}` : "Loading…"}
         action={
-          <Select value={filter} onValueChange={(v) => setFilter(v ?? "all")}>
-            <SelectTrigger className="w-[170px] bg-white"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          view === "profiles" ? (
+            <Select value={filter} onValueChange={(v) => setFilter(v ?? "all")}>
+              <SelectTrigger className="w-[170px] bg-white"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {STATUSES.filter((s) => s !== "Committed").map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          ) : undefined
         }
       />
+      <div className="flex gap-2 border-b border-border bg-white px-7 pt-3">
+        {([["profiles", "Profiles"], ["committed", "💍 Committed"]] as const).map(([v, label]) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setView(v)}
+            className={`-mb-px border-b-2 px-3 pb-2.5 text-sm font-semibold transition ${view === v ? "border-maroon text-maroon" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="p-7">
         <Card className="p-0">
           {rows === null ? (
@@ -102,7 +122,7 @@ export default function MembersPage() {
               {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : rows.length === 0 ? (
-            <p className="p-8 text-center text-muted-foreground">No members match this filter.</p>
+            <p className="p-8 text-center text-muted-foreground">{view === "committed" ? "No committed profiles yet." : "No members match this filter."}</p>
           ) : (
             <div className="overflow-x-auto">
             <table className="w-full min-w-[680px]">

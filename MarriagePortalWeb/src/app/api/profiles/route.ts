@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
     denomination: p.get("denomination") ?? undefined,
     congregation: p.get("congregation") ?? undefined,
     status: p.get("status") ?? undefined,
+    excludeStatus: p.get("excludeStatus") ?? undefined,
     live: p.get("live") === "true",
     page: num(p.get("page")),
     pageSize: num(p.get("pageSize")),

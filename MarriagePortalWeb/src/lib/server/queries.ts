@@ -114,6 +114,7 @@ export interface ProfileQuery {
   denomination?: string | string[];
   congregation?: string | string[];
   status?: string;
+  excludeStatus?: string; // omit a status from the results (e.g. hide Committed from the main list)
   live?: boolean;
   page?: number;
   pageSize?: number;
@@ -141,6 +142,7 @@ export async function browseProfiles(q: ProfileQuery): Promise<PagedResult<Profi
   if (denoms.length) where = sql`${where} AND "Denomination" = ANY(${denoms})`;
   if (congs.length) where = sql`${where} AND "Congregation" = ANY(${congs})`;
   if (q.status) where = sql`${where} AND "Status" = ${q.status}`;
+  if (q.excludeStatus) where = sql`${where} AND "Status" <> ${q.excludeStatus}`;
   if (q.live) where = sql`${where} AND ("Status" = 'Verified' OR "Status" = 'Active')`;
 
   const countRows = await sql`SELECT count(*)::int AS count FROM "TblProfiles" WHERE ${where}`;

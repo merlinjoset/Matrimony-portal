@@ -104,6 +104,7 @@ export interface BrowseParams {
   denomination?: string;
   congregation?: string;
   status?: string;
+  excludeStatus?: string;
   live?: boolean;
   page?: number;
   pageSize?: number;
