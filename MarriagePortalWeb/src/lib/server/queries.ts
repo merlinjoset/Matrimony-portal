@@ -64,6 +64,7 @@ function toListItem(r: Row): ProfileListItem {
     city: s(r.City),
     mainPhotoUrl: s(r.MainPhotoUrl),
     status: r.Status as ProfileListItem["status"],
+    testimonyStatus: s(r.TestimonyStatus),
     createdAt: new Date(r.CreatedAt as string).toISOString(),
   };
 }
@@ -109,8 +110,8 @@ function toDetail(r: Row): ProfileDetail {
   };
 }
 
-const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status","CreatedAt"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","PartnerCaste","PartnerDenomination","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","Testimony","TestimonyVideoUrl","MarriageDate","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
+const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status","TestimonyStatus","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","PartnerCaste","PartnerDenomination","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","Testimony","TestimonyVideoUrl","MarriageDate","TestimonyStatus","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -254,20 +255,37 @@ export async function setProfileStatus(id: string, status: string, note?: string
   return ok;
 }
 
-/** Record (or clear) the success testimony (note + video link + marriage date). Blanks store NULL. */
+/**
+ * Record (or clear) the success testimony (note + video link + marriage date). Blanks store NULL.
+ * `status` is the moderation state: a member's submission is "Pending" (hidden until approved) and
+ * an admin can set "Published". With no story text/video the status is cleared (nothing to show).
+ */
 export async function setProfileTestimony(
   id: string,
   testimony: string | null,
   videoUrl?: string | null,
   marriageDate?: string | null,
+  status?: string | null,
 ): Promise<boolean> {
   const text = (testimony ?? "").trim() || null;
   const video = (videoUrl ?? "").trim() || null;
   const married = (marriageDate ?? "").trim() || null;
+  const tstatus = text || video ? (status === "Published" ? "Published" : "Pending") : null;
   const rows = await sql`
     UPDATE "TblProfiles"
-    SET "Testimony" = ${text}, "TestimonyVideoUrl" = ${video}, "MarriageDate" = ${married}, "UpdatedAt" = now()
+    SET "Testimony" = ${text}, "TestimonyVideoUrl" = ${video}, "MarriageDate" = ${married},
+        "TestimonyStatus" = ${tstatus}, "UpdatedAt" = now()
     WHERE "Id" = ${id} AND "IsDeleted" = false
+    RETURNING "Id"`;
+  return rows.length > 0;
+}
+
+/** Publish or unpublish an existing testimony without changing its content (admin review action). */
+export async function setTestimonyPublished(id: string, publish: boolean): Promise<boolean> {
+  const rows = await sql`
+    UPDATE "TblProfiles" SET "TestimonyStatus" = ${publish ? "Published" : "Pending"}, "UpdatedAt" = now()
+    WHERE "Id" = ${id} AND "IsDeleted" = false
+      AND ("Testimony" IS NOT NULL OR "TestimonyVideoUrl" IS NOT NULL)
     RETURNING "Id"`;
   return rows.length > 0;
 }
@@ -277,7 +295,7 @@ export async function listSuccessStories(): Promise<SuccessStory[]> {
   const rows = await sql`
     SELECT "Id","ReferenceId","FullName","City","Congregation","Testimony","TestimonyVideoUrl","MarriageDate","UpdatedAt","CreatedAt"
     FROM "TblProfiles"
-    WHERE "IsDeleted" = false AND "Status" = 'Committed'
+    WHERE "IsDeleted" = false AND "Status" = 'Committed' AND "TestimonyStatus" = 'Published'
       AND (COALESCE("Testimony", '') <> '' OR COALESCE("TestimonyVideoUrl", '') <> '')
     ORDER BY COALESCE("MarriageDate", "UpdatedAt", "CreatedAt") DESC`;
   return rows.map((r) => ({

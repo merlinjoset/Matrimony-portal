@@ -7,3 +7,6 @@ ALTER TABLE "TblProfiles" ADD COLUMN IF NOT EXISTS "TestimonyVideoUrl" text;
 
 -- Marriage date for a committed profile's success story.
 ALTER TABLE "TblProfiles" ADD COLUMN IF NOT EXISTS "MarriageDate" date;
+
+-- Moderation status for a member-submitted testimony (Pending review -> Published).
+ALTER TABLE "TblProfiles" ADD COLUMN IF NOT EXISTS "TestimonyStatus" text;

@@ -18,6 +18,7 @@ export interface ProfileListItem {
   city: string | null;
   mainPhotoUrl: string | null;
   status: ProfileStatus;
+  testimonyStatus: string | null; // null | "Pending" | "Published" - moderation of the success story
   createdAt: string;
 }
 

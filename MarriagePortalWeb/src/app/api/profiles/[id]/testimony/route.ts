@@ -15,6 +15,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     testimony: p.testimony,
     testimonyVideoUrl: p.testimonyVideoUrl,
     marriageDate: p.marriageDate,
+    testimonyStatus: p.testimonyStatus,
   });
 }
 
@@ -29,6 +30,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return new Response("Your success story can be added once your profile is marked as married.", { status: 409 });
   }
   const body = (await req.json()) as { testimony?: string | null; videoUrl?: string | null; marriageDate?: string | null };
-  const ok = await setProfileTestimony(id, body.testimony ?? null, body.videoUrl ?? null, body.marriageDate ?? null);
+  // A member's own submission always needs admin review before it appears publicly.
+  const ok = await setProfileTestimony(id, body.testimony ?? null, body.videoUrl ?? null, body.marriageDate ?? null, "Pending");
   return ok ? new Response(null, { status: 204 }) : new Response("Profile not found.", { status: 404 });
 }

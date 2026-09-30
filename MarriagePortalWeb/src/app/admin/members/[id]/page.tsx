@@ -244,6 +244,7 @@ export default function AdminMemberDetail() {
                 <Row label="Preferred denomination (partner)" value={p.partnerDenomination === "Any" ? "Any denomination" : p.partnerDenomination} />
                 <Row label="Marriage date" value={p.marriageDate ? new Date(p.marriageDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : null} />
                 <Row label="Success testimony" value={p.testimony} />
+                <Row label="Testimony status" value={p.testimonyStatus === "Published" ? "Published" : p.testimonyStatus === "Pending" ? "Pending review" : null} />
                 {p.testimonyVideoUrl && (
                   <div className="grid grid-cols-[160px_1fr] gap-3 py-1.5">
                     <dt className="text-sm font-semibold text-muted-foreground">Testimony video</dt>

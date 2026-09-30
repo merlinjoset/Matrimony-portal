@@ -177,7 +177,7 @@ export const api = {
   },
 
   // A committed member loads their own success story to edit it.
-  getMyTestimony(profileId: string): Promise<{ status: string; testimony: string | null; testimonyVideoUrl: string | null; marriageDate: string | null }> {
+  getMyTestimony(profileId: string): Promise<{ status: string; testimony: string | null; testimonyVideoUrl: string | null; marriageDate: string | null; testimonyStatus: string | null }> {
     return http(`/profiles/${profileId}/testimony`);
   },
 
@@ -216,11 +216,19 @@ export const api = {
     });
   },
 
-  // Admin: record (or clear) a success testimony (note + video link + marriage date).
-  setTestimony(id: string, testimony: string | null, videoUrl: string | null, marriageDate: string | null): Promise<void> {
+  // Admin: record a success testimony (note + video + marriage date) and set whether it is published.
+  setTestimony(id: string, testimony: string | null, videoUrl: string | null, marriageDate: string | null, publish: boolean): Promise<void> {
     return http<void>(`/admin/profiles/${id}/testimony`, {
       method: "PATCH",
-      body: JSON.stringify({ testimony, videoUrl, marriageDate }),
+      body: JSON.stringify({ testimony, videoUrl, marriageDate, publish }),
+    });
+  },
+
+  // Admin: publish or unpublish an existing testimony without editing its content.
+  setTestimonyPublished(id: string, publish: boolean): Promise<void> {
+    return http<void>(`/admin/profiles/${id}/testimony`, {
+      method: "PATCH",
+      body: JSON.stringify({ publishOnly: true, publish }),
     });
   },
 

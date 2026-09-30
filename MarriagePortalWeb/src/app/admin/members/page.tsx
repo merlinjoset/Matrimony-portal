@@ -92,6 +92,7 @@ export default function MembersPage() {
   const [testimonyText, setTestimonyText] = useState("");
   const [testimonyVideo, setTestimonyVideo] = useState("");
   const [testimonyDate, setTestimonyDate] = useState("");
+  const [testimonyPublish, setTestimonyPublish] = useState(false);
   const [testimonyLoading, setTestimonyLoading] = useState(false);
   const [testimonySaving, setTestimonySaving] = useState(false);
 
@@ -100,6 +101,7 @@ export default function MembersPage() {
     setTestimonyText("");
     setTestimonyVideo("");
     setTestimonyDate("");
+    setTestimonyPublish(false);
   }
 
   async function openTestimony(m: ProfileListItem) {
@@ -107,12 +109,14 @@ export default function MembersPage() {
     setTestimonyText("");
     setTestimonyVideo("");
     setTestimonyDate("");
+    setTestimonyPublish(false);
     setTestimonyLoading(true);
     try {
       const p = await api.getProfile(m.id);
       setTestimonyText(p.testimony ?? "");
       setTestimonyVideo(p.testimonyVideoUrl ?? "");
       setTestimonyDate(p.marriageDate ?? "");
+      setTestimonyPublish(p.testimonyStatus === "Published");
     } catch {
       // start blank if it can't be loaded
     } finally {
@@ -124,13 +128,27 @@ export default function MembersPage() {
     if (!testimonyTarget) return;
     setTestimonySaving(true);
     try {
-      await api.setTestimony(testimonyTarget.id, testimonyText.trim() || null, testimonyVideo.trim() || null, testimonyDate || null);
+      await api.setTestimony(testimonyTarget.id, testimonyText.trim() || null, testimonyVideo.trim() || null, testimonyDate || null, testimonyPublish);
       toast.success(`Testimony saved for ${testimonyTarget.fullName}.`);
       closeTestimony();
+      load();
     } catch {
       toast.error("Could not save the testimony.");
     } finally {
       setTestimonySaving(false);
+    }
+  }
+
+  async function togglePublish(m: ProfileListItem, publish: boolean) {
+    setBusy(m.id);
+    try {
+      await api.setTestimonyPublished(m.id, publish);
+      toast.success(publish ? `Testimony published for ${m.fullName}.` : `Testimony unpublished for ${m.fullName}.`);
+      load();
+    } catch {
+      toast.error("Action failed. Is the API running?");
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -212,15 +230,38 @@ export default function MembersPage() {
                         </Button>
                         {m.status === "Suspended" || m.status === "Committed" ? (
                           <>
+                            {m.status === "Committed" && m.testimonyStatus === "Pending" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busy === m.id}
+                                onClick={() => togglePublish(m, true)}
+                                className="border-brand-green/50 bg-brand-green/5 text-brand-green hover:bg-brand-green/10"
+                                title="Approve and publish this testimony on the Success stories page"
+                              >
+                                Publish story
+                              </Button>
+                            )}
+                            {m.status === "Committed" && m.testimonyStatus === "Published" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busy === m.id}
+                                onClick={() => togglePublish(m, false)}
+                                title="Hide this testimony from the Success stories page"
+                              >
+                                Unpublish
+                              </Button>
+                            )}
                             {m.status === "Committed" && (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => openTestimony(m)}
                                 className="border-brand-green/40 text-brand-green hover:bg-brand-green/5"
-                                title="Write or edit the success testimony"
+                                title={m.testimonyStatus === "Pending" ? "Review / edit the submitted testimony" : "Write or edit the success testimony"}
                               >
-                                ✍️ Testimony
+                                ✍️ Testimony{m.testimonyStatus === "Pending" ? " (review)" : ""}
                               </Button>
                             )}
                             <Button size="sm" variant="outline" disabled={busy === m.id} onClick={() => setStatus(m.id, "Verified", m.fullName)}>
@@ -332,7 +373,17 @@ export default function MembersPage() {
                 />
               </div>
             </div>
-            <p className="text-[12px] text-muted-foreground">Recorded with the profile as a success story. Leave a field blank to clear it.</p>
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-brand-green/30 bg-brand-green/5 px-3 py-2 text-[13px] font-medium">
+              <input
+                type="checkbox"
+                checked={testimonyPublish}
+                onChange={(e) => setTestimonyPublish(e.target.checked)}
+                disabled={testimonyLoading}
+                className="size-4 accent-[maroon]"
+              />
+              Publish on the public Success stories page
+            </label>
+            <p className="text-[12px] text-muted-foreground">Member submissions come in as “pending review” - tick the box above to publish. Leave a field blank to clear it.</p>
           </div>
           <DialogFooter>
             <Button variant="outline" disabled={testimonySaving} onClick={closeTestimony}>Cancel</Button>

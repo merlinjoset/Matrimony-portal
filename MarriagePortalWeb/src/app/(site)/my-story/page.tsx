@@ -20,6 +20,7 @@ export default function MyStoryPage() {
   const [testimony, setTestimony] = useState("");
   const [video, setVideo] = useState("");
   const [marriageDate, setMarriageDate] = useState("");
+  const [tStatus, setTStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function MyStoryPage() {
           setTestimony(t.testimony ?? "");
           setVideo(t.testimonyVideoUrl ?? "");
           setMarriageDate(t.marriageDate ?? "");
+          setTStatus(t.testimonyStatus ?? null);
         }
       } catch {
         // leave blank on error
@@ -53,7 +55,8 @@ export default function MyStoryPage() {
     setSaving(true);
     try {
       await api.setMyTestimony(profileId, testimony.trim() || null, video.trim() || null, marriageDate || null);
-      toast.success("Your success story was saved. Thank you!");
+      setTStatus(testimony.trim() || video.trim() ? "Pending" : null);
+      toast.success("Saved! Your story will appear once the parish approves it.");
     } catch (e) {
       toast.error(e instanceof Error && e.message ? e.message : "Could not save. Please try again.");
     } finally {
@@ -102,6 +105,16 @@ export default function MyStoryPage() {
           Congratulations on your marriage! Share a short testimony, your marriage date and a video link - it appears on
           our public Success stories page. Leave a field blank to clear it.
         </p>
+        {tStatus === "Pending" && (
+          <div className="mb-4 rounded-lg border border-amber-400/40 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800">
+            Your story is awaiting the parish&apos;s review - it will appear on the Success stories page once approved.
+          </div>
+        )}
+        {tStatus === "Published" && (
+          <div className="mb-4 rounded-lg border border-brand-green/30 bg-brand-green/10 px-3.5 py-2.5 text-sm text-brand-green">
+            Your story is live on the Success stories page. 🎉 Editing it will send it back for a quick re-approval.
+          </div>
+        )}
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>Your testimony</Label>
