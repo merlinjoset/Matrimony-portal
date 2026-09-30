@@ -14,7 +14,7 @@ import { useMemberShortlist } from "@/lib/member-shortlist";
  * With `requireProfile`, the member's own profile must also be APPROVED (Verified/Active)
  * before they can view others - otherwise they are prompted to create it or wait for approval.
  */
-type Gate = { hasProfile: boolean; approved: boolean; profileId: string | null };
+type Gate = { hasProfile: boolean; approved: boolean; profileId: string | null; status: string | null };
 
 export function MemberGate({
   children,
@@ -37,8 +37,8 @@ export function MemberGate({
     let live = true;
     setGate(null);
     api.hasProfile(member.memberId)
-      .then((r) => { if (live) setGate({ hasProfile: r.hasProfile, approved: r.hasApprovedProfile, profileId: r.profileId }); })
-      .catch(() => { if (live) setGate({ hasProfile: true, approved: true, profileId: null }); }); // fail open on a check error
+      .then((r) => { if (live) setGate({ hasProfile: r.hasProfile, approved: r.hasApprovedProfile, profileId: r.profileId, status: r.status }); })
+      .catch(() => { if (live) setGate({ hasProfile: true, approved: true, profileId: null, status: null }); }); // fail open on a check error
     return () => { live = false; };
   }, [requireProfile, member, isOwnProfile]);
 
@@ -67,6 +67,20 @@ export function MemberGate({
           primary={
             <Button render={<Link href="/register" />} nativeButton={false} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
               {t("create_profile")}
+            </Button>
+          }
+        />
+      );
+    }
+    if (gate.status === "Committed") {
+      // Married members no longer browse - point them to their success story instead.
+      return (
+        <Prompt
+          title={t("pg_married_title")}
+          message={t("pg_married_msg")}
+          primary={
+            <Button render={<Link href="/my-story" />} nativeButton={false} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
+              {t("pg_share_story")}
             </Button>
           }
         />

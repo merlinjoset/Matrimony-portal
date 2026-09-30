@@ -22,6 +22,7 @@ export function SiteHeader() {
     ...(member ? [{ href: "/shortlist", label: t("nav_shortlist"), badge: count }] : []),
     // Contact-request approvals are only meaningful once signed in.
     ...(member ? [{ href: "/requests", label: t("nav_requests") }] : []),
+    ...(member ? [{ href: "/my-story", label: t("nav_mystory") }] : []),
     // Register is only for people who are not yet signed-in members.
     ...(member ? [] : [{ href: "/register", label: t("nav_register") }]),
   ];

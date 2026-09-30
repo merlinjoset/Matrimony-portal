@@ -241,7 +241,17 @@ export async function setProfileStatus(id: string, status: string, note?: string
         "UpdatedAt" = now()
     WHERE "Id" = ${id} AND "IsDeleted" = false
     RETURNING "Id"`;
-  return rows.length > 0;
+  const ok = rows.length > 0;
+  // A committed member should still be able to sign in (e.g. to add their success story), so lift a
+  // still-pending login account to Active when their profile is marked committed. (A deliberately
+  // Disabled account is left as-is.)
+  if (ok && status === "Committed") {
+    await sql`
+      UPDATE "TblMemberAccounts" SET "Status" = 'Active', "UpdatedAt" = now()
+      WHERE "MemberId" = (SELECT "OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${id})
+        AND "Status" = 'Pending' AND "IsDeleted" = false`;
+  }
+  return ok;
 }
 
 /** Record (or clear) the success testimony (note + video link + marriage date). Blanks store NULL. */

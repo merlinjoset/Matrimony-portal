@@ -163,8 +163,8 @@ export const api = {
     return http<ProfileListItem[]>(`/members/${memberId}/shortlist`);
   },
 
-  hasProfile(memberId: string): Promise<{ hasProfile: boolean; hasApprovedProfile: boolean; profileId: string | null; gender: string | null }> {
-    return http<{ hasProfile: boolean; hasApprovedProfile: boolean; profileId: string | null; gender: string | null }>(`/members/${memberId}/has-profile`);
+  hasProfile(memberId: string): Promise<{ hasProfile: boolean; hasApprovedProfile: boolean; profileId: string | null; gender: string | null; status: string | null }> {
+    return http<{ hasProfile: boolean; hasApprovedProfile: boolean; profileId: string | null; gender: string | null; status: string | null }>(`/members/${memberId}/has-profile`);
   },
 
   getMemberSelf(memberId: string): Promise<{ name: string | null; mobile: string | null }> {
@@ -174,6 +174,19 @@ export const api = {
   // The member's own listing, for the "My profile" menu link. Null if they have not created one.
   getMyProfile(memberId: string): Promise<{ id: string; referenceId: string; status: string } | null> {
     return http<{ id: string; referenceId: string; status: string } | null>(`/members/${memberId}/my-profile`);
+  },
+
+  // A committed member loads their own success story to edit it.
+  getMyTestimony(profileId: string): Promise<{ status: string; testimony: string | null; testimonyVideoUrl: string | null; marriageDate: string | null }> {
+    return http(`/profiles/${profileId}/testimony`);
+  },
+
+  // A committed member updates their own success story (note + video + marriage date).
+  setMyTestimony(profileId: string, testimony: string | null, videoUrl: string | null, marriageDate: string | null): Promise<void> {
+    return http<void>(`/profiles/${profileId}/testimony`, {
+      method: "PATCH",
+      body: JSON.stringify({ testimony, videoUrl, marriageDate }),
+    });
   },
 
   addShortlist(memberId: string, profileId: string): Promise<void> {

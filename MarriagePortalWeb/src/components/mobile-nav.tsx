@@ -24,6 +24,7 @@ export function MobileNav() {
     ...(member ? [{ href: "/browse", label: t("nav_browse") }] : []),
     ...(member ? [{ href: "/shortlist", label: t("nav_shortlist") }] : []),
     ...(member ? [{ href: "/requests", label: t("nav_requests") }] : []),
+    ...(member ? [{ href: "/my-story", label: t("nav_mystory") }] : []),
     ...(member ? [] : [{ href: "/register", label: t("nav_register") }]),
   ];
   return (
