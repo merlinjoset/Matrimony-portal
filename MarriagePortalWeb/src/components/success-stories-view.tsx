@@ -2,13 +2,8 @@
 
 import { Card } from "@/components/ui/card";
 import { useT } from "@/lib/i18n";
+import { youtubeId } from "@/lib/video";
 import type { SuccessStory } from "@/lib/types";
-
-/** Pull the 11-char video id from common YouTube URL shapes (so we can embed it). */
-function youtubeId(url: string): string | null {
-  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/))([\w-]{11})/);
-  return m ? m[1] : null;
-}
 
 export function SuccessStoriesView({ stories }: { stories: SuccessStory[] }) {
   const { t } = useT();

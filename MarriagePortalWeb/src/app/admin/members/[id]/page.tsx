@@ -20,6 +20,7 @@ import {
 import { AdminHeader, Pill, statusTone } from "@/components/admin/admin-ui";
 import { ImageLightbox } from "@/components/image-lightbox";
 import { api } from "@/lib/api";
+import { youtubeId } from "@/lib/video";
 import { parseSiblings } from "@/lib/siblings";
 import type { ProfileDetail, ProfileStatus } from "@/lib/types";
 
@@ -249,7 +250,19 @@ export default function AdminMemberDetail() {
                   <div className="grid grid-cols-[160px_1fr] gap-3 py-1.5">
                     <dt className="text-sm font-semibold text-muted-foreground">Testimony video</dt>
                     <dd className="text-[15px]">
-                      <a href={p.testimonyVideoUrl} target="_blank" rel="noreferrer" className="font-medium text-maroon underline">Watch video ↗</a>
+                      {youtubeId(p.testimonyVideoUrl) ? (
+                        <div className="aspect-video max-w-md overflow-hidden rounded-lg bg-black">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${youtubeId(p.testimonyVideoUrl)}`}
+                            title="Testimony video"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="h-full w-full border-0"
+                          />
+                        </div>
+                      ) : (
+                        <a href={p.testimonyVideoUrl} target="_blank" rel="noreferrer" className="font-medium text-maroon underline">Watch video ↗</a>
+                      )}
                     </dd>
                   </div>
                 )}

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { AdminHeader, Avatar, Pill, statusTone } from "@/components/admin/admin-ui";
 import { api } from "@/lib/api";
+import { youtubeId } from "@/lib/video";
 import type { ProfileListItem, ProfileStatus } from "@/lib/types";
 
 const STATUSES = ["Pending", "Verified", "Active", "Committed", "Suspended", "Rejected"] as const;
@@ -373,6 +374,19 @@ export default function MembersPage() {
                 />
               </div>
             </div>
+            {youtubeId(testimonyVideo) ? (
+              <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
+                <iframe
+                  src={`https://www.youtube.com/embed/${youtubeId(testimonyVideo)}`}
+                  title="Testimony video preview"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="h-full w-full border-0"
+                />
+              </div>
+            ) : testimonyVideo.trim() ? (
+              <a href={testimonyVideo} target="_blank" rel="noreferrer" className="text-[13px] font-semibold text-maroon hover:underline">Open video ↗</a>
+            ) : null}
             <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-brand-green/30 bg-brand-green/5 px-3 py-2 text-[13px] font-medium">
               <input
                 type="checkbox"

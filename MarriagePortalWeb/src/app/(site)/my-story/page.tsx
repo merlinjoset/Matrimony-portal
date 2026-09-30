@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
+import { youtubeId } from "@/lib/video";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 
 // Self-service success-story editor. Available to a member once the parish has marked their
@@ -130,6 +131,17 @@ export default function MyStoryPage() {
               <Input type="date" value={marriageDate} onChange={(e) => setMarriageDate(e.target.value)} />
             </div>
           </div>
+          {youtubeId(video) && (
+            <div className="aspect-video w-full max-w-md overflow-hidden rounded-lg bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeId(video)}`}
+                title="Your testimony video preview"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full border-0"
+              />
+            </div>
+          )}
           <Button disabled={saving} onClick={save} className="bg-gold text-maroon hover:bg-gold! hover:brightness-105">
             {saving ? "Saving…" : "Save my story"}
           </Button>
