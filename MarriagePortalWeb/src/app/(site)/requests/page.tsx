@@ -73,6 +73,21 @@ export default function RequestsPage() {
     }
   }
 
+  // The sender withdraws their own request while it is still awaiting a response.
+  async function cancel(id: string) {
+    if (!member) return;
+    setBusy(id);
+    try {
+      await api.cancelContactRequest(id);
+      setOutgoing((rs) => (rs ? rs.filter((r) => r.id !== id) : rs));
+      toast.success(t("rq_cancel_ok"));
+    } catch (e) {
+      toast.error(String(e).replace(/^\d+:\s*/, "") || t("rq_action_err"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <section className="mx-auto max-w-4xl px-5 py-12">
       <h1 className="text-2xl font-bold">{t("rq_h")}</h1>
@@ -176,7 +191,22 @@ export default function RequestsPage() {
                       </Link>
                       <p className="text-[11.5px] text-muted-foreground">{r.profileReferenceId} · {t("rq_youasked_line")}</p>
                     </div>
-                    <StatusPill status={r.status} />
+                    {r.status === "Pending" ? (
+                      <div className="flex shrink-0 items-center gap-2">
+                        <StatusPill status={r.status} />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={busy === r.id}
+                          onClick={() => cancel(r.id)}
+                          className="border-destructive/40 text-destructive hover:bg-destructive/5"
+                        >
+                          {t("rq_cancel")}
+                        </Button>
+                      </div>
+                    ) : (
+                      <StatusPill status={r.status} />
+                    )}
                   </Card>
                 ))}
               </div>

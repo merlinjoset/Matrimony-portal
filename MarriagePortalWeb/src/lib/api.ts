@@ -481,6 +481,11 @@ export const api = {
     });
   },
 
+  // Sender withdraws their own still-pending request.
+  cancelContactRequest(id: string): Promise<void> {
+    return http<void>(`/contact-requests/${id}`, { method: "DELETE" });
+  },
+
   async uploadPhoto(file: File): Promise<{ url: string }> {
     const fd = new FormData();
     fd.append("file", file);

@@ -976,6 +976,27 @@ export async function setContactRequestStatus(
   return rows.length ? { ok: true, status: 204 } : { ok: false, status: 404, message: "Request not found." };
 }
 
+// The sender withdraws their OWN request while it is still pending, i.e. before the profile
+// owner has approved or declined it. Soft-deleting it clears it from both inboxes and leaves
+// the sender free to ask again later.
+export async function cancelOutgoingContactRequest(
+  id: string,
+  requesterMemberId: string,
+): Promise<{ ok: boolean; status: number; message?: string }> {
+  const cur = (await sql`
+    SELECT "Status" FROM "TblContactRequests"
+    WHERE "Id" = ${id} AND "RequesterMemberId" = ${requesterMemberId} AND "IsDeleted" = false LIMIT 1`)[0];
+  if (!cur) return { ok: false, status: 404, message: "Request not found." };
+  if (cur.Status !== "Pending") {
+    return { ok: false, status: 409, message: "Only a request still awaiting a response can be revoked." };
+  }
+  await sql`
+    UPDATE "TblContactRequests"
+    SET "Status" = 'Cancelled', "UpdatedAt" = now(), "IsDeleted" = true
+    WHERE "Id" = ${id} AND "RequesterMemberId" = ${requesterMemberId} AND "IsDeleted" = false`;
+  return { ok: true, status: 204 };
+}
+
 // ---------- interests ----------
 function toInterest(r: Row): Interest {
   return {
