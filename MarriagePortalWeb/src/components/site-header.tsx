@@ -37,7 +37,7 @@ export function SiteHeader() {
             alt="CSI Tamil Parish Dubai"
             width={44}
             height={44}
-            className="shrink-0 rounded-full bg-white p-[3px] shadow"
+            className="shrink-0 rounded-full"
             priority
           />
           <span className="min-w-0 leading-tight">
