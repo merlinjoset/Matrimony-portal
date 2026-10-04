@@ -67,7 +67,7 @@ export function AdminSidebar({ user }: { user?: AdminUserInfo | null }) {
         <button onClick={() => setOpen(true)} aria-label="Open menu" className="grid size-9 place-items-center rounded-lg hover:bg-white/10">
           <Menu className="size-6" />
         </button>
-        <Image src="/emblem.jpg" alt="CSI" width={30} height={30} className="rounded-full bg-white p-[2px]" />
+        <Image src="/parish-logo.png" alt="CSI Tamil Parish Dubai" width={30} height={30} className="rounded-full bg-white p-[2px]" />
         <span className="text-sm font-bold">Admin Portal</span>
       </header>
 
@@ -82,7 +82,7 @@ export function AdminSidebar({ user }: { user?: AdminUserInfo | null }) {
         )}
       >
         <div className="flex items-center gap-2.5 border-b border-white/15 px-4 py-4">
-          <Image src="/emblem.jpg" alt="CSI" width={38} height={38} className="rounded-full bg-white p-[2px]" />
+          <Image src="/parish-logo.png" alt="CSI Tamil Parish Dubai" width={38} height={38} className="rounded-full bg-white p-[2px]" />
           <div className="leading-tight">
             <div className="text-sm font-bold">CSI Holy Matrimony</div>
             <div className="text-[10.5px] opacity-80">Admin Portal</div>

@@ -43,7 +43,7 @@ export function AdminLogin() {
     <div className="grid min-h-screen place-items-center bg-cream px-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-white p-8 shadow-sm">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <Image src="/emblem.jpg" alt="CSI" width={48} height={48} className="rounded-full" />
+          <Image src="/parish-logo.png" alt="CSI Tamil Parish Dubai" width={48} height={48} className="rounded-full" />
           <h1 className="text-lg font-bold text-maroon">{reset ? "Reset password" : "Admin Sign In"}</h1>
           <p className="text-sm text-muted-foreground">CSI Holy Matrimony - staff only</p>
         </div>

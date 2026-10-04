@@ -33,8 +33,8 @@ export function SiteHeader() {
         <MobileNav />
         <Link href="/" className="flex min-w-0 items-center gap-2.5 sm:gap-3">
           <Image
-            src="/emblem.jpg"
-            alt="Church of South India"
+            src="/parish-logo.png"
+            alt="CSI Tamil Parish Dubai"
             width={44}
             height={44}
             className="shrink-0 rounded-full bg-white p-[3px] shadow"
