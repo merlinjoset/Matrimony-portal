@@ -403,6 +403,14 @@ export const api = {
     });
   },
 
+  // Verifier emails the applicant from the verification screen (e.g. phone unreachable).
+  sendContactEmail(profileId: string, subject: string, message: string): Promise<{ to: string }> {
+    return http<{ to: string }>(`/admin/profiles/${profileId}/contact-email`, {
+      method: "POST",
+      body: JSON.stringify({ subject, message }),
+    });
+  },
+
   resolveReport(id: string, action: "dismiss" | "suspend"): Promise<void> {
     return http<void>(`/admin/reports/${id}`, {
       method: "PATCH",

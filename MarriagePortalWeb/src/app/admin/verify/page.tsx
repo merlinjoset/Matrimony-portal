@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -46,6 +47,11 @@ export default function VerifyQueue() {
   const [remarks, setRemarks] = useState<Record<string, string>>({});
   const [reject, setReject] = useState<VerifyQueueItem | null>(null);
   const [reason, setReason] = useState("");
+  // Email-the-applicant dialog (used when the phone number is unreachable).
+  const [emailFor, setEmailFor] = useState<VerifyQueueItem | null>(null);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
   // Checklist is admin-configurable (see /admin/checklists); fall back to the built-in defaults.
   const [checklist, setChecklist] = useState<Record<number, string[]>>(APPROVAL_CHECKLIST);
 
@@ -99,6 +105,41 @@ export default function VerifyQueue() {
       toast.error("Action failed. Is the API running?");
     } finally {
       setBusy(null);
+    }
+  }
+
+  // Recipient the email will go to - the applicant's own email, else the on-behalf submitter's.
+  function recipientOf(m: VerifyQueueItem): string | null {
+    return m.email || m.submitterDetails?.email || null;
+  }
+
+  function openEmail(m: VerifyQueueItem) {
+    setEmailFor(m);
+    setEmailSubject(`CSI Tamil Parish Matrimony - Please update your contact details (${m.referenceId})`);
+    setEmailBody(
+      `Dear ${m.fullName},\n\n` +
+        `Greetings in the name of our Lord and Saviour Jesus Christ.\n\n` +
+        `We are happy to receive your marriage profile on the CSI Tamil Parish, Dubai website. ` +
+        `However, we were unable to reach you on the contact number you provided. Please correct and ` +
+        `update your contact details so that we can proceed with the next level of approvals.\n\n` +
+        `We pray for you. God bless.\n\n` +
+        `${me?.name ?? "CSI Tamil Parish"}\n` +
+        `CSI Tamil Parish, Dubai`,
+    );
+  }
+
+  async function sendEmail() {
+    if (!emailFor) return;
+    if (!emailSubject.trim() || !emailBody.trim()) return toast.error("Please fill in the subject and the message.");
+    setEmailSending(true);
+    try {
+      const { to } = await api.sendContactEmail(emailFor.id, emailSubject.trim(), emailBody.trim());
+      toast.success(`Email sent to ${to}.`);
+      setEmailFor(null);
+    } catch (e) {
+      toast.error(String(e).replace(/^\d+:\s*/, "") || "Could not send the email.");
+    } finally {
+      setEmailSending(false);
     }
   }
 
@@ -211,6 +252,14 @@ export default function VerifyQueue() {
                     </div>
                     <Button
                       size="sm" variant="outline"
+                      onClick={() => openEmail(m)}
+                      title="Email the applicant (e.g. if the phone number is unreachable)"
+                      className="border-maroon/40 text-maroon hover:bg-maroon/5"
+                    >
+                      ✉ Email
+                    </Button>
+                    <Button
+                      size="sm" variant="outline"
                       disabled={busy === m.id}
                       onClick={() => { setReject(m); setReason(""); }}
                       className="border-destructive/40 text-destructive hover:bg-destructive/5"
@@ -287,6 +336,49 @@ export default function VerifyQueue() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!emailFor} onOpenChange={(o) => { if (!o) setEmailFor(null); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Email {emailFor?.fullName}</DialogTitle>
+          </DialogHeader>
+          {emailFor && !recipientOf(emailFor) ? (
+            <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
+              No email address is on file for this applicant, so a message can&apos;t be sent from here.
+            </div>
+          ) : (
+            <div className="space-y-3 py-1">
+              <div className="space-y-1">
+                <Label>To</Label>
+                <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+                  {emailFor ? recipientOf(emailFor) : ""}
+                  {emailFor && !emailFor.email && emailFor.submitterDetails?.email && (
+                    <span className="ml-2 text-[11px] text-muted-foreground">(on-behalf submitter)</span>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label>Subject</Label>
+                <Input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Message</Label>
+                <Textarea rows={11} value={emailBody} onChange={(e) => setEmailBody(e.target.value)} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmailFor(null)}>Cancel</Button>
+            <Button
+              onClick={sendEmail}
+              disabled={emailSending || !emailFor || !recipientOf(emailFor)}
+              className="bg-maroon text-white hover:bg-maroon/90"
+            >
+              {emailSending ? "Sending…" : "Send email"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!reject} onOpenChange={(o) => { if (!o) { setReject(null); setReason(""); } }}>
         <DialogContent className="sm:max-w-md">

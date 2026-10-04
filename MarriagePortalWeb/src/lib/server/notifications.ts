@@ -130,6 +130,35 @@ export async function notifyProfileVerified(profile: ProfileDetail, to: string):
   }
 }
 
+/**
+ * Send a verifier's own message to the applicant from the verification screen - used when the
+ * verifier cannot reach the applicant by phone and needs them to correct their contact details.
+ * The verifier composes the text; this wraps it in the parish's branded shell. Never throws.
+ */
+export async function sendApplicantMessage(to: string, subject: string, message: string): Promise<boolean> {
+  try {
+    const cfg = await getEmailSettings();
+    const baseUrl = cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com";
+    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const bodyHtml = esc(message)
+      .split(/\n{2,}/)
+      .map((para) => `<p style="margin:0 0 12px;line-height:1.5;">${para.replace(/\n/g, "<br>")}</p>`)
+      .join("");
+    const html = `
+      <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#2c2522;">
+        <div style="text-align:center;margin-bottom:18px;">
+          <img src="${baseUrl}/parish-logo.png" alt="CSI Tamil Parish Dubai" width="92" height="89" style="display:inline-block;border:0;">
+        </div>
+        ${bodyHtml}
+        <p style="color:#9a8f84;font-size:12px;margin-top:22px;border-top:1px solid #eee;padding-top:12px;">CSI Holy Matrimony - CSI Tamil Parish, Dubai</p>
+      </div>`;
+    return await sendMail({ to, subject, html, text: message });
+  } catch (err) {
+    console.error("[notifications] sendApplicantMessage failed:", err);
+    return false;
+  }
+}
+
 /** Tell the profile owner that someone has requested to view their contact number OR photo. Never throws. */
 export async function notifyContactRequested(req: ContactRequest, to: string): Promise<void> {
   try {
