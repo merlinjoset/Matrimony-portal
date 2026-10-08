@@ -15,6 +15,10 @@ export const sql =
   globalForDb.__sql ??
   postgres(connectionString, {
     prepare: false,
+    // Force TLS regardless of the URL's sslmode. Neon and Render both require SSL; "require"
+    // encrypts without CA/hostname verification, so it also works with Render's internal
+    // self-signed cert. This prevents "SSL/TLS required" (28000) if the URL omits sslmode.
+    ssl: "require",
     idle_timeout: 20,
     max: 5,
   });
