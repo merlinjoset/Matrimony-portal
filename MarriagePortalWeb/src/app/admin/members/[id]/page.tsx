@@ -240,11 +240,6 @@ export default function AdminMemberDetail() {
                   </>
                 )}
                 <Row label="Walk of faith" value={p.aboutFaith} />
-                <Row label="Partner expectations" value={p.expectations} />
-                <Row label="Preferred caste (partner)" value={p.partnerCaste === "Caste No Bar" ? "Caste no bar" : p.partnerCaste} />
-                <Row label="Preferred denomination (partner)" value={p.partnerDenomination === "Any" ? "Any denomination" : p.partnerDenomination} />
-                <Row label="Preferred education (partner)" value={p.partnerEducation} />
-                <Row label="Preferred profession (partner)" value={p.partnerProfession} />
                 <Row label="Marriage date" value={p.marriageDate ? new Date(p.marriageDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : null} />
                 <Row label="Success testimony" value={p.testimony} />
                 <Row label="Testimony status" value={p.testimonyStatus === "Published" ? "Published" : p.testimonyStatus === "Pending" ? "Pending review" : null} />
@@ -280,6 +275,18 @@ export default function AdminMemberDetail() {
                 <Row label="Company" value={p.company} />
                 <Row label="Present working place" value={p.workLocation} />
                 <Row label="Salary" value={p.salary} />
+              </dl>
+            </Card>
+
+            <Card className="mb-4 p-6">
+              <h3 className="text-lg font-semibold text-maroon">Partner expectations</h3>
+              <Separator className="my-3" />
+              <dl>
+                <Row label="Expectations" value={p.expectations} />
+                <Row label="Preferred caste" value={p.partnerCaste === "Caste No Bar" ? "Caste no bar" : p.partnerCaste} />
+                <Row label="Preferred denomination" value={p.partnerDenomination === "Any" ? "Any denomination" : p.partnerDenomination} />
+                <Row label="Preferred education" value={p.partnerEducation} />
+                <Row label="Preferred profession" value={p.partnerProfession} />
               </dl>
             </Card>
 

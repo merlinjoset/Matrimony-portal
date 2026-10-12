@@ -657,6 +657,51 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
         </fieldset>
 
         <fieldset className="space-y-4">
+          <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_family")}</legend>
+          <div className="grid gap-3.5 md:grid-cols-2">
+            <Field label={t("l_father_name")}>
+              <Input value={form.fatherName ?? ""} onChange={(e) => set("fatherName", e.target.value)} />
+            </Field>
+            <Field label={t("l_father_occ")}>
+              <Input value={form.fatherOccupation ?? ""} onChange={(e) => set("fatherOccupation", e.target.value)} />
+            </Field>
+            <Field label={t("l_mother_name")}>
+              <Input value={form.motherName ?? ""} onChange={(e) => set("motherName", e.target.value)} />
+            </Field>
+            <Field label={t("l_mother_occ")}>
+              <Input value={form.motherOccupation ?? ""} onChange={(e) => set("motherOccupation", e.target.value)} />
+            </Field>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-[12.5px]">{t("l_siblings")}</Label>
+            {siblings.map((s, i) => (
+              <div key={i} className="grid gap-2 sm:grid-cols-[1fr_150px_1fr_auto]">
+                <Input placeholder={t("l_sib_name")} value={s.name} onChange={(e) => updateSibling(i, "name", e.target.value)} />
+                <Select value={s.status} onValueChange={(v) => updateSibling(i, "status", v ?? "Unmarried")}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Unmarried">{t("o_unmarried")}</SelectItem>
+                    <SelectItem value="Married">{t("o_married")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input placeholder={t("l_sib_occ")} value={s.occupation} onChange={(e) => updateSibling(i, "occupation", e.target.value)} />
+                <button
+                  type="button"
+                  onClick={() => removeSibling(i)}
+                  className="inline-flex h-9 items-center rounded-lg border border-destructive/40 px-3 text-[13px] font-medium text-destructive hover:bg-destructive/5"
+                  aria-label={t("remove_sibling")}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" onClick={addSibling}>
+              {t("add_sibling")}
+            </Button>
+          </div>
+        </fieldset>
+
+        <fieldset className="space-y-4">
           <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_edu")}</legend>
           <div className="grid gap-3.5 md:grid-cols-2">
             <Field label={t("l_edu")}>
@@ -741,51 +786,6 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
                 <Input value={form.partnerProfession ?? ""} onChange={(e) => set("partnerProfession", e.target.value)} placeholder={t("ph_partner_prof")} />
               </Field>
             </div>
-          </div>
-        </fieldset>
-
-        <fieldset className="space-y-4">
-          <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_family")}</legend>
-          <div className="grid gap-3.5 md:grid-cols-2">
-            <Field label={t("l_father_name")}>
-              <Input value={form.fatherName ?? ""} onChange={(e) => set("fatherName", e.target.value)} />
-            </Field>
-            <Field label={t("l_father_occ")}>
-              <Input value={form.fatherOccupation ?? ""} onChange={(e) => set("fatherOccupation", e.target.value)} />
-            </Field>
-            <Field label={t("l_mother_name")}>
-              <Input value={form.motherName ?? ""} onChange={(e) => set("motherName", e.target.value)} />
-            </Field>
-            <Field label={t("l_mother_occ")}>
-              <Input value={form.motherOccupation ?? ""} onChange={(e) => set("motherOccupation", e.target.value)} />
-            </Field>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-[12.5px]">{t("l_siblings")}</Label>
-            {siblings.map((s, i) => (
-              <div key={i} className="grid gap-2 sm:grid-cols-[1fr_150px_1fr_auto]">
-                <Input placeholder={t("l_sib_name")} value={s.name} onChange={(e) => updateSibling(i, "name", e.target.value)} />
-                <Select value={s.status} onValueChange={(v) => updateSibling(i, "status", v ?? "Unmarried")}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Unmarried">{t("o_unmarried")}</SelectItem>
-                    <SelectItem value="Married">{t("o_married")}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input placeholder={t("l_sib_occ")} value={s.occupation} onChange={(e) => updateSibling(i, "occupation", e.target.value)} />
-                <button
-                  type="button"
-                  onClick={() => removeSibling(i)}
-                  className="inline-flex h-9 items-center rounded-lg border border-destructive/40 px-3 text-[13px] font-medium text-destructive hover:bg-destructive/5"
-                  aria-label={t("remove_sibling")}
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-            <Button type="button" variant="outline" size="sm" onClick={addSibling}>
-              {t("add_sibling")}
-            </Button>
           </div>
         </fieldset>
 
