@@ -469,6 +469,8 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
               <Row label={t("d_expect")} value={p.expectations} />
               <Row label={t("l_partner_caste")} value={p.partnerCaste === "Caste No Bar" ? t("caste_no_bar") : p.partnerCaste} />
               <Row label={t("l_partner_denom")} value={p.partnerDenomination === "Any" ? t("o_any_denom") : p.partnerDenomination} />
+              <Row label={t("l_partner_edu")} value={p.partnerEducation} />
+              <Row label={t("l_partner_prof")} value={p.partnerProfession} />
             </dl>
           </Card>
 

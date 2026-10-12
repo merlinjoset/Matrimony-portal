@@ -54,6 +54,8 @@ const empty: UpdateProfileInput = {
   expectations: "",
   partnerCaste: "",
   partnerDenomination: "",
+  partnerEducation: "",
+  partnerProfession: "",
   education: "",
   profession: "",
   city: "",
@@ -237,6 +239,8 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
       expectations: p.expectations ?? "",
       partnerCaste: p.partnerCaste ?? "",
       partnerDenomination: p.partnerDenomination ?? "",
+      partnerEducation: p.partnerEducation ?? "",
+      partnerProfession: p.partnerProfession ?? "",
       education: p.education ?? "",
       profession: p.profession ?? "",
       city: p.city ?? "",
@@ -653,6 +657,35 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
         </fieldset>
 
         <fieldset className="space-y-4">
+          <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_edu")}</legend>
+          <div className="grid gap-3.5 md:grid-cols-2">
+            <Field label={t("l_edu")}>
+              <Input value={form.education ?? ""} onChange={(e) => set("education", e.target.value)} placeholder="e.g. Bachelor's (B.E)" />
+            </Field>
+            <Field label={t("l_prof")}>
+              <Input value={form.profession ?? ""} onChange={(e) => set("profession", e.target.value)} placeholder="e.g. Nurse, Engineer" />
+            </Field>
+            <Field label={t("l_company")}>
+              <Input value={form.company ?? ""} onChange={(e) => set("company", e.target.value)} placeholder={t("ph_company")} />
+            </Field>
+            <Field label={t("l_worklocation")}>
+              <Input value={form.workLocation ?? ""} onChange={(e) => set("workLocation", e.target.value)} placeholder={t("ph_worklocation")} />
+            </Field>
+            <Field label={t("l_salary")}>
+              <div className="flex gap-2">
+                <Select value={currency} onValueChange={(v) => updateSalary(v ?? "AED", salaryAmount)}>
+                  <SelectTrigger className="w-[88px] shrink-0"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Input className="flex-1" inputMode="decimal" value={salaryAmount} onChange={(e) => updateSalary(currency, e.target.value)} placeholder={t("ph_salary")} />
+              </div>
+            </Field>
+          </div>
+        </fieldset>
+
+        <fieldset className="space-y-4">
           <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_partner")}</legend>
           <Field label={t("l_expect")}>
             <Textarea value={form.expectations ?? ""} onChange={(e) => set("expectations", e.target.value)} rows={2} placeholder={t("ph_expect")} />
@@ -698,34 +731,16 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
               </label>
             </Field>
           </div>
-        </fieldset>
-
-        <fieldset className="space-y-4">
-          <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_edu")}</legend>
-          <div className="grid gap-3.5 md:grid-cols-2">
-            <Field label={t("l_edu")}>
-              <Input value={form.education ?? ""} onChange={(e) => set("education", e.target.value)} placeholder="e.g. Bachelor's (B.E)" />
-            </Field>
-            <Field label={t("l_prof")}>
-              <Input value={form.profession ?? ""} onChange={(e) => set("profession", e.target.value)} placeholder="e.g. Nurse, Engineer" />
-            </Field>
-            <Field label={t("l_company")}>
-              <Input value={form.company ?? ""} onChange={(e) => set("company", e.target.value)} placeholder={t("ph_company")} />
-            </Field>
-            <Field label={t("l_worklocation")}>
-              <Input value={form.workLocation ?? ""} onChange={(e) => set("workLocation", e.target.value)} placeholder={t("ph_worklocation")} />
-            </Field>
-            <Field label={t("l_salary")}>
-              <div className="flex gap-2">
-                <Select value={currency} onValueChange={(v) => updateSalary(v ?? "AED", salaryAmount)}>
-                  <SelectTrigger className="w-[88px] shrink-0"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Input className="flex-1" inputMode="decimal" value={salaryAmount} onChange={(e) => updateSalary(currency, e.target.value)} placeholder={t("ph_salary")} />
-              </div>
-            </Field>
+          <div className="mt-1 border-t pt-3">
+            <div className="mb-2 text-[13px] font-semibold text-maroon/85">{t("lg_partner_edu")}</div>
+            <div className="grid gap-3.5 md:grid-cols-2">
+              <Field label={t("l_partner_edu")}>
+                <Input value={form.partnerEducation ?? ""} onChange={(e) => set("partnerEducation", e.target.value)} placeholder={t("ph_partner_edu")} />
+              </Field>
+              <Field label={t("l_partner_prof")}>
+                <Input value={form.partnerProfession ?? ""} onChange={(e) => set("partnerProfession", e.target.value)} placeholder={t("ph_partner_prof")} />
+              </Field>
+            </div>
           </div>
         </fieldset>
 

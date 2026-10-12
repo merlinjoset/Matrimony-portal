@@ -43,6 +43,8 @@ export interface ProfileDetail extends ProfileListItem {
   expectations: string | null;
   partnerCaste: string | null; // preferred caste for the partner, or "Caste No Bar"
   partnerDenomination: string | null; // preferred denomination for the partner, or "Any"
+  partnerEducation: string | null; // preferred education in a partner
+  partnerProfession: string | null; // preferred profession in a partner
   salary: string | null;
   company: string | null;
   workLocation: string | null;
@@ -219,6 +221,8 @@ export interface CreateProfileInput {
   expectations?: string | null;
   partnerCaste?: string | null;
   partnerDenomination?: string | null;
+  partnerEducation?: string | null;
+  partnerProfession?: string | null;
   education?: string | null;
   profession?: string | null;
   city?: string | null;
