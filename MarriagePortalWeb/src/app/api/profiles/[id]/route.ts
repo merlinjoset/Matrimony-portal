@@ -36,6 +36,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           presbyterContact: null,
           refereeName: null,
           refereeContact: null,
+          localReferenceName: null,
+          localReferenceContact: null,
           submitterDetails: null,
           mainPhotoUrl: null,
         },

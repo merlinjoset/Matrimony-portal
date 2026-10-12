@@ -208,6 +208,10 @@ export default function VerifyQueue() {
                           )}
                           <dt className="text-muted-foreground">Email</dt>
                           <dd className="break-all font-medium">{m.email || "-"}</dd>
+                          <dt className="text-muted-foreground">Local ref.</dt>
+                          <dd className="font-medium">{m.localReferenceName || "-"}</dd>
+                          <dt className="text-muted-foreground">Local ref. contact</dt>
+                          <dd className="break-all font-medium">{m.localReferenceContact || "-"}</dd>
                           {(m.congregation === "India" || m.congregation === "Other") && (
                             <>
                               <dt className="text-muted-foreground">Presbyter</dt>

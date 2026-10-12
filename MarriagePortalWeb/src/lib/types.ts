@@ -39,6 +39,8 @@ export interface ProfileDetail extends ProfileListItem {
   presbyterContact: string | null; // admin-only; stripped from member-facing payloads
   refereeName: string | null; // extra reference for "Other" congregations; admin-only
   refereeContact: string | null; // extra reference for "Other" congregations; admin-only
+  localReferenceName: string | null; // local (UAE) reference who can vouch for the family; admin-only
+  localReferenceContact: string | null; // admin-only
   aboutFaith: string | null;
   expectations: string | null;
   partnerCaste: string | null; // preferred caste for the partner, or "Caste No Bar"
@@ -217,6 +219,8 @@ export interface CreateProfileInput {
   presbyterContact?: string | null;
   refereeName?: string | null;
   refereeContact?: string | null;
+  localReferenceName?: string | null;
+  localReferenceContact?: string | null;
   aboutFaith?: string | null;
   expectations?: string | null;
   partnerCaste?: string | null;
@@ -342,6 +346,8 @@ export interface VerifyQueueItem extends ProfileListItem {
   presbyterContact: string | null;
   refereeName: string | null;
   refereeContact: string | null;
+  localReferenceName: string | null;
+  localReferenceContact: string | null;
   submitterDetails: SubmitterDetails | null; // consent form when submitted on behalf of someone else
 }
 

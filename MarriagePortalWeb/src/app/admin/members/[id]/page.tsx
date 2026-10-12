@@ -239,6 +239,8 @@ export default function AdminMemberDetail() {
                     <Row label="Reference contact" value={p.refereeContact} />
                   </>
                 )}
+                <Row label="Local reference" value={p.localReferenceName} />
+                <Row label="Local ref. contact" value={p.localReferenceContact} />
                 <Row label="Walk of faith" value={p.aboutFaith} />
                 <Row label="Marriage date" value={p.marriageDate ? new Date(p.marriageDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : null} />
                 <Row label="Success testimony" value={p.testimony} />

@@ -51,6 +51,8 @@ const empty: CreateProfileInput = {
   presbyterContact: "",
   refereeName: "",
   refereeContact: "",
+  localReferenceName: "",
+  localReferenceContact: "",
   aboutFaith: "",
   expectations: "",
   partnerCaste: "",
@@ -759,6 +761,17 @@ export default function RegisterPage() {
                   </Field>
                 </>
               )}
+            </div>
+            <div className="mt-1 border-t pt-3">
+              <div className="mb-2 text-[13px] font-semibold text-maroon/85">{t("lg_local_ref")}</div>
+              <div className="grid gap-3.5 md:grid-cols-2">
+                <Field label={t("l_local_ref_name")}>
+                  <Input value={form.localReferenceName ?? ""} onChange={(e) => set("localReferenceName", e.target.value)} placeholder={t("ph_local_ref_name")} />
+                </Field>
+                <Field label={t("l_local_ref_contact")}>
+                  <Input value={form.localReferenceContact ?? ""} onChange={(e) => set("localReferenceContact", e.target.value)} placeholder={t("ph_local_ref_contact")} />
+                </Field>
+              </div>
             </div>
             <Field label={t("l_walk")}>
               <Textarea value={form.aboutFaith ?? ""} onChange={(e) => set("aboutFaith", e.target.value)} rows={2} />

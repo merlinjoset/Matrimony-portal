@@ -88,6 +88,8 @@ function toDetail(r: Row): ProfileDetail {
     presbyterContact: s(r.PresbyterContact),
     refereeName: s(r.RefereeName),
     refereeContact: s(r.RefereeContact),
+    localReferenceName: s(r.LocalReferenceName),
+    localReferenceContact: s(r.LocalReferenceContact),
     aboutFaith: s(r.AboutFaith),
     expectations: s(r.Expectations),
     partnerCaste: s(r.PartnerCaste),
@@ -113,7 +115,7 @@ function toDetail(r: Row): ProfileDetail {
 }
 
 const LIST_COLS = sql`"Id","ReferenceId","OwnerMemberId","FullName","Gender","DateOfBirth","Height","Denomination","Congregation","Education","Profession","City","MainPhotoUrl","Status","TestimonyStatus","CreatedAt"`;
-const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations","PartnerCaste","PartnerDenomination","PartnerEducation","PartnerProfession","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","Testimony","TestimonyVideoUrl","MarriageDate","TestimonyStatus","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
+const DETAIL_COLS = sql`"Id","ReferenceId","OwnerMemberId","MembershipNo","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender","DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","LocalReferenceName","LocalReferenceContact","AboutFaith","Expectations","PartnerCaste","PartnerDenomination","PartnerEducation","PartnerProfession","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","Testimony","TestimonyVideoUrl","MarriageDate","TestimonyStatus","SubmitterDetails","MainPhotoUrl","Status","StatusNote","ApprovalLevel","CreatedAt"`;
 
 // ---------- profiles ----------
 export interface ProfileQuery {
@@ -214,14 +216,14 @@ export async function createProfile(dto: CreateProfileInput, ownerMemberId: stri
   await sql`
     INSERT INTO "TblProfiles"
       ("Id","ReferenceId","MembershipNo","OwnerMemberId","CreatedFor","LookingFor","Mobile","Mobile2","Email","FullName","Gender",
-       "DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","AboutFaith","Expectations",
+       "DateOfBirth","Height","MaritalStatus","MotherTongue","Caste","NativePlace","Denomination","HomeParish","Congregation","PresbyterName","PresbyterContact","RefereeName","RefereeContact","LocalReferenceName","LocalReferenceContact","AboutFaith","Expectations",
        "PartnerCaste","PartnerDenomination","PartnerEducation","PartnerProfession","Education","Profession","City","Salary","Company","WorkLocation","FatherName","FatherOccupation","MotherName","MotherOccupation","SiblingsDetails","SubmitterDetails","MainPhotoUrl","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${referenceId}, ${dto.membershipNo ?? null}, ${ownerMemberId}, ${dto.createdFor ?? "Self"},
        ${dto.lookingFor ?? "Bride"}, ${dto.mobile ?? ""}, ${dto.mobile2 ?? null}, ${dto.email ?? null}, ${dto.fullName}, ${dto.gender},
        ${dto.dateOfBirth ?? null}, ${dto.height ?? null}, ${dto.maritalStatus ?? "Never married"},
        ${dto.motherTongue ?? "Tamil"}, ${dto.caste ?? null}, ${dto.nativePlace ?? null}, ${dto.denomination ?? "CSI"}, ${dto.homeParish ?? ""},
-       ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.refereeName ?? null}, ${dto.refereeContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null},
+       ${dto.congregation ?? "Dubai"}, ${dto.presbyterName ?? null}, ${dto.presbyterContact ?? null}, ${dto.refereeName ?? null}, ${dto.refereeContact ?? null}, ${dto.localReferenceName ?? null}, ${dto.localReferenceContact ?? null}, ${dto.aboutFaith ?? null}, ${dto.expectations ?? null},
        ${dto.partnerCaste ?? null}, ${dto.partnerDenomination ?? null}, ${dto.partnerEducation ?? null}, ${dto.partnerProfession ?? null}, ${dto.education ?? null},
        ${dto.profession ?? null}, ${dto.city ?? null}, ${dto.salary ?? null}, ${dto.company ?? null}, ${dto.workLocation ?? null},
        ${dto.fatherName ?? null}, ${dto.fatherOccupation ?? null}, ${dto.motherName ?? null}, ${dto.motherOccupation ?? null}, ${dto.siblingsDetails ?? null},
@@ -467,7 +469,7 @@ export interface VerifyQueueItem extends ProfileListItem {
 /** Pending profiles awaiting the 3-level approval, with their progress. */
 export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
   const rows = await sql`
-    SELECT ${LIST_COLS}, "ApprovalLevel", "MembershipNo", "Mobile", "Mobile2", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact", "MarriageDate", "SubmitterDetails" FROM "TblProfiles"
+    SELECT ${LIST_COLS}, "ApprovalLevel", "MembershipNo", "Mobile", "Mobile2", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact", "LocalReferenceName", "LocalReferenceContact", "MarriageDate", "SubmitterDetails" FROM "TblProfiles"
     WHERE "IsDeleted" = false AND "Status" = 'Pending'
     ORDER BY "CreatedAt" ASC`;
   const ids = rows.map((r) => r.Id as string);
@@ -486,6 +488,8 @@ export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
     presbyterContact: s(r.PresbyterContact),
     refereeName: s(r.RefereeName),
     refereeContact: s(r.RefereeContact),
+    localReferenceName: s(r.LocalReferenceName),
+    localReferenceContact: s(r.LocalReferenceContact),
     submitterDetails: parseSubmitter(r.SubmitterDetails),
   }));
 }
@@ -615,6 +619,8 @@ export async function updateProfile(
       "PresbyterContact" = ${dto.presbyterContact ?? null},
       "RefereeName" = ${dto.refereeName ?? null},
       "RefereeContact" = ${dto.refereeContact ?? null},
+      "LocalReferenceName" = ${dto.localReferenceName ?? null},
+      "LocalReferenceContact" = ${dto.localReferenceContact ?? null},
       "AboutFaith" = ${dto.aboutFaith ?? null},
       "Expectations" = ${dto.expectations ?? null},
       "PartnerCaste" = ${dto.partnerCaste ?? null},
@@ -686,6 +692,8 @@ export async function adminUpdateProfile(
       "PresbyterContact" = ${dto.presbyterContact ?? null},
       "RefereeName" = ${dto.refereeName ?? null},
       "RefereeContact" = ${dto.refereeContact ?? null},
+      "LocalReferenceName" = ${dto.localReferenceName ?? null},
+      "LocalReferenceContact" = ${dto.localReferenceContact ?? null},
       "AboutFaith" = ${dto.aboutFaith ?? null},
       "Expectations" = ${dto.expectations ?? null},
       "PartnerCaste" = ${dto.partnerCaste ?? null},
