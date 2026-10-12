@@ -266,6 +266,20 @@ export default function AdminMemberDetail() {
               </dl>
             </Card>
 
+            {(p.fatherName || p.fatherOccupation || p.motherName || p.motherOccupation || p.siblingsDetails) && (
+              <Card className="mb-4 p-6">
+                <h3 className="text-lg font-semibold text-maroon">Family</h3>
+                <Separator className="my-3" />
+                <dl>
+                  <Row label="Father's name" value={p.fatherName} />
+                  <Row label="Father's occupation" value={p.fatherOccupation} />
+                  <Row label="Mother's name" value={p.motherName} />
+                  <Row label="Mother's occupation" value={p.motherOccupation} />
+                  <SiblingsRow raw={p.siblingsDetails} />
+                </dl>
+              </Card>
+            )}
+
             <Card className="mb-4 p-6">
               <h3 className="text-lg font-semibold text-maroon">Education &amp; profession</h3>
               <Separator className="my-3" />
@@ -289,20 +303,6 @@ export default function AdminMemberDetail() {
                 <Row label="Preferred profession" value={p.partnerProfession} />
               </dl>
             </Card>
-
-            {(p.fatherName || p.fatherOccupation || p.motherName || p.motherOccupation || p.siblingsDetails) && (
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-maroon">Family</h3>
-                <Separator className="my-3" />
-                <dl>
-                  <Row label="Father's name" value={p.fatherName} />
-                  <Row label="Father's occupation" value={p.fatherOccupation} />
-                  <Row label="Mother's name" value={p.motherName} />
-                  <Row label="Mother's occupation" value={p.motherOccupation} />
-                  <SiblingsRow raw={p.siblingsDetails} />
-                </dl>
-              </Card>
-            )}
 
             {p.submitterDetails && (
               <Card className="p-6">
