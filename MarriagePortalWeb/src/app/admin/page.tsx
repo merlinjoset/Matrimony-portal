@@ -9,12 +9,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AdminHeader, Avatar, Pill, statusTone } from "@/components/admin/admin-ui";
 import { GenderChart } from "@/components/admin/gender-chart";
 import { api } from "@/lib/api";
-import type { ProfileListItem, ProfileStats } from "@/lib/types";
+import { LEVEL_LABEL, type ProfileListItem, type ProfileStats, type VerifyQueueItem } from "@/lib/types";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<ProfileStats | null>(null);
   const [recent, setRecent] = useState<ProfileListItem[] | null>(null);
   const [error, setError] = useState(false);
+  const [queue, setQueue] = useState<VerifyQueueItem[] | null>(null);
 
   useEffect(() => {
     Promise.all([api.getStats(), api.browseProfiles({ pageSize: 6 })])
@@ -23,7 +24,16 @@ export default function AdminDashboard() {
         setRecent(r.items);
       })
       .catch(() => setError(true));
+    // Loaded separately so a queue hiccup never blanks the rest of the dashboard.
+    api.getVerifyQueue().then(setQueue).catch(() => setQueue([]));
   }, []);
+
+  // Group the pending profiles by the approval level they are waiting for (approvalLevel = levels done).
+  const buckets: Record<1 | 2 | 3, VerifyQueueItem[]> = { 1: [], 2: [], 3: [] };
+  (queue ?? []).forEach((m) => {
+    const lv = Math.min(3, Math.max(1, (m.approvalLevel ?? 0) + 1)) as 1 | 2 | 3;
+    buckets[lv].push(m);
+  });
 
   const cards = [
     { icon: Users, n: stats?.total, label: "Total members", tone: "text-maroon" },
@@ -56,6 +66,45 @@ export default function AdminDashboard() {
             );
           })}
         </div>
+
+        <Card className="mb-6 p-5">
+          <div className="mb-3 flex items-center gap-3">
+            <div>
+              <h3 className="font-semibold">Verification queue</h3>
+              <p className="text-[12.5px] text-muted-foreground">Which profiles are waiting at each approval level</p>
+            </div>
+            <Button render={<Link href="/admin/verify" />} nativeButton={false} variant="ghost" size="sm" className="ml-auto">
+              Open queue
+            </Button>
+          </div>
+          {queue === null ? (
+            <Skeleton className="h-28 w-full" />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-3">
+              {([1, 2, 3] as const).map((lv) => (
+                <div key={lv} className="rounded-lg border border-border bg-muted/20 p-3.5">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="text-[12.5px] font-bold uppercase tracking-wide text-maroon">L{lv} · {LEVEL_LABEL[lv]}</div>
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">{buckets[lv].length}</span>
+                  </div>
+                  {buckets[lv].length === 0 ? (
+                    <p className="text-[12.5px] text-muted-foreground">None waiting</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {buckets[lv].map((m) => (
+                        <li key={m.id}>
+                          <Link href={`/admin/members/${m.id}`} className="text-[13px] font-medium hover:text-maroon hover:underline">
+                            {m.fullName} <span className="text-muted-foreground">({m.referenceId})</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
 
         <Card className="mb-6 p-5">
           <h3 className="font-semibold">Brides &amp; Grooms</h3>
