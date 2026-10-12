@@ -469,7 +469,7 @@ export interface VerifyQueueItem extends ProfileListItem {
 /** Pending profiles awaiting the 3-level approval, with their progress. */
 export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
   const rows = await sql`
-    SELECT ${LIST_COLS}, "ApprovalLevel", "MembershipNo", "Mobile", "Mobile2", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact", "LocalReferenceName", "LocalReferenceContact", "MarriageDate", "SubmitterDetails" FROM "TblProfiles"
+    SELECT ${LIST_COLS}, "ApprovalLevel", "MembershipNo", "Mobile", "Mobile2", "Email", "PresbyterName", "PresbyterContact", "RefereeName", "RefereeContact", "LocalReferenceName", "LocalReferenceContact", "Expectations", "PartnerCaste", "PartnerDenomination", "PartnerEducation", "PartnerProfession", "MarriageDate", "SubmitterDetails" FROM "TblProfiles"
     WHERE "IsDeleted" = false AND "Status" = 'Pending'
     ORDER BY "CreatedAt" ASC`;
   const ids = rows.map((r) => r.Id as string);
@@ -490,6 +490,11 @@ export async function getVerifyQueue(): Promise<VerifyQueueItem[]> {
     refereeContact: s(r.RefereeContact),
     localReferenceName: s(r.LocalReferenceName),
     localReferenceContact: s(r.LocalReferenceContact),
+    expectations: s(r.Expectations),
+    partnerCaste: s(r.PartnerCaste),
+    partnerDenomination: s(r.PartnerDenomination),
+    partnerEducation: s(r.PartnerEducation),
+    partnerProfession: s(r.PartnerProfession),
     submitterDetails: parseSubmitter(r.SubmitterDetails),
   }));
 }

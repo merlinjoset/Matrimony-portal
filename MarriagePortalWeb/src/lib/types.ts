@@ -348,6 +348,11 @@ export interface VerifyQueueItem extends ProfileListItem {
   refereeContact: string | null;
   localReferenceName: string | null;
   localReferenceContact: string | null;
+  expectations: string | null;
+  partnerCaste: string | null;
+  partnerDenomination: string | null;
+  partnerEducation: string | null;
+  partnerProfession: string | null;
   submitterDetails: SubmitterDetails | null; // consent form when submitted on behalf of someone else
 }
 

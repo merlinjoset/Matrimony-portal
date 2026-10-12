@@ -229,6 +229,21 @@ export default function VerifyQueue() {
                             </>
                           )}
                         </dl>
+                        <div className="mt-2.5 border-t border-border pt-2">
+                          <div className="mb-1.5 font-semibold text-maroon">Partner expectations</div>
+                          <dl className="grid grid-cols-[84px_1fr] gap-x-2 gap-y-1">
+                            <dt className="text-muted-foreground">Expects</dt>
+                            <dd className="font-medium">{m.expectations || "-"}</dd>
+                            <dt className="text-muted-foreground">Caste</dt>
+                            <dd className="font-medium">{m.partnerCaste === "Caste No Bar" ? "Caste no bar" : (m.partnerCaste || "-")}</dd>
+                            <dt className="text-muted-foreground">Denom.</dt>
+                            <dd className="font-medium">{m.partnerDenomination === "Any" ? "Any denomination" : (m.partnerDenomination || "-")}</dd>
+                            <dt className="text-muted-foreground">Education</dt>
+                            <dd className="font-medium">{m.partnerEducation || "-"}</dd>
+                            <dt className="text-muted-foreground">Profession</dt>
+                            <dd className="font-medium">{m.partnerProfession || "-"}</dd>
+                          </dl>
+                        </div>
                         {m.submitterDetails && (
                           <div className="mt-2.5 border-t border-border pt-2">
                             <div className="mb-1.5 font-semibold text-maroon">Submitted on behalf</div>
