@@ -4,6 +4,7 @@ import { getApprovalChecklist } from "./checklist";
 import { canApproveLevel } from "./approvers";
 import type {
   AdminUser,
+  AdminContactRequest,
   CreateInterestInput,
   CreateProfileInput,
   CreateUserInput,
@@ -1018,6 +1019,7 @@ export async function cancelOutgoingContactRequest(
 
 // ---------- interests ----------
 function toInterest(r: Row): Interest {
+  const storedRef = s(r.FromReferenceId);
   return {
     id: r.Id as string,
     toProfileId: r.ToProfileId as string,
@@ -1025,25 +1027,89 @@ function toInterest(r: Row): Interest {
     toReferenceId: r.ToReferenceId as string,
     fromName: r.FromName as string,
     fromMobile: r.FromMobile as string,
+    fromProfileId: s(r.FromProfileId) ?? s(r.MatchedProfileId),
+    fromReferenceId: storedRef ?? s(r.MatchedReferenceId),
+    fromMatchedByMobile: !storedRef && !!s(r.MatchedReferenceId),
     message: s(r.Message),
     status: r.Status as Interest["status"],
     createdAt: new Date(r.CreatedAt as string).toISOString(),
   };
 }
 
-export async function createInterest(dto: CreateInterestInput): Promise<Interest | null> {
-  const p = (await sql`SELECT "Id","FullName","ReferenceId" FROM "TblProfiles" WHERE "Id" = ${dto.toProfileId} AND "IsDeleted" = false LIMIT 1`)[0];
+/**
+ * Record an interest from the signed-in member. Who sent it comes from the session (their member
+ * account and their own listing), not from the typed name, so the parish office can always tell
+ * which family is enquiring. Sending again to the same listing while the earlier interest is still
+ * open returns that interest instead of saving a duplicate.
+ */
+export async function createInterest(dto: CreateInterestInput, fromMemberId: string): Promise<Interest | null> {
+  const p = (await sql`SELECT "Id","FullName","ReferenceId","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${dto.toProfileId} AND "IsDeleted" = false LIMIT 1`)[0];
   if (!p) return null;
+  if (p.OwnerMemberId === fromMemberId) {
+    throw Object.assign(new Error("This is your own profile."), { status: 400 });
+  }
+  const existing = (await sql`
+    SELECT * FROM "TblInterests"
+    WHERE "FromMemberId" = ${fromMemberId} AND "ToProfileId" = ${p.Id as string}
+      AND "Status" IN ('Awaiting','Accepted') AND "IsDeleted" = false
+    ORDER BY "CreatedAt" ASC LIMIT 1`)[0];
+  if (existing) return toInterest(existing as Row);
+
+  const sender = await getMemberOwnProfileBrief(fromMemberId);
   const inserted = await sql`
-    INSERT INTO "TblInterests" ("Id","ToProfileId","ToName","ToReferenceId","FromName","FromMobile","Message","Status","CreatedAt","IsDeleted")
-    VALUES (${crypto.randomUUID()}, ${p.Id as string}, ${p.FullName as string}, ${p.ReferenceId as string}, ${dto.fromName.trim()}, ${dto.fromMobile.trim()}, ${dto.message?.trim() || null}, 'Awaiting', now(), false)
+    INSERT INTO "TblInterests"
+      ("Id","ToProfileId","ToName","ToReferenceId","FromName","FromMobile","FromMemberId","FromProfileId","FromReferenceId","Message","Status","CreatedAt","IsDeleted")
+    VALUES
+      (${crypto.randomUUID()}, ${p.Id as string}, ${p.FullName as string}, ${p.ReferenceId as string}, ${dto.fromName.trim()}, ${dto.fromMobile.trim()},
+       ${fromMemberId}, ${sender?.id ?? null}, ${sender?.referenceId ?? null}, ${dto.message?.trim() || null}, 'Awaiting', now(), false)
     RETURNING *`;
   return toInterest(inserted[0] as Row);
 }
 
 export async function listInterests(): Promise<Interest[]> {
-  const rows = await sql`SELECT * FROM "TblInterests" WHERE "IsDeleted" = false ORDER BY "CreatedAt" DESC`;
+  // Interests saved before the sender was recorded are matched to a listing by the last 9 digits of
+  // the mobile they typed (the form pre-fills it from their own listing), and flagged as matched.
+  const rows = await sql`
+    SELECT i.*, m."Id" AS "MatchedProfileId", m."ReferenceId" AS "MatchedReferenceId"
+    FROM "TblInterests" i
+    LEFT JOIN LATERAL (
+      SELECT p."Id", p."ReferenceId" FROM "TblProfiles" p
+      WHERE i."FromReferenceId" IS NULL AND p."IsDeleted" = false
+        AND length(regexp_replace(coalesce(i."FromMobile",''), '[^0-9]', '', 'g')) >= 9
+        AND right(regexp_replace(coalesce(p."Mobile",''), '[^0-9]', '', 'g'), 9)
+          = right(regexp_replace(i."FromMobile", '[^0-9]', '', 'g'), 9)
+      ORDER BY p."CreatedAt" DESC LIMIT 1
+    ) m ON true
+    WHERE i."IsDeleted" = false
+    ORDER BY i."CreatedAt" DESC`;
   return rows.map((r) => toInterest(r as Row));
+}
+
+/** Every member's contact-number / photo request, for the parish office's oversight (read-only). */
+export async function listAllContactRequests(): Promise<AdminContactRequest[]> {
+  const rows = await sql`
+    SELECT c.*, rp."Id" AS "RequesterProfileId", rp."ReferenceId" AS "RequesterReferenceId", rp."FullName" AS "RequesterProfileName"
+    FROM "TblContactRequests" c
+    LEFT JOIN LATERAL (
+      SELECT "Id", "ReferenceId", "FullName" FROM "TblProfiles"
+      WHERE "OwnerMemberId" = c."RequesterMemberId" AND "IsDeleted" = false
+      ORDER BY "CreatedAt" DESC LIMIT 1
+    ) rp ON true
+    WHERE c."IsDeleted" = false
+    ORDER BY c."CreatedAt" DESC`;
+  return rows.map((r) => ({
+    id: r.Id as string,
+    requestType: ((r.RequestType as RequestType) ?? "Contact"),
+    status: r.Status as string,
+    createdAt: new Date(r.CreatedAt as string).toISOString(),
+    updatedAt: new Date((r.UpdatedAt as string) ?? (r.CreatedAt as string)).toISOString(),
+    profileId: r.ProfileId as string,
+    profileName: r.ProfileName as string,
+    profileReferenceId: r.ProfileReferenceId as string,
+    requesterName: (s(r.RequesterProfileName) ?? (r.RequesterName as string)),
+    requesterProfileId: s(r.RequesterProfileId),
+    requesterReferenceId: s(r.RequesterReferenceId),
+  }));
 }
 
 export async function setInterestStatus(id: string, status: string): Promise<boolean> {

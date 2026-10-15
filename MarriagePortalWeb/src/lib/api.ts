@@ -1,4 +1,5 @@
 import type {
+  AdminContactRequest,
   AdminUser,
   ApprovalLogEntry,
   ContactRequest,
@@ -273,6 +274,11 @@ export const api = {
 
   getInterests(): Promise<Interest[]> {
     return http<Interest[]>(`/interests`);
+  },
+
+  // Admin oversight of members' contact-number / photo requests (read-only).
+  getAdminContactRequests(): Promise<AdminContactRequest[]> {
+    return http<AdminContactRequest[]>(`/admin/contact-requests`);
   },
 
   setInterestStatus(id: string, status: InterestStatus): Promise<void> {

@@ -372,9 +372,29 @@ export interface Interest {
   toReferenceId: string;
   fromName: string;
   fromMobile: string;
+  /** The sender's own listing (from their signed-in account). Older interests are matched by mobile. */
+  fromProfileId: string | null;
+  fromReferenceId: string | null;
+  /** True when the sender's listing was inferred from the mobile number (interests sent before sign-in was recorded). */
+  fromMatchedByMobile: boolean;
   message: string | null;
   status: InterestStatus;
   createdAt: string;
+}
+
+/** A member's request to see another listing's contact number or photo, as the parish office sees it. */
+export interface AdminContactRequest {
+  id: string;
+  requestType: RequestType;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  profileId: string;
+  profileName: string;
+  profileReferenceId: string;
+  requesterName: string;
+  requesterProfileId: string | null;
+  requesterReferenceId: string | null;
 }
 
 export interface CreateInterestInput {

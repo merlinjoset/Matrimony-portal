@@ -253,9 +253,10 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
       await api.createInterest({ toProfileId: p.id, ...form });
       toast.success(t("ei_ok"));
       setOpen(false);
-      setForm({ fromName: "", fromMobile: "", message: "" });
-    } catch {
-      toast.error(t("ei_err"));
+      // Keep the pre-filled name and mobile (they come from the member's own listing); clear only the note.
+      setForm((f) => ({ ...f, message: "" }));
+    } catch (e) {
+      toast.error(String(e).replace(/^\d+:\s*/, "") || t("ei_err"));
     } finally {
       setSending(false);
     }
