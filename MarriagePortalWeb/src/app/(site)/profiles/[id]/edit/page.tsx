@@ -75,7 +75,9 @@ export default function EditProfilePage() {
         <p className="mb-4 text-muted-foreground">{t("edit_sub")}</p>
         <ProfileEditor
           initial={profile}
-          onSave={(input) => api.updateProfile(id, member.memberId, input).then(() => {})}
+          onSave={(input) =>
+            api.updateProfile(id, member.memberId, input).then((r) => (r.verificationReset ? t("edit_saved_reverify") : t("edit_saved_kept")))
+          }
           onSaved={() => router.push(`/profiles/${id}`)}
           cancelHref={`/profiles/${id}`}
           reverifyNote

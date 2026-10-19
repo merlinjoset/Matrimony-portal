@@ -397,7 +397,7 @@ const en: Dict = {
   edit_profile_btn: "Edit profile details",
   edit_h: "Edit your profile",
   edit_sub: "Update your details below and save.",
-  edit_reverify_note: "Any change re-enters the parish verification queue, so your listing is re-checked before it appears publicly again.",
+  edit_reverify_note: "Changing your name, date of birth, gender or mobile numbers sends your listing back for parish verification. Other edits keep the approvals already given. A rejected listing is always re-checked after you edit it.",
   edit_save: "Save changes",
   edit_saving: "Saving…",
   edit_cancel: "Cancel",
@@ -405,7 +405,9 @@ const en: Dict = {
   edit_denied: "This profile could not be loaded for editing. It may not be yours, or your session has expired.",
   edit_signin: "Please sign in to edit your profile.",
   edit_locked: "This profile has been verified by the parish and can no longer be edited. Please contact the parish office to make any changes.",
-  edit_saved: "Profile updated and resubmitted for verification.",
+  edit_saved: "Profile updated.",
+  edit_saved_reverify: "Profile updated and resubmitted for verification.",
+  edit_saved_kept: "Profile updated. Your verification progress is unchanged.",
 
   // footer
   foot_about: "A faith-centred matrimony ministry serving the CSI Tamil parish community. One body in Christ.",
@@ -797,7 +799,7 @@ const ta: Dict = {
   edit_profile_btn: "சுயவிவரத்தைத் திருத்து",
   edit_h: "உங்கள் சுயவிவரத்தைத் திருத்தவும்",
   edit_sub: "உங்கள் விவரங்களைப் புதுப்பித்து சேமிக்கவும்.",
-  edit_reverify_note: "எந்த மாற்றமும் திருச்சபை சரிபார்ப்பு வரிசைக்கு மீண்டும் செல்லும், எனவே பொதுவில் தோன்றும் முன் உங்கள் பட்டியல் மீண்டும் சரிபார்க்கப்படும்.",
+  edit_reverify_note: "உங்கள் பெயர், பிறந்த தேதி, பாலினம் அல்லது கைபேசி எண்களை மாற்றினால், உங்கள் பட்டியல் மீண்டும் திருச்சபை சரிபார்ப்புக்குச் செல்லும். மற்ற மாற்றங்கள் ஏற்கனவே வழங்கப்பட்ட ஒப்புதல்களைத் தக்கவைக்கும். நிராகரிக்கப்பட்ட பட்டியல் திருத்திய பின் எப்போதும் மீண்டும் சரிபார்க்கப்படும்.",
   edit_save: "மாற்றங்களைச் சேமி",
   edit_saving: "சேமிக்கிறது…",
   edit_cancel: "ரத்து",
@@ -805,7 +807,9 @@ const ta: Dict = {
   edit_denied: "இந்த சுயவிவரத்தைத் திருத்த ஏற்ற முடியவில்லை. இது உங்களுடையதாக இல்லாமல் இருக்கலாம், அல்லது உங்கள் அமர்வு காலாவதியாகிவிட்டது.",
   edit_signin: "உங்கள் சுயவிவரத்தைத் திருத்த உள்நுழையவும்.",
   edit_locked: "இந்தச் சுயவிவரம் சபையால் சரிபார்க்கப்பட்டுவிட்டது; இனி திருத்த முடியாது. மாற்றங்களுக்கு சபை அலுவலகத்தைத் தொடர்பு கொள்ளவும்.",
-  edit_saved: "சுயவிவரம் புதுப்பிக்கப்பட்டு சரிபார்ப்புக்கு மீண்டும் சமர்ப்பிக்கப்பட்டது.",
+  edit_saved: "சுயவிவரம் புதுப்பிக்கப்பட்டது.",
+  edit_saved_reverify: "சுயவிவரம் புதுப்பிக்கப்பட்டு சரிபார்ப்புக்கு மீண்டும் சமர்ப்பிக்கப்பட்டது.",
+  edit_saved_kept: "சுயவிவரம் புதுப்பிக்கப்பட்டது. உங்கள் சரிபார்ப்பு முன்னேற்றம் மாறவில்லை.",
 
   foot_about: "CSI தமிழ் திருச்சபை சமூகத்திற்கு சேவை செய்யும் விசுவாச மைய திருமண ஊழியம். கிறிஸ்துவில் ஒரே சரீரம்.",
   foot_heritage:

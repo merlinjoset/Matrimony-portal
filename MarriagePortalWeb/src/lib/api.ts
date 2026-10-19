@@ -137,8 +137,8 @@ export const api = {
     return http<OwnProfileDetail>(`/profiles/${id}/edit?memberId=${encodeURIComponent(memberId)}`);
   },
 
-  updateProfile(id: string, memberId: string, input: UpdateProfileInput): Promise<ProfileDetail> {
-    return http<ProfileDetail>(`/profiles/${id}/edit`, {
+  updateProfile(id: string, memberId: string, input: UpdateProfileInput): Promise<ProfileDetail & { verificationReset?: boolean; keyChanges?: string[] }> {
+    return http<ProfileDetail & { verificationReset?: boolean; keyChanges?: string[] }>(`/profiles/${id}/edit`, {
       method: "PATCH",
       body: JSON.stringify({ memberId, ...input }),
     });

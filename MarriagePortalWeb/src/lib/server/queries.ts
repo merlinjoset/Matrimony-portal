@@ -2,6 +2,7 @@ import "server-only";
 import { sql } from "./db";
 import { getApprovalChecklist } from "./checklist";
 import { canApproveLevel } from "./approvers";
+import { verificationKeyChanges } from "./key-changes";
 import type {
   AdminUser,
   AdminContactRequest,
@@ -582,15 +583,18 @@ export async function getOwnProfile(profileId: string, ownerMemberId: string): P
   return { ...toDetail(r), dateOfBirth: dob };
 }
 
-/** Let the owner update their listing. Any edit re-enters the 3-level verification queue so the
- *  parish re-checks the changed details; suspended/committed listings cannot be self-edited. */
+/** Let the owner update their listing. Changing a key detail (name, date of birth, gender, mobile
+ *  numbers) sends it back through the 3-level verification, since the approvals were given for the
+ *  old values; other edits keep the approvals already given. A rejected listing always goes back
+ *  for review when edited (the edit is the member's fix). Suspended/committed/verified listings
+ *  cannot be self-edited. */
 export async function updateProfile(
   profileId: string,
   ownerMemberId: string,
   dto: UpdateProfileInput,
-): Promise<{ ok: boolean; status: number; message?: string; profile?: ProfileDetail }> {
+): Promise<{ ok: boolean; status: number; message?: string; profile?: ProfileDetail; verificationReset?: boolean; keyChanges?: string[] }> {
   const cur = (await sql`
-    SELECT "Status" FROM "TblProfiles"
+    SELECT "Status", "FullName", "DateOfBirth"::text AS "DobText", "Gender", "Mobile", "Mobile2" FROM "TblProfiles"
     WHERE "Id" = ${profileId} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false
     LIMIT 1`)[0];
   if (!cur) return { ok: false, status: 403, message: "You can only edit your own profile." };
@@ -601,6 +605,12 @@ export async function updateProfile(
   // Once the parish has verified a profile it is locked to the owner; only staff can amend it.
   if (cur.Status === "Verified" || cur.Status === "Active")
     return { ok: false, status: 409, message: "This profile has been verified by the parish and can no longer be edited. Please contact the parish office to make changes." };
+
+  const keyChanges = verificationKeyChanges(
+    { fullName: cur.FullName as string, dateOfBirth: cur.DobText as string | null, gender: cur.Gender as string, mobile: cur.Mobile as string | null, mobile2: cur.Mobile2 as string | null },
+    { fullName: dto.fullName, dateOfBirth: dto.dateOfBirth, gender: dto.gender, mobile: dto.mobile, mobile2: dto.mobile2 },
+  );
+  const reset = keyChanges.length > 0 || cur.Status !== "Pending";
 
   await sql`
     UPDATE "TblProfiles" SET
@@ -645,16 +655,18 @@ export async function updateProfile(
       "MotherOccupation" = ${dto.motherOccupation ?? null},
       "SiblingsDetails" = ${dto.siblingsDetails ?? null},
       "MainPhotoUrl" = ${dto.mainPhotoUrl ?? null},
-      "Status" = 'Pending',
-      "ApprovalLevel" = 0,
-      "StatusNote" = NULL,
+      "Status" = ${reset ? sql`'Pending'` : sql`"Status"`},
+      "ApprovalLevel" = ${reset ? sql`0` : sql`"ApprovalLevel"`},
+      "StatusNote" = ${reset ? sql`NULL` : sql`"StatusNote"`},
       "UpdatedAt" = now()
     WHERE "Id" = ${profileId} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false`;
-  // Clear prior level approvals so the re-verification restarts cleanly (each level needs a fresh sign-off).
-  await sql`DELETE FROM "TblProfileApprovals" WHERE "ProfileId" = ${profileId}`;
+  if (reset) {
+    // Clear prior level approvals so the re-verification restarts cleanly (each level needs a fresh sign-off).
+    await sql`DELETE FROM "TblProfileApprovals" WHERE "ProfileId" = ${profileId}`;
+  }
 
   const profile = await getProfile(profileId);
-  return { ok: true, status: 200, profile: profile ?? undefined };
+  return { ok: true, status: 200, profile: profile ?? undefined, verificationReset: reset, keyChanges };
 }
 
 /** Load any profile for admin editing (includes DOB; no ownership check). */

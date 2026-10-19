@@ -127,7 +127,8 @@ export interface ProfileEditorProps {
   /** The profile to edit, already loaded by the caller. */
   initial: OwnProfileDetail;
   /** Persist the edit. The caller chooses the owner or admin endpoint. */
-  onSave: (input: UpdateProfileInput) => Promise<void>;
+  /** Save the edit. May resolve to a success message to show instead of the default. */
+  onSave: (input: UpdateProfileInput) => Promise<void | string>;
   /** Called after a successful save (e.g. navigate away). */
   onSaved: () => void;
   /** Where the Cancel button goes. */
@@ -342,14 +343,14 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
               submittedAt: priorSubmittedAt ?? new Date().toISOString(),
             }
           : null;
-      await onSave({
+      const msg = await onSave({
         ...form,
         lookingFor,
         dateOfBirth: form.dateOfBirth || null,
         siblingsDetails: cleanSiblings.length ? JSON.stringify(cleanSiblings) : null,
         submitterDetails,
       });
-      toast.success(t("edit_saved"));
+      toast.success(typeof msg === "string" && msg ? msg : t("edit_saved"));
       onSaved();
     } catch (err) {
       toast.error(err instanceof Error && err.message ? err.message : t("toast_err"));

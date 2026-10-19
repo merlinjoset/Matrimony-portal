@@ -38,7 +38,7 @@ export default function AdminMemberEdit() {
           ) : (
             <ProfileEditor
               initial={profile}
-              onSave={(input) => api.adminUpdateProfile(id, input).then(() => {})}
+              onSave={(input) => api.adminUpdateProfile(id, input).then(() => "Profile updated. Verification status unchanged.")}
               onSaved={() => router.push(`/admin/members/${id}`)}
               cancelHref={`/admin/members/${id}`}
             />
