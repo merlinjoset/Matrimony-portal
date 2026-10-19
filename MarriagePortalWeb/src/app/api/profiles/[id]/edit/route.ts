@@ -15,7 +15,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   return Response.json(profile);
 }
 
-// Save the owner's edits. A key change (name, DOB, gender, mobiles) re-enters the verification queue;
+// Save the owner's edits. A key change (name, DOB, gender, mobiles, email, presbyter contact) re-enters the verification queue;
 // other edits keep the approvals already given (see updateProfile). The response says which happened.
 // The owner is the session member; any memberId in the body is ignored.
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {

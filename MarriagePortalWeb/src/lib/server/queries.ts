@@ -584,7 +584,7 @@ export async function getOwnProfile(profileId: string, ownerMemberId: string): P
 }
 
 /** Let the owner update their listing. Changing a key detail (name, date of birth, gender, mobile
- *  numbers) sends it back through the 3-level verification, since the approvals were given for the
+ *  numbers, email, presbyter contact) sends it back through the 3-level verification, since the approvals were given for the
  *  old values; other edits keep the approvals already given. A rejected listing always goes back
  *  for review when edited (the edit is the member's fix). Suspended/committed/verified listings
  *  cannot be self-edited. */
@@ -594,7 +594,7 @@ export async function updateProfile(
   dto: UpdateProfileInput,
 ): Promise<{ ok: boolean; status: number; message?: string; profile?: ProfileDetail; verificationReset?: boolean; keyChanges?: string[] }> {
   const cur = (await sql`
-    SELECT "Status", "FullName", "DateOfBirth"::text AS "DobText", "Gender", "Mobile", "Mobile2" FROM "TblProfiles"
+    SELECT "Status", "FullName", "DateOfBirth"::text AS "DobText", "Gender", "Mobile", "Mobile2", "Email", "PresbyterContact" FROM "TblProfiles"
     WHERE "Id" = ${profileId} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false
     LIMIT 1`)[0];
   if (!cur) return { ok: false, status: 403, message: "You can only edit your own profile." };
@@ -607,8 +607,8 @@ export async function updateProfile(
     return { ok: false, status: 409, message: "This profile has been verified by the parish and can no longer be edited. Please contact the parish office to make changes." };
 
   const keyChanges = verificationKeyChanges(
-    { fullName: cur.FullName as string, dateOfBirth: cur.DobText as string | null, gender: cur.Gender as string, mobile: cur.Mobile as string | null, mobile2: cur.Mobile2 as string | null },
-    { fullName: dto.fullName, dateOfBirth: dto.dateOfBirth, gender: dto.gender, mobile: dto.mobile, mobile2: dto.mobile2 },
+    { fullName: cur.FullName as string, dateOfBirth: cur.DobText as string | null, gender: cur.Gender as string, mobile: cur.Mobile as string | null, mobile2: cur.Mobile2 as string | null, email: cur.Email as string | null, presbyterContact: cur.PresbyterContact as string | null },
+    { fullName: dto.fullName, dateOfBirth: dto.dateOfBirth, gender: dto.gender, mobile: dto.mobile, mobile2: dto.mobile2, email: dto.email, presbyterContact: dto.presbyterContact },
   );
   const reset = keyChanges.length > 0 || cur.Status !== "Pending";
 
