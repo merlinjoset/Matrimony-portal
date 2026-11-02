@@ -63,8 +63,36 @@ export default function MembersPage() {
       await api.setStatus(id, status);
       toast.success(`${name} → ${status}.`);
       load();
-    } catch {
-      toast.error("Action failed. Is the API running?");
+    } catch (e) {
+      toast.error(String(e).replace(/^\d+:\s*/, "") || "Action failed.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  // Confirm a verified listing is still valid (restarts the 6-month re-verification clock).
+  async function reverify(id: string, name: string) {
+    setBusy(id);
+    try {
+      await api.reverifyProfile(id);
+      toast.success(`${name} re-verified. The 6-month clock has restarted.`);
+      load();
+    } catch (e) {
+      toast.error(String(e).replace(/^\d+:\s*/, "") || "Could not re-verify.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  // Bring back a suspended/committed listing: Verified if it had passed all 3 levels, else back to the queue.
+  async function reactivate(id: string, name: string) {
+    setBusy(id);
+    try {
+      const { status } = await api.reactivateProfile(id);
+      toast.success(status === "Verified" ? `${name} reactivated (Verified).` : `${name} is back in the verification queue (Pending).`);
+      load();
+    } catch (e) {
+      toast.error(String(e).replace(/^\d+:\s*/, "") || "Could not reactivate.");
     } finally {
       setBusy(null);
     }
@@ -265,7 +293,13 @@ export default function MembersPage() {
                                 ✍️ Testimony{m.testimonyStatus === "Pending" ? " (review)" : ""}
                               </Button>
                             )}
-                            <Button size="sm" variant="outline" disabled={busy === m.id} onClick={() => setStatus(m.id, "Verified", m.fullName)}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={busy === m.id}
+                              onClick={() => reactivate(m.id, m.fullName)}
+                              title="Bring this listing back: Verified if it had passed all 3 approval levels, otherwise back into the verification queue"
+                            >
                               Reactivate
                             </Button>
                           </>
@@ -276,7 +310,7 @@ export default function MembersPage() {
                                 size="sm"
                                 variant="outline"
                                 disabled={busy === m.id}
-                                onClick={() => setStatus(m.id, "Verified", m.fullName)}
+                                onClick={() => reverify(m.id, m.fullName)}
                                 title="Confirm this listing is still valid - resets the 6-month re-verification clock"
                               >
                                 Re-verify

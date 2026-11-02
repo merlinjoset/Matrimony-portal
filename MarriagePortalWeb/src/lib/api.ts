@@ -210,6 +210,16 @@ export const api = {
     return http<string[]>(`/profiles/castes`);
   },
 
+  // Admin: confirm a verified listing is still valid (restarts the 6-month clock).
+  reverifyProfile(id: string): Promise<void> {
+    return http<void>(`/admin/profiles/${id}/reverify`, { method: "POST" });
+  },
+
+  // Admin: bring back a suspended/committed listing; resolves to the status it returned to.
+  reactivateProfile(id: string): Promise<{ status: ProfileStatus }> {
+    return http<{ status: ProfileStatus }>(`/admin/profiles/${id}/reactivate`, { method: "POST" });
+  },
+
   setStatus(id: string, status: ProfileStatus, note?: string): Promise<void> {
     return http<void>(`/profiles/${id}/status`, {
       method: "PATCH",

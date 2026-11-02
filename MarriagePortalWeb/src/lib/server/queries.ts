@@ -261,6 +261,40 @@ export async function setProfileStatus(id: string, status: string, note?: string
   return ok;
 }
 
+/** Admin: confirm a live listing is still valid, restarting its 6-month re-verification clock.
+ *  Only for Verified/Active listings, and only while the listing still has its (mandatory) photo. */
+export async function reverifyProfile(id: string): Promise<{ ok: boolean; status: number; message?: string }> {
+  const p = (await sql`SELECT "Status","MainPhotoUrl" FROM "TblProfiles" WHERE "Id" = ${id} AND "IsDeleted" = false LIMIT 1`)[0];
+  if (!p) return { ok: false, status: 404, message: "Profile not found." };
+  if (p.Status !== "Verified" && p.Status !== "Active") {
+    return { ok: false, status: 409, message: "Only a verified listing can be re-verified." };
+  }
+  if (!(await isStoredPhotoUrl(p.MainPhotoUrl as string | null))) {
+    return { ok: false, status: 409, message: "This profile has no photo. Ask the member to add a photo before re-verifying." };
+  }
+  await setProfileStatus(id, "Verified"); // resets "LastVerifiedAt" and clears "ReverifyNotifiedAt"
+  return { ok: true, status: 200 };
+}
+
+/** Admin: bring back a suspended or committed listing. One that had completed all three approval
+ *  levels returns to Verified (it needs its photo); one that was stopped mid-verification goes back
+ *  into the queue as Pending at the level it had reached, so the 3-level approval is never skipped.
+ *  The re-verification clock is left as it was. */
+export async function reactivateProfile(id: string): Promise<{ ok: boolean; status: number; message?: string; newStatus?: string }> {
+  const p = (await sql`SELECT "Status","ApprovalLevel","MainPhotoUrl" FROM "TblProfiles" WHERE "Id" = ${id} AND "IsDeleted" = false LIMIT 1`)[0];
+  if (!p) return { ok: false, status: 404, message: "Profile not found." };
+  if (p.Status !== "Suspended" && p.Status !== "Committed") {
+    return { ok: false, status: 409, message: "Only a suspended or committed listing can be reactivated." };
+  }
+  const fullyApproved = Number(p.ApprovalLevel) >= 3;
+  if (fullyApproved && !(await isStoredPhotoUrl(p.MainPhotoUrl as string | null))) {
+    return { ok: false, status: 409, message: "This profile has no photo. Ask the member to add a photo before reactivating." };
+  }
+  const next = fullyApproved ? "Verified" : "Pending";
+  await sql`UPDATE "TblProfiles" SET "Status" = ${next}, "StatusNote" = NULL, "UpdatedAt" = now() WHERE "Id" = ${id} AND "IsDeleted" = false`;
+  return { ok: true, status: 200, newStatus: next };
+}
+
 /**
  * Record (or clear) the success testimony (note + video link + marriage date). Blanks store NULL.
  * `status` is the moderation state: a member's submission is "Pending" (hidden until approved) and
