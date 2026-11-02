@@ -434,10 +434,14 @@ export async function approveProfileLevel(
   if (!required.every((item) => checked.includes(item))) {
     return { ok: false, status: 400, message: "Please confirm all checklist items before approving this level." };
   }
-  const rows = await sql`SELECT "ApprovalLevel","Status" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`;
+  const rows = await sql`SELECT "ApprovalLevel","Status","MainPhotoUrl" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`;
   const p = rows[0];
   if (!p) return { ok: false, status: 404, message: "Profile not found." };
   if (p.Status !== "Pending") return { ok: false, status: 409, message: "This profile is not awaiting approval." };
+  // The listing photo is mandatory: no level may be approved until the member has added one.
+  if (!(await isStoredPhotoUrl(p.MainPhotoUrl as string | null))) {
+    return { ok: false, status: 409, message: "This profile has no photo. Ask the member to add a photo before approving." };
+  }
 
   const current = Number(p.ApprovalLevel);
   if (level !== current + 1) return { ok: false, status: 409, message: `This profile needs Level ${current + 1} (${LEVEL_LABEL[current + 1]}) approval next.` };

@@ -169,6 +169,8 @@ export default function VerifyQueue() {
               const allChecked = items.every((it) => done.includes(it));
               const canApprove = myRank >= (LEVEL_MIN_RANK[nextLevel] ?? 99);
               const alreadyApproved = me?.role !== "Super Admin" && m.approvals.some((a) => a.byName === me?.name);
+              // The photo is mandatory: no level can be approved until the member adds one (also enforced server-side).
+              const noPhoto = !m.mainPhotoUrl;
               return (
                 <Card key={m.id} className="p-5">
                   <div className="flex flex-wrap items-center gap-3">
@@ -176,6 +178,9 @@ export default function VerifyQueue() {
                     <div className="group relative min-w-0 flex-1">
                       <Link href={`/admin/members/${m.id}`} className="text-[15px] font-semibold hover:text-maroon hover:underline">
                         {m.fullName} {m.mainPhotoUrl && <span title="Has photo">📷</span>}
+                        {noPhoto && (
+                          <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800" title="Cannot be approved until the member adds a photo">No photo</span>
+                        )}
                       </Link>
                       <div className="text-[12.5px] text-muted-foreground">
                         {m.referenceId} · {m.gender === "Female" ? "Bride" : "Groom"} · {m.denomination} · {m.congregation}
@@ -320,6 +325,11 @@ export default function VerifyQueue() {
                       <p className="text-sm text-muted-foreground">You approved an earlier level - this level needs a different approver.</p>
                     ) : (
                       <>
+                        {noPhoto && (
+                          <div className="mb-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800">
+                            This profile has no photo, so it can&apos;t be approved yet. Ask the member to add one (you can use ✉ Email above).
+                          </div>
+                        )}
                         <div className="space-y-2">
                           {items.map((it) => (
                             <label key={it} className="flex cursor-pointer items-start gap-2 text-sm">
@@ -339,13 +349,17 @@ export default function VerifyQueue() {
                         </div>
                         <Button
                           size="sm"
-                          disabled={busy === m.id || !allChecked}
+                          disabled={busy === m.id || !allChecked || noPhoto}
                           onClick={() => approve(m)}
                           className="mt-3 bg-brand-green text-white hover:bg-brand-green/90"
                         >
                           ✓ Approve Level {nextLevel}{nextLevel === 3 ? " & publish" : ""}
                         </Button>
-                        {!allChecked && <span className="ml-2 text-[12px] text-muted-foreground">Confirm all items to enable.</span>}
+                        {noPhoto ? (
+                          <span className="ml-2 text-[12px] text-muted-foreground">A photo is needed to enable.</span>
+                        ) : (
+                          !allChecked && <span className="ml-2 text-[12px] text-muted-foreground">Confirm all items to enable.</span>
+                        )}
                       </>
                     )}
                   </div>
