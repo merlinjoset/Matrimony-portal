@@ -211,19 +211,6 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
     }
   }
 
-  async function removePhoto() {
-    if (!member) return;
-    setPhotoBusy(true);
-    try {
-      await api.updateProfilePhoto(p.id, member.memberId, null);
-      setPhotoUrl(null);
-      toast.success("Photo removed.");
-    } catch {
-      toast.error("Could not remove the photo.");
-    } finally {
-      setPhotoBusy(false);
-    }
-  }
 
   async function submitReport() {
     setReporting(true);
@@ -318,16 +305,6 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
                     </span>
                     <input type="file" accept="image/*" hidden onChange={onChangePhoto} disabled={photoBusy} />
                   </label>
-                  {photoUrl && (
-                    <button
-                      type="button"
-                      onClick={removePhoto}
-                      disabled={photoBusy}
-                      className="inline-flex h-8 items-center rounded-lg border border-destructive/40 px-3 text-[13px] font-medium text-destructive hover:bg-destructive/5"
-                    >
-                      Remove
-                    </button>
-                  )}
                   <Link
                     href={`/profiles/${p.id}/edit`}
                     className="inline-flex h-8 items-center rounded-lg border border-maroon/40 px-3 text-[13px] font-medium text-maroon hover:bg-maroon/5"

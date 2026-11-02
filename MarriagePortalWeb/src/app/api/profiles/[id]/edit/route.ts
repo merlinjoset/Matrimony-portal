@@ -1,4 +1,4 @@
-import { getOwnProfile, updateProfile } from "@/lib/server/queries";
+import { getOwnProfile, isStoredPhotoUrl, updateProfile } from "@/lib/server/queries";
 import { requireMember } from "@/lib/server/guard";
 import type { UpdateProfileInput } from "@/lib/types";
 
@@ -24,6 +24,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!g.ok) return g.response;
   // The body may still carry a memberId (older clients) - it is ignored; ownership is the session.
   const dto = (await req.json()) as UpdateProfileInput;
+  // The listing photo is mandatory for members (staff edits are exempt; see the admin route).
+  if (!(await isStoredPhotoUrl(dto.mainPhotoUrl))) return new Response("A photo of the person being listed is required.", { status: 400 });
   const res = await updateProfile(id, g.memberId, dto);
   if (!res.ok) return new Response(res.message ?? "Could not update this profile.", { status: res.status });
   return Response.json({ ...res.profile, verificationReset: res.verificationReset, keyChanges: res.keyChanges });

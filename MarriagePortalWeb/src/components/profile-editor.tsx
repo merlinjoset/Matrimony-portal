@@ -135,10 +135,12 @@ export interface ProfileEditorProps {
   cancelHref: string;
   /** Show the "editing re-enters verification" note (owner edits only). */
   reverifyNote?: boolean;
+  /** Require a photo before saving (owner edits; staff edits are exempt). */
+  requirePhoto?: boolean;
 }
 
 /** Shared registration-style editor used by both the owner edit page and the admin edit page. */
-export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNote = false }: ProfileEditorProps) {
+export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNote = false, requirePhoto = false }: ProfileEditorProps) {
   const { t } = useT();
 
   const [form, setForm] = useState<UpdateProfileInput>(empty);
@@ -306,6 +308,8 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (requirePhoto && uploading) return toast.error(t("ph_wait"));
+    if (requirePhoto && !form.mainPhotoUrl) return toast.error(t("photo_req"));
     if (!form.fullName.trim()) return toast.error(t("toast_name"));
     if (!form.dateOfBirth) return toast.error(t("dob_req"));
     if ((ageOf(form.dateOfBirth) ?? 0) < MIN_AGE) return toast.error(t("dob_min"));
@@ -369,7 +373,7 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
 
       <form onSubmit={onSubmit} className="space-y-7">
         <fieldset className="space-y-4">
-          <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_photo")}</legend>
+          <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_photo")}{requirePhoto ? " *" : ""}</legend>
           <div className="flex flex-wrap items-center gap-5">
             <label className="relative grid size-28 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-xl border-2 border-dashed border-gold bg-gold/10 transition hover:bg-gold/20">
               {form.mainPhotoUrl ? (
@@ -390,7 +394,7 @@ export function ProfileEditor({ initial, onSave, onSaved, cancelHref, reverifyNo
                   </span>
                   <input type="file" accept="image/*" hidden onChange={onPhoto} disabled={uploading} />
                 </label>
-                {form.mainPhotoUrl && (
+                {form.mainPhotoUrl && !requirePhoto && (
                   <button
                     type="button"
                     onClick={() => set("mainPhotoUrl", null)}

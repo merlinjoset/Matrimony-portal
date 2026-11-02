@@ -281,6 +281,8 @@ export default function RegisterPage() {
     e.preventDefault();
     if (!identityOk) return toast.error(authMode === "card" ? t("m_required") : t("otp_required"));
     if (authMode === "card" && dupProfile) return toast.error(t("dup_profile"));
+    if (uploading) return toast.error(t("ph_wait"));
+    if (!form.mainPhotoUrl) return toast.error(t("photo_req"));
     if (!form.fullName.trim()) return toast.error(t("toast_name"));
     if (!form.dateOfBirth) return toast.error(t("dob_req"));
     if ((ageOf(form.dateOfBirth) ?? 0) < MIN_AGE) return toast.error(t("dob_min"));
@@ -529,7 +531,7 @@ export default function RegisterPage() {
           </div>
 
           <fieldset className="space-y-4">
-            <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_photo")}</legend>
+            <legend className="mb-2 w-full border-b pb-1.5 text-[15px] font-bold text-maroon">{t("lg_photo")} *</legend>
             <div className="flex flex-wrap items-center gap-5">
               <label className="relative grid size-28 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-xl border-2 border-dashed border-gold bg-gold/10 transition hover:bg-gold/20">
                 {photoPreview ? (

@@ -81,6 +81,7 @@ export default function EditProfilePage() {
           onSaved={() => router.push(`/profiles/${id}`)}
           cancelHref={`/profiles/${id}`}
           reverifyNote
+          requirePhoto
         />
       </Card>
     </section>

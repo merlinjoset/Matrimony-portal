@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { browseProfiles, createProfile, memberHasProfile, validateMembership } from "@/lib/server/queries";
+import { browseProfiles, createProfile, isStoredPhotoUrl, memberHasProfile, validateMembership } from "@/lib/server/queries";
 import { guestMemberId, verifyEmailToken } from "@/lib/server/otp";
 import { activateMemberAccountByMemberId } from "@/lib/server/auth";
 import { notifyLevelApprovers, notifyNewProfile } from "@/lib/server/notifications";
@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
 
   if (!dto.caste || !dto.caste.trim()) return new Response("Caste is required (or choose 'Caste no bar').", { status: 400 });
   if (!dto.nativePlace || !dto.nativePlace.trim()) return new Response("Native place is required.", { status: 400 });
+  // A photo of the person being listed is mandatory (mirrors the client-side rule).
+  if (!(await isStoredPhotoUrl(dto.mainPhotoUrl))) return new Response("A photo of the person being listed is required.", { status: 400 });
 
   // When someone submits a profile on behalf of the bride/groom (createdFor != "Self"), the
   // "Details of the Person Submitting the Form" consent is mandatory - enforce it server-side too.

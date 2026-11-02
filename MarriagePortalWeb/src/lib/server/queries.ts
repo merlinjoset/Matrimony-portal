@@ -563,6 +563,15 @@ export async function resolveReport(id: string, action: "dismiss" | "suspend"): 
 }
 
 /** The owner of a profile updates (or removes) its photo. Only succeeds if the member owns it. */
+/** True when `url` points at a photo actually stored in TblPhotos (uploads return "/api/photos/<id>").
+ *  The listing photo is mandatory for members, so creation and owner edits must carry one of these. */
+export async function isStoredPhotoUrl(url: string | null | undefined): Promise<boolean> {
+  const m = /^\/api\/photos\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.exec((url ?? "").trim());
+  if (!m) return false;
+  const rows = await sql`SELECT 1 FROM "TblPhotos" WHERE "Id" = ${m[1]} LIMIT 1`;
+  return rows.length > 0;
+}
+
 export async function updateProfilePhoto(profileId: string, ownerMemberId: string, url: string | null): Promise<boolean> {
   const rows = await sql`
     UPDATE "TblProfiles" SET "MainPhotoUrl" = ${url}, "UpdatedAt" = now()
