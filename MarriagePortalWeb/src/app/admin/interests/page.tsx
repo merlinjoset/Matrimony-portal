@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminHeader, Avatar, Pill } from "@/components/admin/admin-ui";
+import { ConnectionFlow } from "@/components/admin/connection-flow";
 import { api } from "@/lib/api";
 import type { AdminContactRequest, Interest, InterestStatus } from "@/lib/types";
 
@@ -36,6 +37,7 @@ export default function InterestsPage() {
   const [rows, setRows] = useState<Interest[] | null>(null);
   const [requests, setRequests] = useState<AdminContactRequest[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [view, setView] = useState<"flow" | "lists">("flow");
 
   const load = useCallback(() => {
     // Loaded independently so a hiccup in one list never blanks the other.
@@ -61,6 +63,27 @@ export default function InterestsPage() {
     <>
       <AdminHeader title="Interests" subtitle="Interests sent through the Express Interest form, and members' contact & photo requests." />
       <div className="space-y-7 p-7">
+        <div className="inline-flex rounded-lg border border-border bg-white p-1">
+          {([["flow", "Profile flow"], ["lists", "Lists"]] as const).map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              className={`rounded-md px-4 py-1.5 text-sm font-semibold ${view === v ? "bg-maroon text-white" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {view === "flow" ? (
+          rows === null || requests === null ? (
+            <Skeleton className="h-64 w-full" />
+          ) : (
+            <ConnectionFlow interests={rows} requests={requests} />
+          )
+        ) : (
+        <>
         <section>
           <h3 className="mb-1 font-semibold">Expressed interests</h3>
           <p className="mb-3 text-[12.5px] text-muted-foreground">
@@ -181,6 +204,8 @@ export default function InterestsPage() {
             )}
           </Card>
         </section>
+        </>
+        )}
       </div>
     </>
   );
