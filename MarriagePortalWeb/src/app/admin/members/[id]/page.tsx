@@ -170,6 +170,9 @@ export default function AdminMemberDetail() {
                 <Button size="sm" variant="outline" render={<Link href={`/admin/members/${id}/edit`} />} nativeButton={false}>
                   ✏️ Edit profile
                 </Button>
+                <Button size="sm" variant="outline" render={<Link href={`/admin/members/${id}/print`} target="_blank" />} nativeButton={false}>
+                  🖨️ Print resume
+                </Button>
                 {p.status === "Pending" && (
                   <>
                     <Button size="sm" render={<Link href="/admin/verify" />} nativeButton={false} className="bg-brand-green text-white hover:bg-brand-green/90">

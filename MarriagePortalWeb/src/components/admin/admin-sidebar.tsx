@@ -63,7 +63,7 @@ export function AdminSidebar({ user }: { user?: AdminUserInfo | null }) {
   return (
     <>
       {/* Mobile top bar with the menu button (hidden on desktop). */}
-      <header className="sticky top-0 z-30 flex items-center gap-3 bg-gradient-to-r from-maroon to-maroon-2 px-4 py-3 text-white lg:hidden">
+      <header className="sticky top-0 z-30 flex items-center gap-3 bg-gradient-to-r from-maroon to-maroon-2 px-4 py-3 text-white lg:hidden print:hidden">
         <button onClick={() => setOpen(true)} aria-label="Open menu" className="grid size-9 place-items-center rounded-lg hover:bg-white/10">
           <Menu className="size-6" />
         </button>
@@ -72,12 +72,12 @@ export function AdminSidebar({ user }: { user?: AdminUserInfo | null }) {
       </header>
 
       {/* Backdrop on mobile when the drawer is open. */}
-      {open && <div onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-black/50 lg:hidden" aria-hidden />}
+      {open && <div onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-black/50 lg:hidden print:hidden" aria-hidden />}
 
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col bg-gradient-to-b from-maroon to-maroon-2 text-white transition-transform duration-200",
-          "lg:sticky lg:top-0 lg:z-auto lg:w-60 lg:translate-x-0",
+          "lg:sticky lg:top-0 lg:z-auto lg:w-60 lg:translate-x-0 print:hidden",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
