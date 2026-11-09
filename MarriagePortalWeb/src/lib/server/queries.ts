@@ -923,7 +923,10 @@ export async function getShortlist(memberId: string): Promise<ProfileListItem[]>
 export async function addShortlist(memberId: string, profileId: string): Promise<void> {
   const exists = await sql`SELECT 1 FROM "TblShortlists" WHERE "MemberId" = ${memberId} AND "ProfileId" = ${profileId} AND "IsDeleted" = false LIMIT 1`;
   if (exists.length) return;
-  await sql`INSERT INTO "TblShortlists" ("Id","MemberId","ProfileId","CreatedAt","IsDeleted") VALUES (${crypto.randomUUID()}, ${memberId}, ${profileId}, now(), false)`;
+  // A legacy soft-deleted row still holds the unique (member, profile) slot: revive it instead.
+  await sql`
+    INSERT INTO "TblShortlists" ("Id","MemberId","ProfileId","CreatedAt","IsDeleted") VALUES (${crypto.randomUUID()}, ${memberId}, ${profileId}, now(), false)
+    ON CONFLICT ("MemberId","ProfileId") DO UPDATE SET "IsDeleted" = false, "CreatedAt" = now()`;
 }
 
 export async function removeShortlist(memberId: string, profileId: string): Promise<boolean> {
@@ -961,14 +964,31 @@ export async function requestContact(profileId: string, requesterMemberId: strin
   const requester = await findMemberById(requesterMemberId);
   if (!requester) throw Object.assign(new Error("Requesting member not found."), { status: 400 });
 
+  // The unique index on (requester, profile, type) also covers withdrawn (soft-deleted) rows, so
+  // asking again after revoking re-opens that row as a fresh pending request instead of inserting.
   const id = crypto.randomUUID();
   const inserted = await sql`
     INSERT INTO "TblContactRequests"
       ("Id","ProfileId","OwnerMemberId","RequesterMemberId","RequesterName","RequesterCongregation","ProfileName","ProfileReferenceId","RequestType","Status","CreatedAt","IsDeleted")
     VALUES
       (${id}, ${profileId}, ${p.OwnerMemberId as string}, ${requesterMemberId}, ${requester.name}, ${requester.congregation}, ${p.FullName as string}, ${p.ReferenceId as string}, ${type}, 'Pending', now(), false)
+    ON CONFLICT ("RequesterMemberId","ProfileId","RequestType") DO UPDATE SET
+      "OwnerMemberId" = EXCLUDED."OwnerMemberId",
+      "RequesterName" = EXCLUDED."RequesterName",
+      "RequesterCongregation" = EXCLUDED."RequesterCongregation",
+      "ProfileName" = EXCLUDED."ProfileName",
+      "ProfileReferenceId" = EXCLUDED."ProfileReferenceId",
+      "Status" = 'Pending',
+      "CreatedAt" = now(),
+      "UpdatedAt" = now(),
+      "IsDeleted" = false
+    WHERE "TblContactRequests"."IsDeleted" = true
     RETURNING *`;
-  return toContactRequest(inserted[0] as Row);
+  if (inserted[0]) return toContactRequest(inserted[0] as Row);
+  // A live request appeared in the meantime (e.g. a double tap): return that one.
+  const live = (await sql`SELECT * FROM "TblContactRequests" WHERE "RequesterMemberId" = ${requesterMemberId} AND "ProfileId" = ${profileId} AND "RequestType" = ${type} AND "IsDeleted" = false LIMIT 1`)[0];
+  if (!live) throw new Error("Could not record the request.");
+  return toContactRequest(live as Row);
 }
 
 export async function getContactReveal(profileId: string, viewerMemberId: string): Promise<ContactReveal> {

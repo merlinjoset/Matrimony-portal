@@ -186,8 +186,10 @@ function ProfileDetailContent({ p, hasPhoto }: { p: ProfileDetail; hasPhoto: boo
         photoStatus: "Pending",
       }));
       toast.success(t("photo_requested"));
-    } catch {
-      toast.error(t("c_req_err"));
+    } catch (e) {
+      // A 4xx carries a readable reason (signed out, own profile, ...); anything else is generic.
+      const err = e as { status?: number; message?: string };
+      toast.error(err.status && err.status < 500 && err.message ? err.message : t("c_req_err"));
     } finally {
       setReqBusy(false);
     }
