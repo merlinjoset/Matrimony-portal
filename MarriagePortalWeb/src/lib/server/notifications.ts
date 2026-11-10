@@ -179,15 +179,16 @@ export async function notifyContactRequested(req: ContactRequest, to: string): P
 }
 
 /**
- * Remind a listing's family that another family has expressed interest and the parish office is
- * waiting to hear whether they want to take it forward. Sent by the office from the admin
- * Interests list. The enquirer's number and message are NOT included: contact details are shared
- * only once both families agree. Returns true if the email was sent. Never throws.
+ * Tell a listing's family, in matrimony terms, that the other side's family is interested ("A
+ * groom's family is interested in your daughter", or the reverse), introduce that bride/groom
+ * briefly, and ask them to reply to the email. Sent from the admin Interests list. No phone number,
+ * email or the enquirer's own message is included: contact details are shared only once both
+ * families agree. Returns true if the email was sent. Never throws.
  */
-export async function sendInterestReminder(i: Interest, to: string): Promise<boolean> {
+export async function sendInterestReminder(i: Interest, to: string, target: ProfileDetail, enquirer: ProfileDetail | null): Promise<boolean> {
   try {
     const cfg = await getEmailSettings();
-    const { subject, html } = interestReminderEmail(i, cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com");
+    const { subject, html } = interestReminderEmail(i, target, enquirer, cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com");
     return await sendMail({ to, subject, html });
   } catch (err) {
     console.error("[notifications] sendInterestReminder failed:", err);
@@ -195,20 +196,74 @@ export async function sendInterestReminder(i: Interest, to: string): Promise<boo
   }
 }
 
-/** Subject and body of the interest reminder (kept separate so it can be previewed without sending). */
-export function interestReminderEmail(i: Interest, baseUrl: string): { subject: string; html: string } {
+/** How the parish office refers to the listed person when writing to the family that listed them. */
+const RELATION: Record<string, string> = { Son: "your son", Daughter: "your daughter", Brother: "your brother", Sister: "your sister" };
+
+/**
+ * Subject and body of the interest email (kept separate so it can be previewed without sending).
+ * `target` is the listing the interest was sent to (its family receives this email); `enquirer` is
+ * the interested side's own listing, if known.
+ */
+export function interestReminderEmail(
+  i: Interest,
+  target: Pick<ProfileDetail, "fullName" | "gender" | "createdFor">,
+  enquirer: ProfileDetail | null,
+  baseUrl: string,
+): { subject: string; html: string } {
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const when = new Date(i.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-  const from = `<strong>${esc(i.fromName)}</strong>${i.fromReferenceId ? ` (listing ${esc(i.fromReferenceId)})` : ""}`;
+  // Brides and grooms only ever match the opposite gender, so the interested side is the other role.
+  const side = target.gender === "Female" ? "groom" : "bride";
+  const isSelf = target.createdFor === "Self";
+  const relation = RELATION[target.createdFor];
+  const targetName = `<strong>${esc(target.fullName)}</strong> (${esc(i.toReferenceId)})`;
+  const targetPhrase = isSelf ? `you, ${targetName}` : relation ? `${relation} ${targetName}` : targetName;
+  const headingWho = isSelf ? "you" : relation ?? esc(target.fullName);
+  const greeting = isSelf ? `Dear ${esc(target.fullName)},` : `Dear family of ${esc(target.fullName)},`;
+
+  const who = enquirer
+    ? `the family of the ${side} <strong>${esc(enquirer.fullName)}</strong> (${esc(i.fromReferenceId ?? "")})`
+    : `the family of a ${side}, <strong>${esc(i.fromName)}</strong>,`;
+
+  // A short introduction to the interested bride/groom - only what any approved member can already
+  // see on their profile (never contact details, DOB or family names).
+  let card = "";
+  if (enquirer) {
+    const rows: [string, string | null][] = [
+      ["Name", enquirer.fullName],
+      ["Age", [enquirer.age != null ? `${enquirer.age} years` : null, enquirer.height].filter(Boolean).join(" · ") || null],
+      ["Education", enquirer.education],
+      ["Profession", enquirer.profession],
+      ["Working in", enquirer.workLocation || enquirer.city],
+      ["Native place", enquirer.nativePlace],
+      ["Church", [enquirer.denomination, enquirer.congregation].filter(Boolean).join(" · ") || null],
+    ];
+    const rowsHtml = rows
+      .filter(([, v]) => v && String(v).trim())
+      .map(([k, v]) => `<tr><td style="padding:4px 14px 4px 0;color:#8a7a6a;white-space:nowrap;vertical-align:top;">${k}</td><td style="padding:4px 0;font-weight:600;">${esc(String(v).replace(/\s+/g, " ").replace(/ ,/g, ",").trim())}</td></tr>`)
+      .join("");
+    card = `
+      <div style="border:1px solid #e6d9b8;background:#fbf7ee;border-radius:10px;padding:14px 16px;margin:0 0 16px;">
+        <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a2a38;margin-bottom:6px;">About the ${side}</div>
+        <table style="border-collapse:collapse;font-size:14px;">${rowsHtml}</table>
+      </div>`;
+  }
+  const sentBy = enquirer && i.fromName.trim().toLowerCase() !== enquirer.fullName.trim().toLowerCase()
+    ? ` The enquiry was sent by ${esc(i.fromName)} on ${when}.`
+    : ` The enquiry was sent on ${when}.`;
   const viewBtn = i.fromProfileId
-    ? `<a href="${baseUrl}/profiles/${i.fromProfileId}" style="display:inline-block;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">View their profile</a>`
+    ? `<a href="${baseUrl}/profiles/${i.fromProfileId}" style="display:inline-block;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">View the ${side}'s profile</a>`
     : "";
+
   const html = emailShell(baseUrl, `
-      <h2 style="color:#8a2a38;margin:0 0 6px;">A family is interested in your listing</h2>
-      <p style="color:#6b6b6b;margin:0 0 12px;">Hello, this is a gentle reminder from the CSI Tamil Parish, Dubai matrimony office. On ${when}, ${from} expressed interest in your listing <strong>${esc(i.toName)}</strong> (${esc(i.toReferenceId)}).</p>
-      <p style="color:#6b6b6b;margin:0 0 16px;">Please let the parish office know whether you would like to take this forward, simply by replying to this email. Contact details are shared only when both families agree.</p>
-      ${viewBtn}`);
-  return { subject: `Reminder: a family is interested in ${i.toName} (${i.toReferenceId})`, html };
+      <h2 style="color:#8a2a38;margin:0 0 10px;">A ${side}'s family is interested in ${headingWho}</h2>
+      <p style="margin:0 0 10px;">${greeting}</p>
+      <p style="color:#4a4440;margin:0 0 14px;line-height:1.5;">Greetings! We are happy to let you know that ${who} has shown interest in ${targetPhrase} and would like to take this forward.${sentBy}</p>
+      ${card}
+      <p style="color:#4a4440;margin:0 0 16px;line-height:1.5;">If you are also interested, please reply to this email. If not, a short reply is appreciated too, so the ${side}'s family can be informed kindly. Contact details are shared only when both families agree.</p>
+      ${viewBtn}
+      <p style="color:#4a4440;margin:18px 0 0;">With prayers and best wishes,<br>CSI Holy Matrimony</p>`);
+  return { subject: `A ${side}'s family is interested in ${target.fullName} (${i.toReferenceId})`, html };
 }
 
 /**

@@ -65,7 +65,7 @@ export default function InterestsPage() {
     const again = x.reminderCount > 0 ? `\n\nThey were last reminded ${ago(x.lastReminderAt!)}.` : "";
     if (!window.confirm(
       `Send a reminder email to the family of ${x.toName} (${x.toReferenceId})?\n\n` +
-      `It tells them ${x.fromName} has expressed interest and asks them to reply to the parish office. ` +
+      `It tells them the other family is interested, introduces that bride/groom and asks them to reply. ` +
       `The enquirer's number and message are not included.${again}`,
     )) return;
     setBusy(x.id);
@@ -169,7 +169,7 @@ export default function InterestsPage() {
                                 variant="outline"
                                 disabled={busy === x.id}
                                 onClick={() => remind(x)}
-                                title={`Email the family of ${x.toName} (${x.toReferenceId}) a reminder to reply to the parish office`}
+                                title={`Email the family of ${x.toName} (${x.toReferenceId}) about this interest`}
                                 className="border-maroon/30 text-maroon hover:bg-maroon/5"
                               >
                                 ✉️ Reminder email
