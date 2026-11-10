@@ -36,18 +36,18 @@ const CREATED_BY: Record<string, string> = { Self: "Self", Son: "Parents", Daugh
 function Field({ label, value, wide = false }: { label: string; value?: string | null; wide?: boolean }) {
   if (!value || !String(value).trim()) return null;
   return (
-    <div className={wide ? "col-span-2" : ""}>
+    <div className={wide ? "col-span-full" : ""}>
       <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-[#8a7a6a]">{label}</dt>
       <dd className="whitespace-pre-line text-[13px] leading-snug text-[#2c2522]">{value}</dd>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, cols = 3, children }: { title: string; cols?: 3 | 4; children: React.ReactNode }) {
   return (
     <section className="break-inside-avoid">
       <h3 className="mb-2 border-b border-[#c2a04a] pb-1 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8a2a38]">{title}</h3>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-2">{children}</dl>
+      <dl className={`grid gap-x-6 gap-y-2 ${cols === 4 ? "grid-cols-4" : "grid-cols-3"}`}>{children}</dl>
     </section>
   );
 }
@@ -78,7 +78,7 @@ export function ProfileResume({ p, backHref }: { p: OwnProfileDetail; backHref: 
   return (
     <div className="p-6 print:p-0">
       <style>{`
-        @page { size: A4; margin: 12mm; }
+        @page { size: A4; margin: 10mm 12mm; }
         @media print {
           html, body, .bg-cream { background: #fff !important; }
           .resume { box-shadow: none !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -115,39 +115,43 @@ export function ProfileResume({ p, backHref }: { p: OwnProfileDetail; backHref: 
           </div>
         </header>
 
-        <div className="mt-5 flex gap-5">
+        <div className="mt-5 flex flex-col gap-5 sm:flex-row">
           {withPhoto && p.mainPhotoUrl && (
+            // A large 3:4 frame (most uploads are 3:4) so a full-length photo still shows the face
+            // clearly; object-top keeps the head in view when a taller photo has to be trimmed.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.mainPhotoUrl} alt={p.fullName} className="h-[46mm] w-[37mm] shrink-0 rounded-md border-2 border-[#c2a04a] object-cover" />
+            <img src={p.mainPhotoUrl} alt={p.fullName} className="h-[75mm] w-[56mm] shrink-0 rounded-md border-2 border-[#c2a04a] object-cover object-top" />
           )}
           <div className="min-w-0 flex-1">
             <h1 className="text-[26px] font-bold leading-tight text-[#15224c]">{p.fullName}</h1>
             <p className="mt-0.5 text-[13.5px] text-[#5c6377]">
               {[role, age != null ? `${age} years` : null, p.height, p.city].filter(Boolean).join(" · ")}
             </p>
-            <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2">
+            <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2.5">
               <Field label="Date of birth" value={dob ? longDate(dob) : null} />
               <Field label="Marital status" value={p.maritalStatus} />
               <Field label="Mother tongue" value={p.motherTongue} />
               <Field label="Caste" value={p.caste === "Caste No Bar" ? "Caste no bar" : p.caste} />
               <Field label="Native place" value={p.nativePlace} />
               <Field label="Profile created by" value={CREATED_BY[p.createdFor] ?? p.createdFor} />
+              <Field label="Denomination" value={p.denomination} />
+              <Field label="Congregation" value={p.congregation} />
+              <Field label="Home parish / church" value={p.homeParish} wide />
             </dl>
           </div>
         </div>
 
-        <div className="mt-6 space-y-5">
-          <Section title="Faith & church">
-            <Field label="Denomination" value={p.denomination} />
-            <Field label="Congregation" value={p.congregation} />
-            <Field label="Home parish / church" value={p.homeParish} wide />
-            <Field label="Walk of faith" value={p.aboutFaith} wide />
-          </Section>
+        <div className="mt-5 space-y-4">
+          {p.aboutFaith?.trim() && (
+            <Section title="Faith">
+              <Field label="Walk of faith" value={p.aboutFaith} wide />
+            </Section>
+          )}
 
           <Section title="Family">
             <Field label="Father" value={parent(p.fatherName, p.fatherOccupation)} />
             <Field label="Mother" value={parent(p.motherName, p.motherOccupation)} />
-            <Field label="Siblings" value={siblingsText} wide />
+            <Field label="Siblings" value={siblingsText} />
           </Section>
 
           <Section title="Education & profession">
@@ -158,7 +162,7 @@ export function ProfileResume({ p, backHref }: { p: OwnProfileDetail; backHref: 
             <Field label="Salary" value={p.salary} />
           </Section>
 
-          <Section title="Partner expectations">
+          <Section title="Partner expectations" cols={4}>
             <Field label="Expectations" value={p.expectations} wide />
             <Field label="Preferred caste" value={p.partnerCaste === "Caste No Bar" ? "Caste no bar" : p.partnerCaste} />
             <Field label="Preferred denomination" value={p.partnerDenomination === "Any" ? "Any denomination" : p.partnerDenomination} />
@@ -170,12 +174,12 @@ export function ProfileResume({ p, backHref }: { p: OwnProfileDetail; backHref: 
             <Section title="Contact">
               <Field label="Mobile" value={p.mobile} />
               <Field label="Alternate mobile" value={p.mobile2} />
-              <Field label="Email" value={p.email} wide />
+              <Field label="Email" value={p.email} />
             </Section>
           )}
         </div>
 
-        <footer className="mt-8 border-t border-[#e6e0d8] pt-3 text-center text-[10.5px] leading-relaxed text-[#9a8f84]">
+        <footer className="mt-6 border-t border-[#e6e0d8] pt-3 text-center text-[10.5px] leading-relaxed text-[#9a8f84]">
           Confidential. Prepared by the CSI Tamil Parish, Dubai office for matrimonial purposes only; please do not copy or share further.
         </footer>
       </article>
