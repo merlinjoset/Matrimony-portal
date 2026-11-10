@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { ProfileDetailView } from "@/components/profile-detail-view";
 import { MemberGate } from "@/components/member-gate";
-import { getProfile, memberHasApprovedProfile } from "@/lib/server/queries";
+import { getProfile, memberHasApprovedProfile, viewableGenderFor } from "@/lib/server/queries";
 import { getMemberSession } from "@/lib/server/member-session";
 import { requireAdmin } from "@/lib/server/guard";
 
@@ -27,6 +27,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     if (!canView) {
       // Signed-in member without an approved profile, viewing someone else - show the gate, no data.
       return <MemberGate requireProfile>{null}</MemberGate>;
+    }
+    // A groom may see only brides and a bride only grooms, even from a shared link.
+    if (!isOwner) {
+      const g = await viewableGenderFor(memberId!);
+      if (g && p.gender !== g) notFound();
     }
   }
   // The photo is private: never send the URL in the page payload. The client reveals it

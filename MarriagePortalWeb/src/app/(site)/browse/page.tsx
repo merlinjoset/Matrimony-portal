@@ -1,5 +1,5 @@
 import { BrowseView } from "@/components/browse-view";
-import { browseProfiles, getMemberOwnProfileBrief, memberHasApprovedProfile } from "@/lib/server/queries";
+import { browseProfiles, memberHasApprovedProfile, viewableGenderFor } from "@/lib/server/queries";
 import { getMemberSession } from "@/lib/server/member-session";
 import type { ProfileListItem } from "@/lib/types";
 
@@ -30,8 +30,7 @@ export default async function BrowsePage({
       // A groom sees brides and a bride sees grooms, never their own listing. Both rules are applied
       // in the query (not by filtering one page in the browser), so the count and the pages cover
       // every matching profile.
-      const own = await getMemberOwnProfileBrief(memberId);
-      const gender = own?.gender === "Male" ? "Female" : own?.gender === "Female" ? "Male" : undefined;
+      const gender = (await viewableGenderFor(memberId)) ?? undefined;
       const requested = Number(sp.page);
       const res = await browseProfiles({
         gender,

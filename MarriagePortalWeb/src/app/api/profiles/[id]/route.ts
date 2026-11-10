@@ -1,4 +1,4 @@
-import { getProfile, memberHasApprovedProfile } from "@/lib/server/queries";
+import { getProfile, memberHasApprovedProfile, viewableGenderFor } from "@/lib/server/queries";
 import { requireAdmin } from "@/lib/server/guard";
 import { getMemberSession } from "@/lib/server/member-session";
 
@@ -10,8 +10,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   // the client gate). Never expose profile data (email, family, salary, photo URL, ...) otherwise.
   // The member-facing page renders server-side; this API is used by the admin panel.
   const isAdmin = (await requireAdmin()).ok;
+  const memberId = isAdmin ? null : await getMemberSession();
   if (!isAdmin) {
-    const memberId = await getMemberSession();
     if (!memberId) return new Response("Please sign in to view profiles.", { status: 401 });
     if (!(await memberHasApprovedProfile(memberId))) {
       return new Response("Your profile must be approved before you can view others.", { status: 403 });
@@ -20,6 +20,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const profile = await getProfile(id);
   if (!profile) return new Response("Profile not found.", { status: 404 });
+  // A groom may see only brides and a bride only grooms (their own listing excepted).
+  if (memberId && profile.ownerMemberId !== memberId) {
+    const g = await viewableGenderFor(memberId);
+    if (g && profile.gender !== g) return new Response("Profile not found.", { status: 404 });
+  }
   // Admins see everything. Signed-in members get the same view as the profile page: the contact
   // number, DOB, membership, presbyter and the photo URL stay hidden (the photo is revealed only
   // through the approval flow).

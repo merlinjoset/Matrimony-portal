@@ -911,6 +911,19 @@ export async function getMemberOwnProfileBrief(
   return p ? { id: p.Id as string, referenceId: p.ReferenceId as string, status: p.Status as string, gender: p.Gender as string } : null;
 }
 
+/** The gender a member may see and contact: the opposite of their own listing's (a groom sees only
+ *  brides, a bride only grooms). Null when the member has no listing yet. */
+export async function viewableGenderFor(memberId: string): Promise<"Male" | "Female" | null> {
+  const own = await getMemberOwnProfileBrief(memberId);
+  return own?.gender === "Male" ? "Female" : own?.gender === "Female" ? "Male" : null;
+}
+
+/** True unless the listing is the member's own gender (which they may not see or contact). */
+async function isViewableGender(memberId: string, profileGender: unknown): Promise<boolean> {
+  const g = await viewableGenderFor(memberId);
+  return !g || profileGender === g;
+}
+
 // ---------- shortlist ----------
 export async function getShortlist(memberId: string): Promise<ProfileListItem[]> {
   const rows = await sql`
@@ -923,13 +936,17 @@ export async function getShortlist(memberId: string): Promise<ProfileListItem[]>
   return rows.map((r) => toListItem(r as Row));
 }
 
-export async function addShortlist(memberId: string, profileId: string): Promise<void> {
+/** Returns false when there is no such listing, or it is one the member may not see (own gender). */
+export async function addShortlist(memberId: string, profileId: string): Promise<boolean> {
+  const p = (await sql`SELECT "Gender" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
+  if (!p || !(await isViewableGender(memberId, p.Gender))) return false;
   const exists = await sql`SELECT 1 FROM "TblShortlists" WHERE "MemberId" = ${memberId} AND "ProfileId" = ${profileId} AND "IsDeleted" = false LIMIT 1`;
-  if (exists.length) return;
+  if (exists.length) return true;
   // A legacy soft-deleted row still holds the unique (member, profile) slot: revive it instead.
   await sql`
     INSERT INTO "TblShortlists" ("Id","MemberId","ProfileId","CreatedAt","IsDeleted") VALUES (${crypto.randomUUID()}, ${memberId}, ${profileId}, now(), false)
     ON CONFLICT ("MemberId","ProfileId") DO UPDATE SET "IsDeleted" = false, "CreatedAt" = now()`;
+  return true;
 }
 
 export async function removeShortlist(memberId: string, profileId: string): Promise<boolean> {
@@ -956,10 +973,11 @@ function toContactRequest(r: Row): ContactRequest {
 
 /** Create a request to reveal a profile's contact number OR photo (independent approvals). */
 export async function requestContact(profileId: string, requesterMemberId: string, type: RequestType = "Contact"): Promise<ContactRequest> {
-  const p = (await sql`SELECT "Id","FullName","ReferenceId","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
+  const p = (await sql`SELECT "Id","FullName","ReferenceId","OwnerMemberId","Gender" FROM "TblProfiles" WHERE "Id" = ${profileId} AND "IsDeleted" = false LIMIT 1`)[0];
   if (!p) throw Object.assign(new Error("Profile not found."), { status: 404 });
   if (!p.OwnerMemberId) throw Object.assign(new Error("This profile is not yet linked to a member account, so it cannot be requested."), { status: 400 });
   if (p.OwnerMemberId === requesterMemberId) throw Object.assign(new Error("This is your own profile."), { status: 400 });
+  if (!(await isViewableGender(requesterMemberId, p.Gender))) throw Object.assign(new Error("Profile not found."), { status: 404 });
 
   const existing = (await sql`SELECT * FROM "TblContactRequests" WHERE "RequesterMemberId" = ${requesterMemberId} AND "ProfileId" = ${profileId} AND "RequestType" = ${type} AND "IsDeleted" = false LIMIT 1`)[0];
   if (existing) return toContactRequest(existing as Row);
@@ -1125,11 +1143,12 @@ function toInterest(r: Row): Interest {
  * open returns that interest instead of saving a duplicate.
  */
 export async function createInterest(dto: CreateInterestInput, fromMemberId: string): Promise<Interest | null> {
-  const p = (await sql`SELECT "Id","FullName","ReferenceId","OwnerMemberId" FROM "TblProfiles" WHERE "Id" = ${dto.toProfileId} AND "IsDeleted" = false LIMIT 1`)[0];
+  const p = (await sql`SELECT "Id","FullName","ReferenceId","OwnerMemberId","Gender" FROM "TblProfiles" WHERE "Id" = ${dto.toProfileId} AND "IsDeleted" = false LIMIT 1`)[0];
   if (!p) return null;
   if (p.OwnerMemberId === fromMemberId) {
     throw Object.assign(new Error("This is your own profile."), { status: 400 });
   }
+  if (!(await isViewableGender(fromMemberId, p.Gender))) return null; // own gender: treated as not found
   const existing = (await sql`
     SELECT * FROM "TblInterests"
     WHERE "FromMemberId" = ${fromMemberId} AND "ToProfileId" = ${p.Id as string}

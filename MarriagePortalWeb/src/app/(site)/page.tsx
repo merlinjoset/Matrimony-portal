@@ -7,7 +7,7 @@ import {
   FeaturesSection,
   FeaturedSection,
 } from "@/components/home/home-sections";
-import { browseProfiles, memberHasApprovedProfile } from "@/lib/server/queries";
+import { browseProfiles, memberHasApprovedProfile, viewableGenderFor } from "@/lib/server/queries";
 import { getMemberSession } from "@/lib/server/member-session";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,9 @@ async function FeaturedProfiles() {
   }
   let items;
   try {
-    items = (await browseProfiles({ pageSize: 3, live: true })).items;
+    // Same rule as Browse: only the opposite gender, never the viewer's own listing.
+    const gender = (await viewableGenderFor(memberId)) ?? undefined;
+    items = (await browseProfiles({ pageSize: 3, live: true, gender, excludeOwnerMemberId: memberId })).items;
   } catch {
     return (
       <p className="text-center text-muted-foreground">Could not load profiles right now. Please refresh.</p>

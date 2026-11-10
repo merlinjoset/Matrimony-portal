@@ -14,6 +14,6 @@ export async function POST(req: Request) {
   const g = await requireMember();
   if (!g.ok) return g.response;
   const body = (await req.json()) as { profileId: string };
-  await addShortlist(g.memberId, body.profileId);
-  return new Response(null, { status: 204 });
+  const ok = await addShortlist(g.memberId, body.profileId);
+  return ok ? new Response(null, { status: 204 }) : new Response("Profile not found.", { status: 404 });
 }
