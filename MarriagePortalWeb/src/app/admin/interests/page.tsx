@@ -77,7 +77,6 @@ export default function InterestsPage() {
     try {
       const r = await api.remindInterest(x.id);
       setRows((rs) => rs?.map((y) => (y.id === x.id ? { ...y, ...r } : y)) ?? null);
-      setOpenHistory(x.id);
       toast.success(`Reminder sent to the family of ${x.toName}.`);
     } catch (e) {
       const err = e as { status?: number; message?: string };
@@ -185,7 +184,7 @@ export default function InterestsPage() {
                         ) : (
                           <span className="text-[12.5px] text-muted-foreground">-</span>
                         )}
-                        {/* Reminder history - kept for every status, so it stays visible after a decision. */}
+                        {/* Reminder history - closed by default; click to open. Kept for every status. */}
                         {x.reminderCount > 0 && x.lastReminderAt && (
                           <div className="mt-1.5 text-[11.5px] text-muted-foreground">
                             <button
@@ -194,7 +193,7 @@ export default function InterestsPage() {
                               className="text-left hover:text-foreground hover:underline"
                               aria-expanded={openHistory === x.id}
                             >
-                              ✉️ Reminded {ago(x.lastReminderAt)}{x.reminderCount > 1 ? ` (${x.reminderCount} times)` : ""} · {openHistory === x.id ? "Hide history ▴" : "History ▾"}
+                              ✉️ Reminded {ago(x.lastReminderAt)}{x.reminderCount > 1 ? ` (${x.reminderCount} times)` : ""} · {openHistory === x.id ? "Hide history ▴" : "View history ▾"}
                             </button>
                             {openHistory === x.id && (
                               <ol className="mt-1.5 space-y-1 border-l-2 border-maroon/20 pl-2.5">
