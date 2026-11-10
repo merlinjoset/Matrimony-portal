@@ -17,7 +17,8 @@ function ago(iso: string) {
   if (m < 60) return `${m} min ago`;
   const h = Math.round(m / 60);
   if (h < 24) return `${h} hr ago`;
-  return `${Math.round(h / 24)} days ago`;
+  const d = Math.round(h / 24);
+  return `${d} day${d === 1 ? "" : "s"} ago`;
 }
 
 const tone = (s: InterestStatus) => (s === "Accepted" ? "green" : s === "Awaiting" ? "amber" : "grey");
@@ -54,6 +55,27 @@ export default function InterestsPage() {
       load();
     } catch {
       toast.error("Action failed. Is the API running?");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  // Email the family of the listing the interest was sent to, asking them to reply to the office.
+  async function remind(x: Interest) {
+    const again = x.reminderCount > 0 ? `\n\nThey were last reminded ${ago(x.lastReminderAt!)}.` : "";
+    if (!window.confirm(
+      `Send a reminder email to the family of ${x.toName} (${x.toReferenceId})?\n\n` +
+      `It tells them ${x.fromName} has expressed interest and asks them to reply to the parish office. ` +
+      `The enquirer's number and message are not included.${again}`,
+    )) return;
+    setBusy(x.id);
+    try {
+      const r = await api.remindInterest(x.id);
+      setRows((rs) => rs?.map((y) => (y.id === x.id ? { ...y, ...r } : y)) ?? null);
+      toast.success(`Reminder sent to the family of ${x.toName}.`);
+    } catch (e) {
+      const err = e as { status?: number; message?: string };
+      toast.error(err.status && err.message ? err.message : "Could not send the reminder. Please try again.");
     } finally {
       setBusy(null);
     }
@@ -134,13 +156,30 @@ export default function InterestsPage() {
                       <td className="px-5 py-3"><Pill tone={tone(x.status)}>{x.status}</Pill></td>
                       <td className="px-5 py-3">
                         {x.status === "Awaiting" ? (
-                          <div className="flex gap-2">
-                            <Button size="sm" disabled={busy === x.id} onClick={() => decide(x.id, "Accepted")} className="bg-brand-green text-white hover:bg-brand-green/90">
-                              Accept
-                            </Button>
-                            <Button size="sm" variant="outline" disabled={busy === x.id} onClick={() => decide(x.id, "Declined")} className="border-destructive/40 text-destructive hover:bg-destructive/5">
-                              Decline
-                            </Button>
+                          <div>
+                            <div className="flex flex-wrap gap-2">
+                              <Button size="sm" disabled={busy === x.id} onClick={() => decide(x.id, "Accepted")} className="bg-brand-green text-white hover:bg-brand-green/90">
+                                Accept
+                              </Button>
+                              <Button size="sm" variant="outline" disabled={busy === x.id} onClick={() => decide(x.id, "Declined")} className="border-destructive/40 text-destructive hover:bg-destructive/5">
+                                Decline
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busy === x.id}
+                                onClick={() => remind(x)}
+                                title={`Email the family of ${x.toName} (${x.toReferenceId}) a reminder to reply to the parish office`}
+                                className="border-maroon/30 text-maroon hover:bg-maroon/5"
+                              >
+                                ✉️ Reminder email
+                              </Button>
+                            </div>
+                            {x.lastReminderAt && (
+                              <div className="mt-1 text-[11.5px] text-muted-foreground">
+                                Reminded {ago(x.lastReminderAt)}{x.reminderCount > 1 ? ` (${x.reminderCount} times)` : ""}
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <span className="text-[12.5px] text-muted-foreground">-</span>

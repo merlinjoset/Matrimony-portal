@@ -298,6 +298,11 @@ export const api = {
     });
   },
 
+  // Admin: email the listing's family a reminder about a pending interest.
+  remindInterest(id: string): Promise<{ lastReminderAt: string; reminderCount: number }> {
+    return http<{ lastReminderAt: string; reminderCount: number }>(`/interests/${id}/remind`, { method: "POST" });
+  },
+
   // ---- Auth (username + password) ----
   signup(membershipNo: string, username: string, password: string): Promise<{ message: string }> {
     return http<{ message: string }>(`/auth/signup`, {

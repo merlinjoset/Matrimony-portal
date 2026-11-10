@@ -380,6 +380,9 @@ export interface Interest {
   message: string | null;
   status: InterestStatus;
   createdAt: string;
+  /** When the parish office last emailed the listing's family a reminder about this interest. */
+  lastReminderAt: string | null;
+  reminderCount: number;
 }
 
 /** A member's request to see another listing's contact number or photo, as the parish office sees it. */

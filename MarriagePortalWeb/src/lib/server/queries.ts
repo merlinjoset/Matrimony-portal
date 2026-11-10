@@ -1133,6 +1133,8 @@ function toInterest(r: Row): Interest {
     message: s(r.Message),
     status: r.Status as Interest["status"],
     createdAt: new Date(r.CreatedAt as string).toISOString(),
+    lastReminderAt: r.LastReminderAt ? new Date(r.LastReminderAt as string).toISOString() : null,
+    reminderCount: Number(r.ReminderCount ?? 0),
   };
 }
 
@@ -1211,6 +1213,20 @@ export async function listAllContactRequests(): Promise<AdminContactRequest[]> {
     requesterProfileId: s(r.RequesterProfileId),
     requesterReferenceId: s(r.RequesterReferenceId),
   }));
+}
+
+/** A pending interest, for the office's reminder email. Null unless it exists and is still Awaiting. */
+export async function getAwaitingInterest(id: string): Promise<Interest | null> {
+  const r = (await sql`SELECT * FROM "TblInterests" WHERE "Id" = ${id} AND "IsDeleted" = false AND "Status" = 'Awaiting' LIMIT 1`)[0];
+  return r ? toInterest(r as Row) : null;
+}
+
+/** Record that a reminder email went out for this interest. */
+export async function markInterestReminded(id: string): Promise<{ lastReminderAt: string; reminderCount: number }> {
+  const r = (await sql`
+    UPDATE "TblInterests" SET "LastReminderAt" = now(), "ReminderCount" = "ReminderCount" + 1
+    WHERE "Id" = ${id} RETURNING "LastReminderAt","ReminderCount"`)[0];
+  return { lastReminderAt: new Date(r.LastReminderAt as string).toISOString(), reminderCount: Number(r.ReminderCount) };
 }
 
 export async function setInterestStatus(id: string, status: string): Promise<boolean> {

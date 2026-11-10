@@ -1,5 +1,5 @@
 import "server-only";
-import type { ContactRequest, ProfileDetail } from "@/lib/types";
+import type { ContactRequest, Interest, ProfileDetail } from "@/lib/types";
 import { LEVEL_LABEL } from "@/lib/types";
 import type { ReverifyDue } from "./queries";
 import { sendAdminMail, sendMail } from "./mailer";
@@ -176,6 +176,39 @@ export async function notifyContactRequested(req: ContactRequest, to: string): P
   } catch (err) {
     console.error("[notifications] notifyContactRequested failed:", err);
   }
+}
+
+/**
+ * Remind a listing's family that another family has expressed interest and the parish office is
+ * waiting to hear whether they want to take it forward. Sent by the office from the admin
+ * Interests list. The enquirer's number and message are NOT included: contact details are shared
+ * only once both families agree. Returns true if the email was sent. Never throws.
+ */
+export async function sendInterestReminder(i: Interest, to: string): Promise<boolean> {
+  try {
+    const cfg = await getEmailSettings();
+    const { subject, html } = interestReminderEmail(i, cfg.appBaseUrl || "https://matrimony.csitamilparishdubai.com");
+    return await sendMail({ to, subject, html });
+  } catch (err) {
+    console.error("[notifications] sendInterestReminder failed:", err);
+    return false;
+  }
+}
+
+/** Subject and body of the interest reminder (kept separate so it can be previewed without sending). */
+export function interestReminderEmail(i: Interest, baseUrl: string): { subject: string; html: string } {
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const when = new Date(i.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const from = `<strong>${esc(i.fromName)}</strong>${i.fromReferenceId ? ` (listing ${esc(i.fromReferenceId)})` : ""}`;
+  const viewBtn = i.fromProfileId
+    ? `<a href="${baseUrl}/profiles/${i.fromProfileId}" style="display:inline-block;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">View their profile</a>`
+    : "";
+  const html = emailShell(baseUrl, `
+      <h2 style="color:#8a2a38;margin:0 0 6px;">A family is interested in your listing</h2>
+      <p style="color:#6b6b6b;margin:0 0 12px;">Hello, this is a gentle reminder from the CSI Tamil Parish, Dubai matrimony office. On ${when}, ${from} expressed interest in your listing <strong>${esc(i.toName)}</strong> (${esc(i.toReferenceId)}).</p>
+      <p style="color:#6b6b6b;margin:0 0 16px;">Please let the parish office know whether you would like to take this forward, simply by replying to this email. Contact details are shared only when both families agree.</p>
+      ${viewBtn}`);
+  return { subject: `Reminder: a family is interested in ${i.toName} (${i.toReferenceId})`, html };
 }
 
 /**
