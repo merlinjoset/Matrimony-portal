@@ -10,6 +10,7 @@ import type {
   CreateProfileInput,
   CreateUserInput,
   Interest,
+  InterestReminder,
   ContactRequest,
   ContactRequestStatus,
   ContactReveal,
@@ -1135,7 +1136,30 @@ function toInterest(r: Row): Interest {
     createdAt: new Date(r.CreatedAt as string).toISOString(),
     lastReminderAt: r.LastReminderAt ? new Date(r.LastReminderAt as string).toISOString() : null,
     reminderCount: Number(r.ReminderCount ?? 0),
+    reminders: toReminders(r.Reminders),
   };
+}
+
+/** The json_agg'd reminder history (see listInterests), newest first. */
+function toReminders(v: unknown): InterestReminder[] {
+  if (!Array.isArray(v)) return [];
+  return v.map((x: { sentAt: string; sentByName: string | null; toEmail: string | null }) => ({
+    sentAt: new Date(x.sentAt).toISOString(),
+    sentByName: x.sentByName ?? null,
+    toEmail: x.toEmail ?? null,
+  }));
+}
+
+/** The reminder history of one interest, newest first. */
+async function getInterestReminders(interestId: string): Promise<InterestReminder[]> {
+  const rows = await sql`
+    SELECT "SentAt","SentByName","ToEmail" FROM "TblInterestReminders"
+    WHERE "InterestId" = ${interestId} ORDER BY "SentAt" DESC`;
+  return rows.map((r) => ({
+    sentAt: new Date(r.SentAt as string).toISOString(),
+    sentByName: s(r.SentByName),
+    toEmail: s(r.ToEmail),
+  }));
 }
 
 /**
@@ -1173,8 +1197,13 @@ export async function listInterests(): Promise<Interest[]> {
   // Interests saved before the sender was recorded are matched to a listing by the last 9 digits of
   // the mobile they typed (the form pre-fills it from their own listing), and flagged as matched.
   const rows = await sql`
-    SELECT i.*, m."Id" AS "MatchedProfileId", m."ReferenceId" AS "MatchedReferenceId"
+    SELECT i.*, m."Id" AS "MatchedProfileId", m."ReferenceId" AS "MatchedReferenceId", rem."Reminders"
     FROM "TblInterests" i
+    LEFT JOIN LATERAL (
+      SELECT json_agg(json_build_object('sentAt', r."SentAt", 'sentByName', r."SentByName", 'toEmail', r."ToEmail")
+                      ORDER BY r."SentAt" DESC) AS "Reminders"
+      FROM "TblInterestReminders" r WHERE r."InterestId" = i."Id"
+    ) rem ON true
     LEFT JOIN LATERAL (
       SELECT p."Id", p."ReferenceId" FROM "TblProfiles" p
       WHERE i."FromReferenceId" IS NULL AND p."IsDeleted" = false
@@ -1221,12 +1250,24 @@ export async function getAwaitingInterest(id: string): Promise<Interest | null> 
   return r ? toInterest(r as Row) : null;
 }
 
-/** Record that a reminder email went out for this interest. */
-export async function markInterestReminded(id: string): Promise<{ lastReminderAt: string; reminderCount: number }> {
+/** Record that a reminder email went out for this interest: a history row (who sent it, to which
+ *  address) plus the summary on the interest. Returns the updated summary and full history. */
+export async function markInterestReminded(
+  id: string,
+  sentBy: { id: string; name: string },
+  toEmail: string,
+): Promise<{ lastReminderAt: string; reminderCount: number; reminders: InterestReminder[] }> {
+  await sql`
+    INSERT INTO "TblInterestReminders" ("Id","InterestId","SentAt","SentById","SentByName","ToEmail")
+    VALUES (${crypto.randomUUID()}, ${id}, now(), ${sentBy.id}, ${sentBy.name}, ${toEmail})`;
   const r = (await sql`
     UPDATE "TblInterests" SET "LastReminderAt" = now(), "ReminderCount" = "ReminderCount" + 1
     WHERE "Id" = ${id} RETURNING "LastReminderAt","ReminderCount"`)[0];
-  return { lastReminderAt: new Date(r.LastReminderAt as string).toISOString(), reminderCount: Number(r.ReminderCount) };
+  return {
+    lastReminderAt: new Date(r.LastReminderAt as string).toISOString(),
+    reminderCount: Number(r.ReminderCount),
+    reminders: await getInterestReminders(id),
+  };
 }
 
 export async function setInterestStatus(id: string, status: string): Promise<boolean> {

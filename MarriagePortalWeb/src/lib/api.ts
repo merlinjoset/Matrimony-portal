@@ -299,8 +299,8 @@ export const api = {
   },
 
   // Admin: email the listing's family a reminder about a pending interest.
-  remindInterest(id: string): Promise<{ lastReminderAt: string; reminderCount: number }> {
-    return http<{ lastReminderAt: string; reminderCount: number }>(`/interests/${id}/remind`, { method: "POST" });
+  remindInterest(id: string): Promise<Pick<Interest, "lastReminderAt" | "reminderCount" | "reminders">> {
+    return http<Pick<Interest, "lastReminderAt" | "reminderCount" | "reminders">>(`/interests/${id}/remind`, { method: "POST" });
   },
 
   // ---- Auth (username + password) ----

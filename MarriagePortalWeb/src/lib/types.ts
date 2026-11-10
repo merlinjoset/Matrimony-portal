@@ -383,6 +383,15 @@ export interface Interest {
   /** When the parish office last emailed the listing's family a reminder about this interest. */
   lastReminderAt: string | null;
   reminderCount: number;
+  /** Every reminder sent for this interest, newest first (admin list only; empty elsewhere). */
+  reminders: InterestReminder[];
+}
+
+/** One reminder email sent from Admin > Interests. */
+export interface InterestReminder {
+  sentAt: string;
+  sentByName: string | null;
+  toEmail: string | null;
 }
 
 /** A member's request to see another listing's contact number or photo, as the parish office sees it. */

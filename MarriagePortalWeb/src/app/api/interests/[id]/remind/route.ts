@@ -24,5 +24,5 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const sent = await sendInterestReminder(interest, to, target, enquirer);
   if (!sent) return new Response("The email could not be sent. Please check Admin > Settings > Email.", { status: 502 });
 
-  return Response.json(await markInterestReminded(id));
+  return Response.json(await markInterestReminded(id, { id: g.admin.id, name: g.admin.name }, to));
 }
