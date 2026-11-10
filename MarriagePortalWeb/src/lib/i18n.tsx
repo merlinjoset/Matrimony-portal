@@ -86,6 +86,9 @@ const en: Dict = {
   results_found: "profiles found",
   result_found: "profile found",
   no_match: "No profiles match these filters.",
+  pager_prev: "← Previous",
+  pager_next: "Next →",
+  pager_page: "Page",
   api_down: "Could not reach the server. Please check your connection and try again.",
 
   // card / common
@@ -499,6 +502,9 @@ const ta: Dict = {
   results_found: "சுயவிவரங்கள் கிடைத்தன",
   result_found: "சுயவிவரம் கிடைத்தது",
   no_match: "இந்த வடிப்பான்களுக்கு பொருந்தும் சுயவிவரம் இல்லை.",
+  pager_prev: "← முந்தைய",
+  pager_next: "அடுத்து →",
+  pager_page: "பக்கம்",
   api_down: "சேவையகத்தை அணுக முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
 
   yrs: "வயது",

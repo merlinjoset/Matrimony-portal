@@ -127,6 +127,8 @@ export interface ProfileQuery {
   status?: string;
   excludeStatus?: string; // omit a status from the results (e.g. hide Committed from the main list)
   live?: boolean;
+  /** Leave out this member's own listing(s) (the member Browse page never shows the viewer themself). */
+  excludeOwnerMemberId?: string;
   page?: number;
   pageSize?: number;
   /** Include each listing's photo URL. Off by default so member-facing lists never leak
@@ -155,6 +157,7 @@ export async function browseProfiles(q: ProfileQuery): Promise<PagedResult<Profi
   if (q.status) where = sql`${where} AND "Status" = ${q.status}`;
   if (q.excludeStatus) where = sql`${where} AND "Status" <> ${q.excludeStatus}`;
   if (q.live) where = sql`${where} AND ("Status" = 'Verified' OR "Status" = 'Active')`;
+  if (q.excludeOwnerMemberId) where = sql`${where} AND "OwnerMemberId" IS DISTINCT FROM ${q.excludeOwnerMemberId}`;
 
   const countRows = await sql`SELECT count(*)::int AS count FROM "TblProfiles" WHERE ${where}`;
   const total = Number(countRows[0].count);
