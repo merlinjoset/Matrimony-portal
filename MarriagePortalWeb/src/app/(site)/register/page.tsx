@@ -93,6 +93,14 @@ function isoYearsAgo(years: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Scrolls a form field into view and focuses it, so a validation toast points at what to fix. */
+function focusField(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  el.focus({ preventScroll: true });
+}
+
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`space-y-1.5${className ? ` ${className}` : ""}`}>
@@ -281,6 +289,15 @@ export default function RegisterPage() {
     e.preventDefault();
     if (!identityOk) return toast.error(authMode === "card" ? t("m_required") : t("otp_required"));
     if (authMode === "card" && dupProfile) return toast.error(t("dup_profile"));
+    // Guests choose a username + password: this creates their member login (admin activates it).
+    // Checked in form order (the login section is near the top) with the same rules as the server,
+    // and the field is brought into view so a long form on a phone shows what to fix.
+    if (!member) {
+      const u = username.trim();
+      if (u.length < 3) { focusField("reg-username"); return toast.error(t("acc_user_req")); }
+      if (!/^[a-zA-Z0-9_.@-]+$/.test(u)) { focusField("reg-username"); return toast.error(t("acc_user_chars")); }
+      if (password.length < 6) { focusField("reg-password"); return toast.error(t("acc_pw_req")); }
+    }
     if (uploading) return toast.error(t("ph_wait"));
     if (!form.mainPhotoUrl) return toast.error(t("photo_req"));
     if (!form.fullName.trim()) return toast.error(t("toast_name"));
@@ -295,8 +312,6 @@ export default function RegisterPage() {
     const pmax2 = phoneMax(dialCode2);
     if (phone2 && pmax2 > 0 && phone2.length !== pmax2) return toast.error(t("mobile_len"));
     if (!agree) return toast.error(t("tc_req"));
-    // Guests choose a username + password: this creates their member login (admin activates it).
-    if (!member && (!username.trim() || password.length < 6)) return toast.error(t("acc_hint"));
     // Creating on behalf of someone else? The consent (captured via the popup at the T&C step) is
     // mandatory - if it is somehow missing, re-open the popup instead of submitting.
     if (form.createdFor !== "Self" && !submitterConsent) {
@@ -507,19 +522,26 @@ export default function RegisterPage() {
               <div className="grid gap-3.5 md:grid-cols-2">
                 <Field label={t("l_username")}>
                   <Input
+                    id="reg-username"
                     value={username}
                     autoComplete="username"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder={t("ph_username")}
                   />
+                  <p className="text-[11.5px] text-muted-foreground">{t("acc_user_hint")}</p>
                 </Field>
                 <Field label={t("l_password")}>
                   <Input
+                    id="reg-password"
                     type="password"
                     value={password}
                     autoComplete="new-password"
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  <p className="text-[11.5px] text-muted-foreground">{t("acc_pw_hint")}</p>
                 </Field>
               </div>
             </fieldset>
