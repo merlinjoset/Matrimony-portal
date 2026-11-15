@@ -78,13 +78,20 @@ export function ProfileResume({ p, backHref }: { p: OwnProfileDetail; backHref: 
   return (
     <div className="p-6 print:p-0">
       <style>{`
-        @page { size: A4; margin: 10mm 12mm; }
+        /* No top/bottom page margin, so the browser has no room to print its own URL, date and page
+           number there; the same 10mm of space is added inside the sheet instead (on every page). */
+        @page { size: A4; margin: 0 12mm; }
         @media print {
           html, body, .bg-cream { background: #fff !important; }
-          .resume { box-shadow: none !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          /* The on-screen author badge is fixed to the corner and would print over the footer line. */
-          [data-author-credit] { display: none !important; }
+          .resume {
+            box-shadow: none !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            padding-top: 10mm !important; padding-bottom: 10mm !important;
+            -webkit-box-decoration-break: clone; box-decoration-break: clone;
+          }
         }
+        /* No corner "Developed by" badge on the resume page, on screen or in print (it would print over
+           the footer line). It still shows on every other page. */
+        [data-author-credit] { display: none !important; }
       `}</style>
 
       {/* Toolbar - screen only */}
