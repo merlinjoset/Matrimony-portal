@@ -82,6 +82,8 @@ export function ProfileResume({ p, backHref }: { p: OwnProfileDetail; backHref: 
         @media print {
           html, body, .bg-cream { background: #fff !important; }
           .resume { box-shadow: none !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          /* The on-screen author badge is fixed to the corner and would print over the footer line. */
+          [data-author-credit] { display: none !important; }
         }
       `}</style>
 
