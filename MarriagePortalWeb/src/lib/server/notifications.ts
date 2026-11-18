@@ -181,7 +181,8 @@ export async function notifyContactRequested(req: ContactRequest, to: string): P
 /**
  * Tell a listing's family, in matrimony terms, that the other side's family is interested ("A
  * groom's family is interested in your daughter", or the reverse), introduce that bride/groom
- * briefly, and ask them to reply to the email. Sent from the admin Interests list. No phone number,
+ * briefly, and ask them to accept or decline it on their Requests page. Sent automatically when a new
+ * interest arrives, and by the office from the admin Interests list as a reminder. No phone number,
  * email or the enquirer's own message is included: contact details are shared only once both
  * families agree. Returns true if the email was sent. Never throws.
  */
@@ -251,8 +252,9 @@ export function interestReminderEmail(
   const sentBy = enquirer && i.fromName.trim().toLowerCase() !== enquirer.fullName.trim().toLowerCase()
     ? ` The enquiry was sent by ${esc(i.fromName)} on ${when}.`
     : ` The enquiry was sent on ${when}.`;
+  const answerBtn = `<a href="${baseUrl}/requests" style="display:inline-block;margin:0 8px 8px 0;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Accept or decline</a>`;
   const viewBtn = i.fromProfileId
-    ? `<a href="${baseUrl}/profiles/${i.fromProfileId}" style="display:inline-block;padding:10px 16px;background:#8a2a38;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">View the ${side}'s profile</a>`
+    ? `<a href="${baseUrl}/profiles/${i.fromProfileId}" style="display:inline-block;margin:0 8px 8px 0;padding:9px 15px;border:1px solid #8a2a38;color:#8a2a38;text-decoration:none;border-radius:8px;font-weight:600;">View the ${side}'s profile</a>`
     : "";
 
   const html = emailShell(baseUrl, `
@@ -260,9 +262,8 @@ export function interestReminderEmail(
       <p style="margin:0 0 10px;">${greeting}</p>
       <p style="color:#4a4440;margin:0 0 14px;line-height:1.5;">Greetings! We are happy to let you know that ${who} has shown interest in ${targetPhrase} and would like to take this forward.${sentBy}</p>
       ${card}
-      <p style="color:#4a4440;margin:0 0 16px;line-height:1.5;">If you are also interested, please reply to this email. If not, a short reply is appreciated too, so the ${side}'s family can be informed kindly. Contact details are shared only when both families agree.</p>
-      ${viewBtn}
-      <p style="color:#6b6b6b;font-size:13px;margin:14px 0 0;">You can also see every interest in your listing on your <a href="${baseUrl}/requests" style="color:#8a2a38;">Requests page</a>.</p>
+      <p style="color:#4a4440;margin:0 0 16px;line-height:1.5;">Please sign in and accept or decline this interest on your Requests page, so the ${side}'s family knows your answer. Contact details are shared only when both families agree.</p>
+      ${answerBtn}${viewBtn}
       <p style="color:#4a4440;margin:18px 0 0;">With prayers and best wishes,<br>CSI Holy Matrimony</p>`);
   return { subject: `A ${side}'s family is interested in ${target.fullName} (${i.toReferenceId})`, html };
 }

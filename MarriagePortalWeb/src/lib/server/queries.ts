@@ -1241,7 +1241,27 @@ export async function listInterestsReceived(memberId: string): Promise<MemberInt
   return rows.map((r) => toMemberInterest(r as Row, true));
 }
 
-/** Interests the member has sent, newest first, with the office's current status. */
+/**
+ * The listing's family answers an interest sent to them: Accepted or Declined. Only the owner of the
+ * listing the interest was sent to may answer, and only while it is still Awaiting (Pending).
+ */
+export async function respondToInterest(
+  id: string,
+  ownerMemberId: string,
+  status: string,
+): Promise<{ ok: boolean; status: number; message?: string }> {
+  if (status !== "Accepted" && status !== "Declined") return { ok: false, status: 400, message: "Choose Accept or Decline." };
+  const cur = (await sql`
+    SELECT i."Status" FROM "TblInterests" i
+    JOIN "TblProfiles" t ON t."Id" = i."ToProfileId" AND t."OwnerMemberId" = ${ownerMemberId} AND t."IsDeleted" = false
+    WHERE i."Id" = ${id} AND i."IsDeleted" = false LIMIT 1`)[0];
+  if (!cur) return { ok: false, status: 404, message: "Interest not found." };
+  if (cur.Status !== "Awaiting") return { ok: false, status: 409, message: "This interest has already been answered." };
+  await sql`UPDATE "TblInterests" SET "Status" = ${status}, "UpdatedAt" = now() WHERE "Id" = ${id} AND "Status" = 'Awaiting'`;
+  return { ok: true, status: 204 };
+}
+
+/** Interests the member has sent, newest first, with the current status. */
 export async function listInterestsSent(memberId: string): Promise<MemberInterest[]> {
   const rows = await sql`
     SELECT i."Id", i."Status", i."CreatedAt", i."FromName",

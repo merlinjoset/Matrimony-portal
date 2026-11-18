@@ -509,6 +509,11 @@ export const api = {
     return http<{ received: MemberInterest[]; sent: MemberInterest[] }>(`/members/${memberId}/interests`);
   },
 
+  // The listing's family accepts or declines an interest sent to them.
+  respondToInterest(memberId: string, id: string, status: "Accepted" | "Declined"): Promise<void> {
+    return http<void>(`/members/${memberId}/interests/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+  },
+
   setContactRequestStatus(id: string, memberId: string, status: ContactRequestStatus): Promise<void> {
     return http<void>(`/contact-requests/${id}/status`, {
       method: "PATCH",

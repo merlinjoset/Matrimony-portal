@@ -11,7 +11,7 @@ import { useMemberShortlist } from "@/lib/member-shortlist";
 import { api } from "@/lib/api";
 import type { ContactRequest, ContactRequestStatus, InterestStatus, MemberInterest } from "@/lib/types";
 
-/** Status of an Express Interest as the parish office has marked it (members only view it). */
+/** Status of an Express Interest: Pending until the receiving family accepts or declines it. */
 function InterestPill({ status }: { status: InterestStatus }) {
   const { t } = useT();
   const map: Record<InterestStatus, [string, string]> = {
@@ -90,6 +90,22 @@ export default function RequestsPage() {
       toast.success(status === "Approved" ? t("rq_approve_ok") : status === "Revoked" ? t("rq_revoke_ok") : t("rq_decline_ok"));
     } catch (e) {
       toast.error(String(e).replace(/^\d+:\s*/, "") || t("rq_action_err"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  // The family accepts or declines an Express Interest sent to their listing.
+  async function answerInterest(id: string, status: "Accepted" | "Declined") {
+    if (!member) return;
+    setBusy(id);
+    try {
+      await api.respondToInterest(member.memberId, id, status);
+      setInterests((cur) => (cur ? { ...cur, received: cur.received.map((x) => (x.id === id ? { ...x, status } : x)) } : cur));
+      toast.success(status === "Accepted" ? t("ei_accept_ok") : t("ei_decline_ok"));
+    } catch (e) {
+      const err = e as { status?: number; message?: string };
+      toast.error(err.status && err.message ? err.message : t("rq_action_err"));
     } finally {
       setBusy(null);
     }
@@ -235,7 +251,7 @@ export default function RequestsPage() {
             )}
           </div>
 
-          {/* Express Interests received - view only; the parish office follows them up */}
+          {/* Express Interests received - the family accepts or declines them here */}
           <div>
             <h2 className="mb-1 text-lg font-semibold text-maroon">{t("ei_rx_h")}</h2>
             <p className="mb-3 text-[12.5px] text-muted-foreground">{t("ei_rx_note")}</p>
@@ -260,12 +276,34 @@ export default function RequestsPage() {
                         {" · "}{shortDate(x.createdAt)}
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <InterestPill status={x.status} />
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
                       {x.profileId && (
                         <Button size="sm" variant="outline" render={<Link href={`/profiles/${x.profileId}`} />} nativeButton={false}>
                           {t("ei_view")}
                         </Button>
+                      )}
+                      {x.status === "Awaiting" ? (
+                        <>
+                          <Button
+                            size="sm"
+                            disabled={busy === x.id}
+                            onClick={() => answerInterest(x.id, "Accepted")}
+                            className="bg-brand-green text-white hover:bg-brand-green/90"
+                          >
+                            {t("ei_accept")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busy === x.id}
+                            onClick={() => answerInterest(x.id, "Declined")}
+                            className="border-destructive/40 text-destructive hover:bg-destructive/5"
+                          >
+                            {t("ei_decline")}
+                          </Button>
+                        </>
+                      ) : (
+                        <InterestPill status={x.status} />
                       )}
                     </div>
                   </Card>
@@ -274,7 +312,7 @@ export default function RequestsPage() {
             )}
           </div>
 
-          {/* Express Interests the member sent, with the office's status - view only */}
+          {/* Express Interests the member sent, with the other family's answer - view only */}
           <div>
             <h2 className="mb-3 text-lg font-semibold text-maroon">{t("ei_tx_h")}</h2>
             {interests === null ? (
