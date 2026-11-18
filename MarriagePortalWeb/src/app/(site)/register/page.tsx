@@ -116,6 +116,16 @@ interface RegisterDraft {
   authMode: "card" | "email"; otpEmail: string; savedAt: string;
 }
 
+/** True when nothing has been entered yet (e.g. a fresh form, or right after Reset / Start over):
+ *  such a "draft" is never saved, and an old empty one is ignored instead of restored. */
+function isBlankDraft(d: Partial<RegisterDraft>): boolean {
+  const f = (d.form ?? {}) as Record<string, unknown>;
+  const formBlank = (Object.keys(empty) as Array<keyof CreateProfileInput>).every((k) => (f[k] ?? empty[k]) === empty[k]);
+  const s = d.submitter;
+  const submitterBlank = !s || (!s.name && !s.mobile && !s.email && !s.country && !s.city && !s.churchMembership && !s.relationshipOther && !s.declaration && !s.consent);
+  return formBlank && submitterBlank && !d.siblings?.length && !d.phone && !d.phone2 && !d.salaryAmount && !d.username && !d.otpEmail && !d.submitterConsent;
+}
+
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`space-y-1.5${className ? ` ${className}` : ""}`}>
@@ -208,7 +218,8 @@ export default function RegisterPage() {
       try {
         const raw = localStorage.getItem(DRAFT_KEY);
         const d = raw ? (JSON.parse(raw) as Partial<RegisterDraft>) : null;
-        if (d?.form) {
+        if (d && isBlankDraft(d)) localStorage.removeItem(DRAFT_KEY); // nothing worth bringing back
+        else if (d?.form) {
           setForm({ ...empty, ...d.form });
           if (Array.isArray(d.siblings)) setSiblings(d.siblings);
           if (d.dialCode) setDialCode(d.dialCode);
@@ -244,7 +255,11 @@ export default function RegisterPage() {
         form, siblings, dialCode, phone, dialCode2, phone2, currency, salaryAmount, username,
         submitter, submitterConsent, authMode, otpEmail, savedAt: new Date().toISOString(),
       };
-      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch { /* storage full or blocked */ }
+      try {
+        // An empty form (fresh, or just Reset / Start over) is not a draft: remove rather than save it.
+        if (isBlankDraft(d)) localStorage.removeItem(DRAFT_KEY);
+        else localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+      } catch { /* storage full or blocked */ }
     }, 500);
     return () => window.clearTimeout(id);
   }, [form, siblings, dialCode, phone, dialCode2, phone2, currency, salaryAmount, username, submitter, submitterConsent, authMode, otpEmail]);
