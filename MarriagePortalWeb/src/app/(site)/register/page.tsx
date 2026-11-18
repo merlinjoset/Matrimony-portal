@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -101,6 +101,21 @@ function focusField(id: string) {
   el.focus({ preventScroll: true });
 }
 
+/** Where an unfinished registration is kept on this device (no password or email verification token). */
+const DRAFT_KEY = "csi_register_draft_v1";
+type SubmitterForm = {
+  relationship: string; relationshipOther: string; name: string; mobile: string; email: string; country: string;
+  city: string; churchMembership: string; preferredContact: string; declaration: boolean; consent: boolean;
+};
+interface RegisterDraft {
+  form: CreateProfileInput;
+  siblings: Array<{ name: string; status: string; occupation: string }>;
+  dialCode: string; phone: string; dialCode2: string; phone2: string;
+  currency: string; salaryAmount: string; username: string;
+  submitter: SubmitterForm; submitterConsent: SubmitterDetails | null;
+  authMode: "card" | "email"; otpEmail: string; savedAt: string;
+}
+
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`space-y-1.5${className ? ` ${className}` : ""}`}>
@@ -181,6 +196,60 @@ export default function RegisterPage() {
   const [casteList, setCasteList] = useState<string[]>([]);
   useEffect(() => { api.getCastes().then(setCasteList).catch(() => {}); }, []);
 
+  // ---- Draft: keep what the family has typed on this device, so a refresh or a closed tab does not
+  // lose it. Never stores the password or the email verification code/token. Cleared on a successful
+  // submit or Reset.
+  const draftReady = useRef(false);
+  const submitted = useRef(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+  useEffect(() => {
+    // Restore after mount (localStorage only exists in the browser), outside the effect body.
+    const id = window.setTimeout(() => {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        const d = raw ? (JSON.parse(raw) as Partial<RegisterDraft>) : null;
+        if (d?.form) {
+          setForm({ ...empty, ...d.form });
+          if (Array.isArray(d.siblings)) setSiblings(d.siblings);
+          if (d.dialCode) setDialCode(d.dialCode);
+          if (d.phone) setPhone(d.phone);
+          if (d.dialCode2) setDialCode2(d.dialCode2);
+          if (d.phone2) setPhone2(d.phone2);
+          if (d.currency) setCurrency(d.currency);
+          if (d.salaryAmount) setSalaryAmount(d.salaryAmount);
+          if (d.username) setUsername(d.username);
+          if (d.submitter) setSubmitter({ ...emptySubmitter, ...d.submitter });
+          if (d.submitterConsent) setSubmitterConsent(d.submitterConsent);
+          if (d.authMode) setAuthMode(d.authMode);
+          if (d.otpEmail) setOtpEmail(d.otpEmail);
+          setDraftRestored(true);
+          // Re-check the membership card so the form is ready to submit again.
+          if (d.authMode !== "email" && d.form.membershipNo?.trim()) void validateCard(d.form.membershipNo);
+        }
+      } catch {
+        // A broken draft is ignored.
+      }
+      draftReady.current = true;
+    }, 0);
+    return () => window.clearTimeout(id);
+    // Runs once on mount; validateCard only needs the card number passed in.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!draftReady.current || submitted.current) return;
+    const id = window.setTimeout(() => {
+      // Checked again here: a save scheduled just before a successful submit must not bring it back.
+      if (submitted.current) return;
+      const d: RegisterDraft = {
+        form, siblings, dialCode, phone, dialCode2, phone2, currency, salaryAmount, username,
+        submitter, submitterConsent, authMode, otpEmail, savedAt: new Date().toISOString(),
+      };
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch { /* storage full or blocked */ }
+    }, 500);
+    return () => window.clearTimeout(id);
+  }, [form, siblings, dialCode, phone, dialCode2, phone2, currency, salaryAmount, username, submitter, submitterConsent, authMode, otpEmail]);
+  const clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ } };
+
   // Required national-number length by country: UAE 9 digits, India 10; others unrestricted (0).
   function phoneMax(code: string): number {
     return code === "+971" ? 9 : code === "+91" ? 10 : 0;
@@ -204,8 +273,9 @@ export default function RegisterPage() {
     set("mobile2", digits ? `${code} ${digits}` : "");
   }
 
-  async function validateCard() {
-    const card = form.membershipNo.trim();
+  // Card number from the field, or passed in directly (when a saved draft is restored).
+  async function validateCard(cardArg?: unknown) {
+    const card = (typeof cardArg === "string" ? cardArg : form.membershipNo).trim();
     if (!card) return;
     setChecking(true);
     setDupProfile(false);
@@ -285,33 +355,41 @@ export default function RegisterPage() {
   }
   const setStr = (key: keyof CreateProfileInput) => (v: string | null) => set(key, (v ?? "") as never);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!identityOk) return toast.error(authMode === "card" ? t("m_required") : t("otp_required"));
-    if (authMode === "card" && dupProfile) return toast.error(t("dup_profile"));
+  // Every check the main form must pass before the profile can be created, in form order. Shows the
+  // first problem (and brings that field into view where we can) and returns false; true when ready.
+  // Used by the Submit button and by "Confirm consent & submit" in the consent popup.
+  function checkMainForm(): boolean {
+    const fail = (msg: string, field?: string) => { if (field) focusField(field); toast.error(msg); return false; };
+    if (!identityOk) return fail(authMode === "card" ? t("m_required") : t("otp_required"));
+    if (authMode === "card" && dupProfile) return fail(t("dup_profile"));
     // Guests choose a username + password: this creates their member login (admin activates it).
-    // Checked in form order (the login section is near the top) with the same rules as the server,
-    // and the field is brought into view so a long form on a phone shows what to fix.
+    // Checked in form order (the login section is near the top) with the same rules as the server.
     if (!member) {
       const u = username.trim();
-      if (u.length < 3) { focusField("reg-username"); return toast.error(t("acc_user_req")); }
-      if (!/^[a-zA-Z0-9_.@-]+$/.test(u)) { focusField("reg-username"); return toast.error(t("acc_user_chars")); }
-      if (password.length < 6) { focusField("reg-password"); return toast.error(t("acc_pw_req")); }
+      if (u.length < 3) return fail(t("acc_user_req"), "reg-username");
+      if (!/^[a-zA-Z0-9_.@-]+$/.test(u)) return fail(t("acc_user_chars"), "reg-username");
+      if (password.length < 6) return fail(t("acc_pw_req"), "reg-password");
     }
-    if (uploading) return toast.error(t("ph_wait"));
-    if (!form.mainPhotoUrl) return toast.error(t("photo_req"));
-    if (!form.fullName.trim()) return toast.error(t("toast_name"));
-    if (!form.dateOfBirth) return toast.error(t("dob_req"));
-    if ((ageOf(form.dateOfBirth) ?? 0) < MIN_AGE) return toast.error(t("dob_min"));
-    if (!form.caste?.trim()) return toast.error(t("caste_req"));
-    if (!form.nativePlace?.trim()) return toast.error(t("native_req"));
-    if (form.congregation === "Other" && !form.refereeName?.trim()) return toast.error(t("referee_name_req"));
-    if (form.congregation === "Other" && !form.refereeContact?.trim()) return toast.error(t("referee_contact_req"));
+    if (uploading) return fail(t("ph_wait"));
+    if (!form.mainPhotoUrl) return fail(t("photo_req"));
+    if (!form.fullName.trim()) return fail(t("toast_name"));
+    if (!form.dateOfBirth) return fail(t("dob_req"));
+    if ((ageOf(form.dateOfBirth) ?? 0) < MIN_AGE) return fail(t("dob_min"));
+    if (!form.caste?.trim()) return fail(t("caste_req"));
+    if (!form.nativePlace?.trim()) return fail(t("native_req"));
+    if (form.congregation === "Other" && !form.refereeName?.trim()) return fail(t("referee_name_req"));
+    if (form.congregation === "Other" && !form.refereeContact?.trim()) return fail(t("referee_contact_req"));
     const pmax = phoneMax(dialCode);
-    if (pmax > 0 && phone.length !== pmax) return toast.error(t("mobile_len"));
+    if (pmax > 0 && phone.length !== pmax) return fail(t("mobile_len"));
     const pmax2 = phoneMax(dialCode2);
-    if (phone2 && pmax2 > 0 && phone2.length !== pmax2) return toast.error(t("mobile_len"));
-    if (!agree) return toast.error(t("tc_req"));
+    if (phone2 && pmax2 > 0 && phone2.length !== pmax2) return fail(t("mobile_len"));
+    if (!agree) return fail(t("tc_req"));
+    return true;
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!checkMainForm()) return;
     // Creating on behalf of someone else? The consent (captured via the popup at the T&C step) is
     // mandatory - if it is somehow missing, re-open the popup instead of submitting.
     if (form.createdFor !== "Self" && !submitterConsent) {
@@ -321,8 +399,9 @@ export default function RegisterPage() {
     await doCreate(form.createdFor !== "Self" ? submitterConsent ?? undefined : undefined);
   }
 
-  // Validate the "person submitting the form" consent and record it. The profile is created later,
-  // when the member clicks the main Submit button.
+  // Validate the "person submitting the form" consent, record it, and - if the rest of the form is
+  // complete - submit the profile straight away, so there is no second Submit button to miss.
+  // If something is still missing, the check shows what (and where) and the consent stays recorded.
   function submitConsent() {
     const req = (v: string) => !!v.trim();
     if (submitter.relationship === "Other" && !req(submitter.relationshipOther)) return toast.error("Please specify your relationship to the bride/groom.");
@@ -350,7 +429,17 @@ export default function RegisterPage() {
     };
     setSubmitterConsent(details);
     setConsentOpen(false);
-    toast.success("Consent recorded. You can now submit the profile.");
+    if (checkMainForm()) void doCreate(details);
+  }
+
+  // Clear the whole form and the saved draft ("Reset", or "Start over" on the restored-draft notice).
+  function resetForm() {
+    setForm(empty); setSalaryAmount(""); setCurrency("AED"); setSiblings([]);
+    setPhone(""); setPhone2(""); setUsername(""); setPassword("");
+    setSubmitter(emptySubmitter); setSubmitterConsent(null); setMembership(null);
+    setPhotoPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
+    setDraftRestored(false);
+    clearDraft();
   }
 
   async function doCreate(submitterDetails?: SubmitterDetails) {
@@ -386,6 +475,8 @@ export default function RegisterPage() {
       });
       toast.success(t("toast_ok"));
       setConsentOpen(false);
+      submitted.current = true;
+      clearDraft();
       router.push(`/profiles/${created.id}`);
     } catch (err) {
       // Surface the real server message when we have one; fall back to the generic notice.
@@ -403,6 +494,12 @@ export default function RegisterPage() {
         <div className="mb-4 rounded-lg border border-brand-green/25 bg-brand-green/10 px-3.5 py-3 text-sm text-brand-green">
           {t("reg_note")}
         </div>
+        {draftRestored && (
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-gold/50 bg-gold/10 px-3.5 py-3 text-[13px]">
+            <span className="min-w-0 flex-1">{t("draft_restored")}</span>
+            <button type="button" onClick={resetForm} className="font-semibold text-maroon underline">{t("draft_clear")}</button>
+          </div>
+        )}
 
         <div className="mb-6 rounded-xl border border-maroon/20 bg-maroon/5 p-4">
           <div className="mb-2 text-[13px] font-bold uppercase tracking-wide text-maroon">{t("reg_how_h")}</div>
@@ -559,6 +656,9 @@ export default function RegisterPage() {
                 {photoPreview ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={photoPreview} alt="" className="h-full w-full object-cover" />
+                ) : form.mainPhotoUrl ? (
+                  // Restored from a draft: the photo is already uploaded, but there is no local preview.
+                  <span className="px-2 text-center text-[12px] font-semibold text-brand-green">✓ {t("ph_added")}</span>
                 ) : (
                   <span className="text-3xl text-gold">📷</span>
                 )}
@@ -574,7 +674,7 @@ export default function RegisterPage() {
                     </span>
                     <input type="file" accept="image/*" hidden onChange={onPhoto} disabled={uploading} />
                   </label>
-                  {photoPreview && (
+                  {(photoPreview || form.mainPhotoUrl) && (
                     <button
                       type="button"
                       onClick={() => { setPhotoPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return null; }); set("mainPhotoUrl", null); }}
@@ -999,7 +1099,7 @@ export default function RegisterPage() {
             >
               {saving ? t("submitting") : t("submit_btn")}
             </Button>
-            <Button type="button" variant="outline" onClick={() => { setForm(empty); setSalaryAmount(""); setCurrency("AED"); setSiblings([]); setSubmitter(emptySubmitter); setSubmitterConsent(null); setPhotoPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return null; }); }}>
+            <Button type="button" variant="outline" onClick={resetForm}>
               {t("reset_btn")}
             </Button>
           </div>
@@ -1089,9 +1189,10 @@ export default function RegisterPage() {
             <Button
               type="button"
               onClick={submitConsent}
+              disabled={saving}
               className="bg-gold text-maroon hover:bg-gold! hover:brightness-105"
             >
-              Confirm consent
+              {saving ? t("submitting") : "Confirm consent & submit"}
             </Button>
           </DialogFooter>
         </DialogContent>
