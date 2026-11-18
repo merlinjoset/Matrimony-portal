@@ -387,6 +387,28 @@ export interface Interest {
   reminders: InterestReminder[];
 }
 
+/**
+ * An Express Interest as a member sees it on their Requests page (view only). "Received" rows describe
+ * the interested bride/groom; "sent" rows describe the listing the member was interested in. Never
+ * carries the sender's phone number or message - contact details are shared only when both agree.
+ */
+export interface MemberInterest {
+  id: string;
+  status: InterestStatus;
+  createdAt: string;
+  /** The other side's listing; profileId is null when it is not (or no longer) viewable. */
+  profileId: string | null;
+  referenceId: string | null;
+  name: string;
+  gender: string | null;
+  age: number | null;
+  profession: string | null;
+  city: string | null;
+  /** Received only: which of the member's own listings the interest was for. */
+  yourListingName: string | null;
+  yourListingRef: string | null;
+}
+
 /** One reminder email sent from Admin > Interests. */
 export interface InterestReminder {
   sentAt: string;

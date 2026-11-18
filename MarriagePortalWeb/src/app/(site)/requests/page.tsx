@@ -9,7 +9,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useT } from "@/lib/i18n";
 import { useMemberShortlist } from "@/lib/member-shortlist";
 import { api } from "@/lib/api";
-import type { ContactRequest, ContactRequestStatus } from "@/lib/types";
+import type { ContactRequest, ContactRequestStatus, InterestStatus, MemberInterest } from "@/lib/types";
+
+/** Status of an Express Interest as the parish office has marked it (members only view it). */
+function InterestPill({ status }: { status: InterestStatus }) {
+  const { t } = useT();
+  const map: Record<InterestStatus, [string, string]> = {
+    Awaiting: ["bg-amber-100 text-amber-800", t("ei_st_awaiting")],
+    Accepted: ["bg-brand-green/15 text-brand-green", t("ei_st_accepted")],
+    Declined: ["bg-muted text-muted-foreground", t("ei_st_declined")],
+  };
+  const [cls, label] = map[status] ?? map.Awaiting;
+  return <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${cls}`}>{label}</span>;
+}
+
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 function StatusPill({ status }: { status: ContactRequestStatus }) {
   const { t } = useT();
@@ -46,12 +60,20 @@ export default function RequestsPage() {
   const [incoming, setIncoming] = useState<ContactRequest[] | null>(null);
   const [outgoing, setOutgoing] = useState<ContactRequest[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [interests, setInterests] = useState<{ received: MemberInterest[]; sent: MemberInterest[] } | null>(null);
 
   const load = useCallback(() => {
     if (!member) return;
     api.getIncomingContactRequests(member.memberId).then(setIncoming).catch(() => setIncoming([]));
     api.getOutgoingContactRequests(member.memberId).then(setOutgoing).catch(() => setOutgoing([]));
+    api.getMyInterests(member.memberId).then(setInterests).catch(() => setInterests({ received: [], sent: [] }));
   }, [member]);
+
+  // "Groom · 30 yrs · Senior Accountant · Dubai"
+  const summary = (x: MemberInterest) =>
+    [x.gender === "Female" ? t("ei_bride") : x.gender === "Male" ? t("ei_groom") : null, x.age != null ? `${x.age} ${t("ei_yrs")}` : null, x.profession, x.city]
+      .filter(Boolean)
+      .join(" · ");
 
   useEffect(() => { load(); }, [load]);
 
@@ -207,6 +229,77 @@ export default function RequestsPage() {
                     ) : (
                       <StatusPill status={r.status} />
                     )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Express Interests received - view only; the parish office follows them up */}
+          <div>
+            <h2 className="mb-1 text-lg font-semibold text-maroon">{t("ei_rx_h")}</h2>
+            <p className="mb-3 text-[12.5px] text-muted-foreground">{t("ei_rx_note")}</p>
+            {interests === null ? (
+              <Skeleton className="h-20 w-full" />
+            ) : interests.received.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("ei_rx_empty")}</p>
+            ) : (
+              <div className="space-y-3">
+                {interests.received.map((x) => (
+                  <Card key={x.id} className="flex flex-row flex-wrap items-center gap-3 px-3.5 py-2.5 transition hover:shadow-sm">
+                    <Avatar name={x.name} />
+                    <div className="min-w-0 flex-1 leading-tight">
+                      <p className="text-sm font-semibold">
+                        {x.name}
+                        {x.referenceId ? <span className="font-normal text-muted-foreground"> · {x.referenceId}</span> : null}
+                      </p>
+                      {summary(x) && <p className="text-[11.5px] text-muted-foreground">{summary(x)}</p>}
+                      <p className="text-[11.5px] text-muted-foreground">
+                        {t("ei_rx_line")}{" "}
+                        <span className="font-medium text-maroon">{x.yourListingName}{x.yourListingRef ? ` (${x.yourListingRef})` : ""}</span>
+                        {" · "}{shortDate(x.createdAt)}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <InterestPill status={x.status} />
+                      {x.profileId && (
+                        <Button size="sm" variant="outline" render={<Link href={`/profiles/${x.profileId}`} />} nativeButton={false}>
+                          {t("ei_view")}
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Express Interests the member sent, with the office's status - view only */}
+          <div>
+            <h2 className="mb-3 text-lg font-semibold text-maroon">{t("ei_tx_h")}</h2>
+            {interests === null ? (
+              <Skeleton className="h-20 w-full" />
+            ) : interests.sent.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("ei_tx_empty")}</p>
+            ) : (
+              <div className="space-y-3">
+                {interests.sent.map((x) => (
+                  <Card key={x.id} className="flex flex-row items-center gap-3 px-3.5 py-2.5 transition hover:shadow-sm">
+                    <Avatar name={x.name} />
+                    <div className="min-w-0 flex-1 leading-tight">
+                      {x.profileId ? (
+                        <Link href={`/profiles/${x.profileId}`} className="text-sm font-semibold text-foreground hover:text-maroon hover:underline">
+                          {x.name}
+                        </Link>
+                      ) : (
+                        <span className="text-sm font-semibold">{x.name}</span>
+                      )}
+                      <p className="text-[11.5px] text-muted-foreground">
+                        {[x.referenceId, summary(x)].filter(Boolean).join(" · ")}
+                      </p>
+                      <p className="text-[11.5px] text-muted-foreground">{t("ei_tx_line")} · {shortDate(x.createdAt)}</p>
+                    </div>
+                    <InterestPill status={x.status} />
                   </Card>
                 ))}
               </div>

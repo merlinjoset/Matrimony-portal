@@ -262,6 +262,7 @@ export function interestReminderEmail(
       ${card}
       <p style="color:#4a4440;margin:0 0 16px;line-height:1.5;">If you are also interested, please reply to this email. If not, a short reply is appreciated too, so the ${side}'s family can be informed kindly. Contact details are shared only when both families agree.</p>
       ${viewBtn}
+      <p style="color:#6b6b6b;font-size:13px;margin:14px 0 0;">You can also see every interest in your listing on your <a href="${baseUrl}/requests" style="color:#8a2a38;">Requests page</a>.</p>
       <p style="color:#4a4440;margin:18px 0 0;">With prayers and best wishes,<br>CSI Holy Matrimony</p>`);
   return { subject: `A ${side}'s family is interested in ${target.fullName} (${i.toReferenceId})`, html };
 }

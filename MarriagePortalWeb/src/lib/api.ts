@@ -8,6 +8,7 @@ import type {
   CurrentAdmin,
   VerifyQueueItem,
   MemberAccount,
+  MemberInterest,
   MemberSession,
   CreateInterestInput,
   CreateProfileInput,
@@ -501,6 +502,11 @@ export const api = {
 
   getOutgoingContactRequests(memberId: string): Promise<ContactRequest[]> {
     return http<ContactRequest[]>(`/members/${memberId}/contact-requests/outgoing`);
+  },
+
+  // The signed-in member's Express Interests, received and sent (view only).
+  getMyInterests(memberId: string): Promise<{ received: MemberInterest[]; sent: MemberInterest[] }> {
+    return http<{ received: MemberInterest[]; sent: MemberInterest[] }>(`/members/${memberId}/interests`);
   },
 
   setContactRequestStatus(id: string, memberId: string, status: ContactRequestStatus): Promise<void> {

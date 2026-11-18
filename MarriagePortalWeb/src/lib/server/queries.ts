@@ -11,6 +11,8 @@ import type {
   CreateUserInput,
   Interest,
   InterestReminder,
+  InterestStatus,
+  MemberInterest,
   ContactRequest,
   ContactRequestStatus,
   ContactReveal,
@@ -1168,7 +1170,7 @@ async function getInterestReminders(interestId: string): Promise<InterestReminde
  * which family is enquiring. Sending again to the same listing while the earlier interest is still
  * open returns that interest instead of saving a duplicate.
  */
-export async function createInterest(dto: CreateInterestInput, fromMemberId: string): Promise<Interest | null> {
+export async function createInterest(dto: CreateInterestInput, fromMemberId: string): Promise<{ interest: Interest; created: boolean } | null> {
   const p = (await sql`SELECT "Id","FullName","ReferenceId","OwnerMemberId","Gender" FROM "TblProfiles" WHERE "Id" = ${dto.toProfileId} AND "IsDeleted" = false LIMIT 1`)[0];
   if (!p) return null;
   if (p.OwnerMemberId === fromMemberId) {
@@ -1180,7 +1182,7 @@ export async function createInterest(dto: CreateInterestInput, fromMemberId: str
     WHERE "FromMemberId" = ${fromMemberId} AND "ToProfileId" = ${p.Id as string}
       AND "Status" IN ('Awaiting','Accepted') AND "IsDeleted" = false
     ORDER BY "CreatedAt" ASC LIMIT 1`)[0];
-  if (existing) return toInterest(existing as Row);
+  if (existing) return { interest: toInterest(existing as Row), created: false };
 
   const sender = await getMemberOwnProfileBrief(fromMemberId);
   const inserted = await sql`
@@ -1190,7 +1192,66 @@ export async function createInterest(dto: CreateInterestInput, fromMemberId: str
       (${crypto.randomUUID()}, ${p.Id as string}, ${p.FullName as string}, ${p.ReferenceId as string}, ${dto.fromName.trim()}, ${dto.fromMobile.trim()},
        ${fromMemberId}, ${sender?.id ?? null}, ${sender?.referenceId ?? null}, ${dto.message?.trim() || null}, 'Awaiting', now(), false)
     RETURNING *`;
-  return toInterest(inserted[0] as Row);
+  return { interest: toInterest(inserted[0] as Row), created: true };
+}
+
+/** Turn a row describing "the other side's" listing into what a member may see of an interest. */
+function toMemberInterest(r: Row, yours: boolean): MemberInterest {
+  const live = r.PStatus === "Verified" || r.PStatus === "Active";
+  return {
+    id: r.Id as string,
+    status: r.Status as InterestStatus,
+    createdAt: new Date(r.CreatedAt as string).toISOString(),
+    profileId: live ? (r.PId as string) : null, // link only to a listing that is live
+    referenceId: s(r.PRef),
+    name: s(r.PName) ?? (r.FromName as string),
+    gender: s(r.PGender),
+    age: r.PAge == null ? null : Number(r.PAge),
+    profession: s(r.PProfession),
+    city: s(r.PCity),
+    yourListingName: yours ? s(r.ToName) : null,
+    yourListingRef: yours ? s(r.ToRef) : null,
+  };
+}
+
+/**
+ * Interests other families have sent to the member's own listing(s), newest first. View only: the
+ * interested bride/groom's public summary, never their phone number or message. Older interests sent
+ * before the sender's listing was recorded are matched by mobile, as on the admin page.
+ */
+export async function listInterestsReceived(memberId: string): Promise<MemberInterest[]> {
+  const rows = await sql`
+    SELECT i."Id", i."Status", i."CreatedAt", i."FromName",
+           t."FullName" AS "ToName", t."ReferenceId" AS "ToRef",
+           f."Id" AS "PId", f."ReferenceId" AS "PRef", f."FullName" AS "PName", f."Gender" AS "PGender",
+           date_part('year', age(f."DateOfBirth"))::int AS "PAge", f."Profession" AS "PProfession", f."City" AS "PCity", f."Status" AS "PStatus"
+    FROM "TblInterests" i
+    JOIN "TblProfiles" t ON t."Id" = i."ToProfileId" AND t."OwnerMemberId" = ${memberId} AND t."IsDeleted" = false
+    LEFT JOIN LATERAL (
+      SELECT p.* FROM "TblProfiles" p
+      WHERE p."IsDeleted" = false AND (
+        (i."FromProfileId" IS NOT NULL AND p."Id"::text = i."FromProfileId")
+        OR (i."FromProfileId" IS NULL AND length(regexp_replace(coalesce(i."FromMobile",''), '[^0-9]', '', 'g')) >= 9
+            AND right(regexp_replace(coalesce(p."Mobile",''), '[^0-9]', '', 'g'), 9) = right(regexp_replace(i."FromMobile", '[^0-9]', '', 'g'), 9))
+      )
+      ORDER BY p."CreatedAt" DESC LIMIT 1
+    ) f ON true
+    WHERE i."IsDeleted" = false
+    ORDER BY i."CreatedAt" DESC`;
+  return rows.map((r) => toMemberInterest(r as Row, true));
+}
+
+/** Interests the member has sent, newest first, with the office's current status. */
+export async function listInterestsSent(memberId: string): Promise<MemberInterest[]> {
+  const rows = await sql`
+    SELECT i."Id", i."Status", i."CreatedAt", i."FromName",
+           t."Id" AS "PId", t."ReferenceId" AS "PRef", t."FullName" AS "PName", t."Gender" AS "PGender",
+           date_part('year', age(t."DateOfBirth"))::int AS "PAge", t."Profession" AS "PProfession", t."City" AS "PCity", t."Status" AS "PStatus"
+    FROM "TblInterests" i
+    JOIN "TblProfiles" t ON t."Id" = i."ToProfileId" AND t."IsDeleted" = false
+    WHERE i."FromMemberId" = ${memberId} AND i."IsDeleted" = false
+    ORDER BY i."CreatedAt" DESC`;
+  return rows.map((r) => toMemberInterest(r as Row, false));
 }
 
 export async function listInterests(): Promise<Interest[]> {
