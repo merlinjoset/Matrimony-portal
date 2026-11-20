@@ -32,12 +32,14 @@ function StatusPill({ status }: { status: ContactRequestStatus }) {
     Approved: "bg-brand-green/15 text-brand-green",
     Declined: "bg-destructive/10 text-destructive",
     Revoked: "bg-muted text-muted-foreground",
+    Withdrawn: "bg-muted text-muted-foreground",
   };
   const label: Record<ContactRequestStatus, string> = {
     Pending: t("rq_pending"),
     Approved: t("rq_approved"),
     Declined: t("rq_declined"),
     Revoked: t("rq_revoked"),
+    Withdrawn: t("rq_withdrawn"),
   };
   return <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${map[status]}`}>{label[status]}</span>;
 }
@@ -166,6 +168,9 @@ export default function RequestsPage() {
                       <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${r.requestType === "Photo" ? "bg-maroon/10 text-maroon" : "bg-brand-green/10 text-brand-green"}`}>
                         {r.requestType === "Photo" ? t("rq_type_photo") : t("rq_type_contact")}
                       </span>
+                      {r.status === "Withdrawn" && (
+                        <p className="mt-1 text-[11.5px] text-muted-foreground">{t("rq_withdrawn_note")}</p>
+                      )}
                     </div>
                     {r.status === "Pending" ? (
                       <div className="flex shrink-0 gap-2">

@@ -1045,6 +1045,8 @@ export async function getContactReveal(profileId: string, viewerMemberId: string
 
 export async function listIncomingContactRequests(ownerMemberId: string): Promise<ContactRequest[]> {
   // Show the requester's own PROFILE name (who the profile is for), not their account/creator name.
+  // Requests the requester withdrew in the last 30 days (stored as Cancelled + IsDeleted) are listed
+  // too, as "Withdrawn", so the family is not puzzled by an email about a request that vanished.
   const rows = await sql`
     SELECT c.*, rp."FullName" AS "RequesterProfileName", rp."Congregation" AS "RequesterProfileCongregation"
     FROM "TblContactRequests" c
@@ -1053,10 +1055,12 @@ export async function listIncomingContactRequests(ownerMemberId: string): Promis
       WHERE "OwnerMemberId" = c."RequesterMemberId" AND "IsDeleted" = false
       ORDER BY "CreatedAt" DESC LIMIT 1
     ) rp ON true
-    WHERE c."OwnerMemberId" = ${ownerMemberId} AND c."IsDeleted" = false
+    WHERE c."OwnerMemberId" = ${ownerMemberId}
+      AND (c."IsDeleted" = false OR (c."Status" = 'Cancelled' AND c."UpdatedAt" > now() - interval '30 days'))
     ORDER BY c."CreatedAt" DESC`;
   return rows.map((r) => {
     const base = toContactRequest(r as Row);
+    if ((r as Row).Status === "Cancelled") base.status = "Withdrawn";
     const profileName = (r as Row).RequesterProfileName as string | null;
     if (!profileName) return base;
     return {

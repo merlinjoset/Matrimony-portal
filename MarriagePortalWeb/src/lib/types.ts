@@ -439,7 +439,9 @@ export interface CreateInterestInput {
 }
 
 // ---- Contact-reveal requests ----
-export type ContactRequestStatus = "Pending" | "Approved" | "Declined" | "Revoked";
+/** "Withdrawn" is display-only: a request the requester took back (stored as Cancelled), shown to the
+ *  listing's family for a while so an email they already received still makes sense. */
+export type ContactRequestStatus = "Pending" | "Approved" | "Declined" | "Revoked" | "Withdrawn";
 /** Contact number and photo are requested and approved independently. */
 export type RequestType = "Contact" | "Photo";
 
