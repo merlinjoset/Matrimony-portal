@@ -25,7 +25,7 @@ const TYPE_LABEL: Record<EdgeType, string> = {
   Photo: "📷 Photo request",
   Contact: "📞 Contact request",
 };
-const BUCKET_LABEL: Record<Bucket, string> = { pending: "Pending", accepted: "Accepted / approved", declined: "Declined", revoked: "Revoked / cancelled" };
+const BUCKET_LABEL: Record<Bucket, string> = { pending: "Pending", accepted: "Accepted / approved", declined: "Declined", revoked: "Revoked / withdrawn" };
 const BUCKET_COLOR: Record<Bucket, string> = { pending: "#d97706", accepted: "#16a34a", declined: "#dc2626", revoked: "#9ca3af" };
 const BUCKET_TONE = { pending: "amber", accepted: "green", declined: "red", revoked: "grey" } as const;
 

@@ -221,7 +221,7 @@ export default function InterestsPage() {
         <section>
           <h3 className="mb-1 font-semibold">Contact &amp; photo requests</h3>
           <p className="mb-3 text-[12.5px] text-muted-foreground">
-            Members asking to see another listing&apos;s contact number or photo. The listing&apos;s owner approves or declines these; shown here so the office can follow the activity.
+            Members asking to see another listing&apos;s contact number or photo. The listing&apos;s owner approves or declines these; shown here so the office can follow the activity. &quot;Withdrawn&quot; means the member took the request back before it was answered.
           </p>
           <Card className="p-0">
             {requests === null ? (

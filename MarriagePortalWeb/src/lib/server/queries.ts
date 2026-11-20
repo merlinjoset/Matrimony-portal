@@ -1302,7 +1302,8 @@ export async function listInterests(): Promise<Interest[]> {
   return rows.map((r) => toInterest(r as Row));
 }
 
-/** Every member's contact-number / photo request, for the parish office's oversight (read-only). */
+/** Every member's contact-number / photo request, including ones the requester withdrew, for the
+ *  parish office's oversight (read-only). */
 export async function listAllContactRequests(): Promise<AdminContactRequest[]> {
   const rows = await sql`
     SELECT c.*, rp."Id" AS "RequesterProfileId", rp."ReferenceId" AS "RequesterReferenceId", rp."FullName" AS "RequesterProfileName"
@@ -1312,12 +1313,14 @@ export async function listAllContactRequests(): Promise<AdminContactRequest[]> {
       WHERE "OwnerMemberId" = c."RequesterMemberId" AND "IsDeleted" = false
       ORDER BY "CreatedAt" DESC LIMIT 1
     ) rp ON true
-    WHERE c."IsDeleted" = false
+    WHERE c."IsDeleted" = false OR c."Status" = 'Cancelled'
     ORDER BY c."CreatedAt" DESC`;
   return rows.map((r) => ({
     id: r.Id as string,
     requestType: ((r.RequestType as RequestType) ?? "Contact"),
-    status: r.Status as string,
+    // A request the requester took back is stored as Cancelled (and hidden from members' lists after
+    // 30 days); the office always sees it, labelled Withdrawn.
+    status: r.Status === "Cancelled" ? "Withdrawn" : (r.Status as string),
     createdAt: new Date(r.CreatedAt as string).toISOString(),
     updatedAt: new Date((r.UpdatedAt as string) ?? (r.CreatedAt as string)).toISOString(),
     profileId: r.ProfileId as string,
