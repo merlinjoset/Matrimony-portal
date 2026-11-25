@@ -267,6 +267,7 @@ const en: Dict = {
   rq_type_photo: "📷 Photo",
   rq_youasked: "You asked to see the contact for",
   rq_youasked_line: "You requested their contact number",
+  rq_youasked_photo: "You requested their photo",
 
   // how it works
   how_h: "How it works",
@@ -704,6 +705,7 @@ const ta: Dict = {
   rq_type_photo: "📷 புகைப்படம்",
   rq_youasked: "நீங்கள் தொடர்பைப் பார்க்கக் கோரியது:",
   rq_youasked_line: "அவர்களின் தொடர்பு எண்ணைக் கோரியுள்ளீர்கள்",
+  rq_youasked_photo: "அவர்களின் புகைப்படத்தைக் கோரியுள்ளீர்கள்",
 
   how_h: "எப்படி செயல்படுகிறது",
   how_sub: "எளிய, கண்ணியமான மூன்று படிகள் - உங்கள் திருச்சபையின் வழிகாட்டுதலுடன்.",

@@ -232,7 +232,12 @@ export default function RequestsPage() {
                       <Link href={`/profiles/${r.profileId}`} className="text-sm font-semibold text-foreground hover:text-maroon hover:underline">
                         {r.profileName}
                       </Link>
-                      <p className="text-[11.5px] text-muted-foreground">{r.profileReferenceId} · {t("rq_youasked_line")}</p>
+                      <p className="text-[11.5px] text-muted-foreground">
+                        {r.profileReferenceId} · {r.requestType === "Photo" ? t("rq_youasked_photo") : t("rq_youasked_line")}
+                      </p>
+                      <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${r.requestType === "Photo" ? "bg-maroon/10 text-maroon" : "bg-brand-green/10 text-brand-green"}`}>
+                        {r.requestType === "Photo" ? t("rq_type_photo") : t("rq_type_contact")}
+                      </span>
                     </div>
                     {r.status === "Pending" ? (
                       <div className="flex shrink-0 items-center gap-2">
