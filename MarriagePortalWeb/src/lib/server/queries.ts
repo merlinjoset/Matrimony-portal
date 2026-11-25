@@ -1084,15 +1084,16 @@ export async function setContactRequestStatus(
   if (!["Pending", "Approved", "Declined", "Revoked"].includes(status)) {
     return { ok: false, status: 400, message: "Invalid status." };
   }
-  // Revoking is only allowed on a request that has been approved for at least 2 days.
+  // Only an approved request can be revoked. A photo can be revoked straight away; contact-number
+  // access only once it has been approved for at least 2 days.
   if (status === "Revoked") {
     const cur = (await sql`
-      SELECT "Status", "UpdatedAt" FROM "TblContactRequests"
+      SELECT "Status", "UpdatedAt", "RequestType" FROM "TblContactRequests"
       WHERE "Id" = ${id} AND "OwnerMemberId" = ${ownerMemberId} AND "IsDeleted" = false LIMIT 1`)[0];
     if (!cur) return { ok: false, status: 404, message: "Request not found." };
     if (cur.Status !== "Approved") return { ok: false, status: 409, message: "Only an approved request can be revoked." };
     const approvedAt = new Date(cur.UpdatedAt as string).getTime();
-    if (Date.now() - approvedAt < 2 * 24 * 60 * 60 * 1000) {
+    if (cur.RequestType !== "Photo" && Date.now() - approvedAt < 2 * 24 * 60 * 60 * 1000) {
       return { ok: false, status: 409, message: "Access can only be revoked 2 days after it was approved." };
     }
   }

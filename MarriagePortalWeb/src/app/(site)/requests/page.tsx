@@ -79,17 +79,23 @@ export default function RequestsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // Owners may revoke access only 2 days after they approved a request.
+  // An approved photo can be revoked straight away; contact-number access only 2 days after approving.
   const REVOKE_AFTER_MS = 2 * 24 * 60 * 60 * 1000;
-  const canRevoke = (r: ContactRequest) => r.status === "Approved" && Date.now() - new Date(r.updatedAt).getTime() >= REVOKE_AFTER_MS;
+  const canRevoke = (r: ContactRequest) =>
+    r.status === "Approved" && (r.requestType === "Photo" || Date.now() - new Date(r.updatedAt).getTime() >= REVOKE_AFTER_MS);
 
-  async function act(id: string, status: "Approved" | "Declined" | "Revoked") {
+  async function act(req: ContactRequest, status: "Approved" | "Declined" | "Revoked") {
     if (!member) return;
+    const photo = req.requestType === "Photo";
+    if (status === "Revoked" && !window.confirm(photo ? t("rq_revoke_confirm_photo") : t("rq_revoke_confirm_contact"))) return;
+    const id = req.id;
     setBusy(id);
     try {
       await api.setContactRequestStatus(id, member.memberId, status);
       setIncoming((rs) => (rs ? rs.map((r) => (r.id === id ? { ...r, status, updatedAt: new Date().toISOString() } : r)) : rs));
-      toast.success(status === "Approved" ? t("rq_approve_ok") : status === "Revoked" ? t("rq_revoke_ok") : t("rq_decline_ok"));
+      toast.success(
+        status === "Approved" ? (photo ? t("rq_approve_ok_photo") : t("rq_approve_ok")) : status === "Revoked" ? t("rq_revoke_ok") : t("rq_decline_ok"),
+      );
     } catch (e) {
       toast.error(String(e).replace(/^\d+:\s*/, "") || t("rq_action_err"));
     } finally {
@@ -177,7 +183,7 @@ export default function RequestsPage() {
                         <Button
                           size="sm"
                           disabled={busy === r.id}
-                          onClick={() => act(r.id, "Approved")}
+                          onClick={() => act(r, "Approved")}
                           className="bg-brand-green text-white hover:bg-brand-green/90"
                         >
                           {t("rq_approve")}
@@ -186,7 +192,7 @@ export default function RequestsPage() {
                           size="sm"
                           variant="outline"
                           disabled={busy === r.id}
-                          onClick={() => act(r.id, "Declined")}
+                          onClick={() => act(r, "Declined")}
                           className="border-destructive/40 text-destructive hover:bg-destructive/5"
                         >
                           {t("rq_decline")}
@@ -200,7 +206,7 @@ export default function RequestsPage() {
                             size="sm"
                             variant="outline"
                             disabled={busy === r.id}
-                            onClick={() => act(r.id, "Revoked")}
+                            onClick={() => act(r, "Revoked")}
                             className="border-destructive/40 text-destructive hover:bg-destructive/5"
                           >
                             {t("rq_revoke")}
