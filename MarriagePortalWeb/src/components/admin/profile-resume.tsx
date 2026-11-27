@@ -90,7 +90,7 @@ export function ProfileResume({ p, backHref }: { p: OwnProfileDetail; backHref: 
           }
         }
         /* No corner "Developed by" badge on the resume page, on screen or in print (it would print over
-           the footer line). It still shows on every other page. */
+           the footer line). The whole admin area leaves it out now; this stays as a safeguard for print. */
         [data-author-credit] { display: none !important; }
       `}</style>
 

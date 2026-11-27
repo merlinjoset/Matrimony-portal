@@ -11,10 +11,17 @@ import { useEffect } from "react";
  * Keeps the "Developed by Merlin Jose" author credit present. If the credit is removed from the
  * page (at runtime or from the source), this re-inserts it and shows a short "not authorized"
  * notice. Note: this is a deterrent, not an unbreakable lock - client code can always be edited.
+ *
+ * The admin area (/admin) is left without the corner badge, at the author's own request.
  */
 const MARK = "data-author-credit";
 const NAME = "Merlin Jose";
 const HREF = "http://merlinjose.tech";
+
+function onAdminPage(): boolean {
+  const p = window.location.pathname;
+  return p === "/admin" || p.startsWith("/admin/");
+}
 
 export function AuthorGuard() {
   useEffect(() => {
@@ -52,6 +59,13 @@ export function AuthorGuard() {
     let badge: HTMLElement | null = null;
     let first = true;
     function ensure() {
+      // No badge in the admin area. Coming back to the public site then counts as a fresh start,
+      // so the badge reappears there without the "not authorized" notice.
+      if (onAdminPage()) {
+        if (badge) { badge.remove(); badge = null; }
+        first = true;
+        return;
+      }
       // A "real" credit is any author-credit element (other than our own badge/warning) naming the author.
       const hasRealCredit = Array.from(document.querySelectorAll(`[${MARK}]`)).some(
         (el) => el !== badge && el.getAttribute(MARK) !== "warning" && (el.textContent ?? "").includes(NAME),
